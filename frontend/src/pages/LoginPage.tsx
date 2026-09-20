@@ -7,9 +7,9 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
-  // Login form state
-  const [loginUsername, setLoginUsername] = useState('admin');
-  const [loginPassword, setLoginPassword] = useState('admin123');
+  // Login form state - strictly no hardcoded credentials
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
 
   // Register form state
   const [regUsername, setRegUsername] = useState('');
@@ -38,20 +38,15 @@ export default function LoginPage() {
         username: loginUsername.trim(),
         password: loginPassword,
       });
+
       if (res.data?.access_token) {
         localStorage.setItem('token', res.data.access_token);
         navigate('/');
       } else {
-        localStorage.setItem('token', 'demo-token');
-        navigate('/');
+        setErrorMsg('Authentication server did not return a valid session token.');
       }
     } catch (err: any) {
-      if (loginUsername === 'admin' && loginPassword === 'admin123') {
-        localStorage.setItem('token', 'offline-demo-token');
-        navigate('/');
-      } else {
-        setErrorMsg(err.response?.data?.detail || 'Invalid username or password credentials');
-      }
+      setErrorMsg(err.response?.data?.detail || 'Invalid username or password credentials');
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +144,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleModeSwitch('login')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'login'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -161,7 +156,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleModeSwitch('register')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'register'
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-white'
@@ -209,7 +204,7 @@ export default function LoginPage() {
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
-                    placeholder="e.g. admin or username"
+                    placeholder="Enter investigator ID or username"
                   />
                 </div>
               </div>
@@ -224,6 +219,7 @@ export default function LoginPage() {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    placeholder="Enter security access key"
                   />
                 </div>
               </div>
@@ -231,7 +227,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 {isLoading ? 'Authenticating...' : (
                   <>
@@ -309,7 +305,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg cursor-pointer"
               >
                 {isLoading ? 'Creating Account...' : (
                   <>
@@ -318,15 +314,6 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
-          )}
-
-          {/* Demonstration Credentials Info Box */}
-          {mode === 'login' && (
-            <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-lg text-xs font-mono space-y-1">
-              <div className="text-[11px] text-slate-400 font-bold">DEFAULT DEMO CREDENTIALS:</div>
-              <div className="text-slate-300">Username: <span className="text-white font-bold">admin</span></div>
-              <div className="text-slate-300">Password: <span className="text-white font-bold">admin123</span></div>
-            </div>
           )}
         </div>
       </div>
