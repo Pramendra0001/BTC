@@ -1,5 +1,9 @@
 from fastapi import APIRouter
-from app.api.endpoints import health, auth, dashboard, search, datasets, alerts, wallets, transactions, network, graph, timeline, evidence, cases, models, ai, processing
+from app.api.endpoints import (
+    health, auth, dashboard, search, datasets, alerts, wallets, transactions,
+    network, graph, timeline, evidence, cases, models, ai, processing,
+    heuristics, data_quality, audit, users, jobs
+)
 
 api_router = APIRouter()
 
@@ -19,3 +23,8 @@ api_router.include_router(cases.router, prefix="/cases", tags=["Cases"])
 api_router.include_router(models.router, prefix="/models", tags=["Models"])
 api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
 api_router.include_router(processing.router, prefix="/processing", tags=["Processing"])
+api_router.include_router(heuristics.router, prefix="/heuristics", tags=["Heuristics"])
+api_router.include_router(data_quality.router, prefix="/data-quality", tags=["Data Quality"])
+api_router.include_router(audit.router, prefix="/audit-logs", tags=["Audit Logs"])
+api_router.include_router(users.router, prefix="/users", tags=["Users"])
+api_router.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])

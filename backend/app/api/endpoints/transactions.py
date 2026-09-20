@@ -18,7 +18,28 @@ def get_transaction(txid: str, db: Session = Depends(get_db), current_user: User
     if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    resp = TransactionDetailResponse.from_orm(tx)
-    resp.inputs = []
-    resp.outputs = []
-    return resp
+    return TransactionDetailResponse(
+        id=tx.id,
+        txid=tx.txid,
+        timestamp=tx.timestamp,
+        fee=tx.fee or 0.0,
+        script_type=tx.script_type or "",
+        total_input=tx.total_input or 0.0,
+        total_output=tx.total_output or 0.0,
+        inputs=[
+            {
+                "wallet_address": inp.wallet_address,
+                "amount": inp.amount or 0.0,
+                "position": inp.position or 0
+            }
+            for inp in tx.inputs
+        ],
+        outputs=[
+            {
+                "wallet_address": out.wallet_address,
+                "amount": out.amount or 0.0,
+                "position": out.position or 0
+            }
+            for out in tx.outputs
+        ]
+    )

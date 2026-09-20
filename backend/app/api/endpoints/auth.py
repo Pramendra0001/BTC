@@ -10,10 +10,27 @@ from app.core.config import settings
 
 router = APIRouter()
 
+from fastapi import Request
+
 @router.post("/login", response_model=Token)
-def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+async def login_for_access_token(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    content_type = request.headers.get("content-type", "")
+    username = ""
+    password = ""
+    if "application/json" in content_type:
+        body = await request.json()
+        username = body.get("username", "")
+        password = body.get("password", "")
+    else:
+        form = await request.form()
+        username = form.get("username", "")
+        password = form.get("password", "")
+
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -22,6 +39,17 @@ def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2Passw
     access_token_expires = timedelta(minutes=settings.JWT_EXPIRATION_MINUTES)
     access_token = create_access_token(
         subject=str(user.id), expires_delta=access_token_expires
+    )
+    from app.services import audit_service
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    audit_service.log_action(
+        db,
+        action="USER_LOGIN",
+        user_id=user.id,
+        entity_type="USER",
+        entity_id=str(user.id),
+        details={"username": user.username, "role": user.role},
+        ip_address=client_ip
     )
     return {"access_token": access_token, "token_type": "bearer"}
 

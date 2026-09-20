@@ -21,6 +21,20 @@ async def upload_dataset(file: UploadFile = File(...), db: Session = Depends(get
     process_dataset(db, ds.id, content)
     db.refresh(ds)
     
+    from app.services import audit_service, job_service
+    audit_service.log_action(
+        db,
+        action="DATASET_UPLOAD",
+        user_id=current_user.id if current_user else None,
+        entity_type="DATASET",
+        entity_id=str(ds.id),
+        details={"filename": file.filename, "format": format, "total_records": ds.total_records}
+    )
+    job_service.create_job(
+        job_type="DATASET_INGESTION",
+        description=f"Ingestion of dataset {file.filename} ({ds.total_records} records)"
+    )
+    
     return {"message": "Dataset uploaded and processed", "dataset": ds}
 
 @router.get("/", response_model=DatasetListResponse)
@@ -35,7 +49,35 @@ def get_dataset(id: int, db: Session = Depends(get_db), current_user: User = Dep
         raise HTTPException(status_code=404, detail="Dataset not found")
     return ds
 
+from app.services.entity_service import resolve_all
+from app.services.feature_service import compute_all_features
+from app.services.ml_service import run_full_ml_pipeline
+from app.services.graph_service import persist_graph
+from app.services.evidence_service import generate_evidence
+from app.services.alert_service import generate_alerts
+
 @router.post("/{id}/process")
 def trigger_processing(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # Triggering reprocessing is a placeholder here
-    return {"message": f"Processing triggered for dataset {id}"}
+    ds = db.query(Dataset).filter(Dataset.id == id).first()
+    if not ds:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    
+    # Run full intelligence pipeline
+    resolve_all(db)
+    compute_all_features(db)
+    ml_result = run_full_ml_pipeline(db, id)
+    persist_graph(db)
+    ev_count = generate_evidence(db)
+    alert_count = generate_alerts(db)
+    
+    ds.status = "PIPELINE_COMPLETE"
+    db.commit()
+    
+    return {
+        "message": f"Processing complete for dataset {id}",
+        "dataset_id": id,
+        "status": "PIPELINE_COMPLETE",
+        "evidence_count": ev_count,
+        "alert_count": alert_count,
+        "ml_result": ml_result
+    }

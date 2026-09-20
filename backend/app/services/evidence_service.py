@@ -277,6 +277,45 @@ def generate_evidence(db: Session):
             db.add(ev)
             evidence_count += 1
 
+    # --- STRUCTURAL HEURISTICS: Mixing / CoinJoin & Peeling Chains ---
+    try:
+        from app.services.heuristics_service import detect_mixing_patterns, detect_peeling_chains
+        mix_patterns = detect_mixing_patterns(db, limit=50)
+        for m in mix_patterns:
+            ev = Evidence(
+                entity_type="TRANSACTION",
+                entity_id=m["txid"],
+                category="GRAPH",
+                observation=(
+                    f"Structural pattern detected: {m['pattern_type']}. "
+                    f"Transaction exhibits {m['output_count']} outputs with {m['max_equal_outputs']} "
+                    f"identical denomination values ({m['entropy_bits']} bits entropy), "
+                    f"matching CoinJoin/tumbler mixing heuristics."
+                ),
+                details=m,
+                strength=min(1.0, m["confidence_score"] / 100.0)
+            )
+            db.add(ev)
+            evidence_count += 1
+
+        peel_chains = detect_peeling_chains(db, min_hops=2, limit=50)
+        for pc in peel_chains:
+            ev = Evidence(
+                entity_type="TRANSACTION",
+                entity_id=pc["start_txid"],
+                category="GRAPH",
+                observation=(
+                    f"Peeling-chain cascade detected across {pc['hop_count']} sequential hops. "
+                    f"Total peeled volume: {pc['total_peeled_btc']} BTC with change advancing to {pc['final_change_btc']} BTC."
+                ),
+                details=pc,
+                strength=min(1.0, pc["confidence_score"] / 100.0)
+            )
+            db.add(ev)
+            evidence_count += 1
+    except Exception as e:
+        logger.warning(f"Error generating heuristic evidence: {e}")
+
     db.commit()
     logger.info(f"Evidence generation complete: {evidence_count} evidence items created")
     return evidence_count

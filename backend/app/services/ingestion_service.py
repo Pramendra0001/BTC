@@ -5,7 +5,10 @@ Multi-format data ingestion with validation, normalization, and quality tracking
 import json
 import csv
 import io
-import xml.etree.ElementTree as ET
+try:
+    import defusedxml.ElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 from sqlalchemy.orm import Session
 from app.models.models import (
     Dataset, RawRecord, Transaction, TransactionInput, TransactionOutput,

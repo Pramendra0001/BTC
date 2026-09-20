@@ -223,14 +223,39 @@ class SearchResponse(BaseModel):
     query: str
     results: List[SearchResultResponse]
 
+class DashboardStats(BaseModel):
+    totalTx: int = 0
+    activeWallets: int = 0
+    monitoredIps: int = 0
+    activeAlerts: int = 0
+    totalAsns: int = 0
+    totalObservations: int = 0
+    openCases: int = 0
+    totalEvidence: int = 0
+    totalDatasets: int = 0
+
+class DashboardAlerts(BaseModel):
+    critical: int = 0
+    high: int = 0
+    medium: int = 0
+    low: int = 0
+    new: int = 0
+    reviewing: int = 0
+    resolved: int = 0
+
+class DashboardCases(BaseModel):
+    open: int = 0
+    active: int = 0
+    closed: int = 0
+
 class DashboardResponse(BaseModel):
-    total_datasets: int
-    total_transactions: int
-    total_wallets: int
-    total_ips: int
-    alerts_by_priority: Dict[str, int]
-    cases_by_status: Dict[str, int]
-    recent_alerts: List[AlertResponse]
+    stats: DashboardStats
+    alerts: DashboardAlerts
+    cases: DashboardCases
+    anomalyDistribution: Dict[str, int] = {}
+    recentAlerts: List[Dict[str, Any]] = []
+    processingStatus: Dict[str, int] = {}
+    modelInfo: Dict[str, Any] = {}
 
 class SystemStatusResponse(BaseModel):
     database: str
@@ -246,6 +271,8 @@ class ModelRunResponse(BaseModel):
     model_type: str
     model_version: str
     status: str
+    parameters: Optional[Dict[str, Any]] = None
+    evaluation_metrics: Optional[Dict[str, Any]] = None
     created_at: datetime
     class Config:
         from_attributes = True

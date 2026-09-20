@@ -53,6 +53,16 @@ def create_case(db: Session, title: str, description: str, priority: str,
     db.commit()
     db.refresh(case)
     logger.info(f"Case created: {case.id} - {title}")
+    
+    from app.services import audit_service
+    audit_service.log_action(
+        db,
+        action="CASE_CREATED",
+        user_id=investigator_id,
+        entity_type="CASE",
+        entity_id=str(case.id),
+        details={"title": title, "priority": priority, "from_alert_id": alert_id}
+    )
     return case
 
 
@@ -218,5 +228,15 @@ def generate_report(db: Session, case_id: int) -> dict:
             "Findings represent investigative leads requiring further review."
         ),
     }
+
+    from app.services import audit_service
+    audit_service.log_action(
+        db,
+        action="REPORT_EXPORTED",
+        user_id=detail.get("investigator_id"),
+        entity_type="CASE",
+        entity_id=str(case_id),
+        details={"case_title": detail["title"], "entity_count": detail["entity_count"]}
+    )
 
     return report

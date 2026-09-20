@@ -9,13 +9,15 @@ router = APIRouter()
 def get_health():
     return {"status": "ok"}
 
+from sqlalchemy import text
+
 @router.get("/system/status", response_model=SystemStatusResponse)
 def get_system_status(db: Session = Depends(get_db)):
-    db_status = "ok"
+    db_status = "OPERATIONAL"
     try:
-        db.execute("SELECT 1")
-    except:
-        db_status = "error"
+        db.execute(text("SELECT 1"))
+    except Exception:
+        db_status = "ERROR"
         
     return {
         "database": db_status,

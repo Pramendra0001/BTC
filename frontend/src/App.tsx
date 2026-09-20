@@ -20,6 +20,10 @@ import ModelsPage from './pages/ModelsPage'
 import SystemPage from './pages/SystemPage'
 import SearchResultsPage from './pages/SearchResultsPage'
 import LoginPage from './pages/LoginPage'
+import HeuristicsPage from './pages/HeuristicsPage'
+import DataQualityPage from './pages/DataQualityPage'
+import AuditLogsPage from './pages/AuditLogsPage'
+import SettingsPage from './pages/SettingsPage'
 
 const queryClient = new QueryClient()
 
@@ -45,7 +49,11 @@ function App() {
             <Route path="cases" element={<CasesPage />} />
             <Route path="cases/:id" element={<CaseDetailPage />} />
             <Route path="datasets" element={<DatasetsPage />} />
+            <Route path="heuristics" element={<HeuristicsPage />} />
+            <Route path="data-quality" element={<DataQualityPage />} />
+            <Route path="audit-logs" element={<AuditLogsPage />} />
             <Route path="models" element={<ModelsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
             <Route path="system" element={<SystemPage />} />
             <Route path="search" element={<SearchResultsPage />} />
           </Route>
