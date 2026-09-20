@@ -1,0 +1,280 @@
+from pydantic import BaseModel, EmailStr, Field
+from typing import List, Optional, Any, Dict
+from datetime import datetime
+
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
+    role: str = "VIEWER"
+    is_active: bool = True
+
+class UserCreate(UserBase):
+    password: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+class UserResponse(UserBase):
+    id: int
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class DatasetBase(BaseModel):
+    name: str
+    filename: str
+    format: Optional[str] = None
+
+class DatasetResponse(DatasetBase):
+    id: int
+    status: str
+    total_records: int
+    valid_records: int
+    invalid_records: int
+    duplicate_records: int
+    created_at: datetime
+    updated_at: datetime
+    class Config:
+        from_attributes = True
+
+class DatasetUploadResponse(BaseModel):
+    message: str
+    dataset: DatasetResponse
+
+class DatasetListResponse(BaseModel):
+    datasets: List[DatasetResponse]
+
+class TransactionResponse(BaseModel):
+    id: int
+    txid: str
+    timestamp: datetime
+    fee: float
+    script_type: str
+    total_input: float
+    total_output: float
+    class Config:
+        from_attributes = True
+
+class TransactionInputResponse(BaseModel):
+    wallet_address: str
+    amount: float
+    position: int
+    class Config:
+        from_attributes = True
+
+class TransactionOutputResponse(BaseModel):
+    wallet_address: str
+    amount: float
+    position: int
+    class Config:
+        from_attributes = True
+
+class TransactionDetailResponse(TransactionResponse):
+    inputs: List[TransactionInputResponse]
+    outputs: List[TransactionOutputResponse]
+
+class WalletResponse(BaseModel):
+    address: str
+    first_seen: datetime
+    last_seen: datetime
+    total_sent: float
+    total_received: float
+    tx_count: int
+    class Config:
+        from_attributes = True
+
+class WalletDetailResponse(WalletResponse):
+    recent_transactions: List[TransactionResponse] = []
+
+class IPEntityResponse(BaseModel):
+    ip_address: str
+    first_seen: datetime
+    last_seen: datetime
+    observation_count: int
+    asn: Optional[str]
+    country: Optional[str]
+    class Config:
+        from_attributes = True
+
+class ASNEntityResponse(BaseModel):
+    asn_number: str
+    name: Optional[str]
+    country_count: int
+    ip_count: int
+    class Config:
+        from_attributes = True
+
+class AlertResponse(BaseModel):
+    id: int
+    entity_type: str
+    entity_id: str
+    priority: str
+    anomaly_score: float
+    confidence: float
+    status: str
+    review_state: str
+    created_at: datetime
+    updated_at: datetime
+    class Config:
+        from_attributes = True
+
+class AlertDetailResponse(AlertResponse):
+    contributing_signals: Dict[str, Any]
+    evidence_ids: List[int]
+
+class AlertListResponse(BaseModel):
+    alerts: List[AlertResponse]
+    total: int
+
+class EvidenceResponse(BaseModel):
+    id: int
+    entity_type: str
+    entity_id: str
+    category: str
+    observation: str
+    strength: float
+    created_at: datetime
+    details: Dict[str, Any]
+    class Config:
+        from_attributes = True
+
+class CaseBase(BaseModel):
+    title: str
+    description: str
+    priority: str = "MEDIUM"
+    status: str = "OPEN"
+
+class CaseCreate(CaseBase):
+    pass
+
+class CaseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+
+class CaseResponse(CaseBase):
+    id: int
+    investigator_id: Optional[int]
+    created_at: datetime
+    updated_at: datetime
+    class Config:
+        from_attributes = True
+
+class CaseNoteCreate(BaseModel):
+    content: str
+
+class CaseNoteResponse(BaseModel):
+    id: int
+    case_id: int
+    user_id: int
+    content: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class CaseDetailResponse(CaseResponse):
+    entities: List[Dict[str, Any]] = []
+    evidence: List[Dict[str, Any]] = []
+    notes: List[CaseNoteResponse] = []
+
+class GraphNodeResponse(BaseModel):
+    id: str
+    type: str
+    label: str
+    properties: Dict[str, Any]
+
+class GraphEdgeResponse(BaseModel):
+    id: str
+    source: str
+    target: str
+    type: str
+    weight: float
+    properties: Dict[str, Any]
+
+class GraphResponse(BaseModel):
+    nodes: List[GraphNodeResponse]
+    edges: List[GraphEdgeResponse]
+
+class TimelineEventResponse(BaseModel):
+    timestamp: datetime
+    event_type: str
+    description: str
+    details: Dict[str, Any]
+
+class TimelineResponse(BaseModel):
+    entity_type: str
+    entity_id: str
+    events: List[TimelineEventResponse]
+
+class SearchResultResponse(BaseModel):
+    entity_type: str
+    entity_id: str
+    label: str
+    match_score: float
+    details: Dict[str, Any]
+
+class SearchResponse(BaseModel):
+    query: str
+    results: List[SearchResultResponse]
+
+class DashboardResponse(BaseModel):
+    total_datasets: int
+    total_transactions: int
+    total_wallets: int
+    total_ips: int
+    alerts_by_priority: Dict[str, int]
+    cases_by_status: Dict[str, int]
+    recent_alerts: List[AlertResponse]
+
+class SystemStatusResponse(BaseModel):
+    database: str
+    ml_service: str
+    ai_provider: str
+    uptime_seconds: int
+
+class HealthResponse(BaseModel):
+    status: str
+
+class ModelRunResponse(BaseModel):
+    id: int
+    model_type: str
+    model_version: str
+    status: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class DataQualityResponse(BaseModel):
+    dataset_id: int
+    total_records: int
+    valid_records: int
+    invalid_records: int
+    duplicate_records: int
+
+class ReportResponse(BaseModel):
+    case_id: int
+    title: str
+    report_content: str
+    generated_at: datetime
+
+class AIInterpretationResponse(BaseModel):
+    entity_type: str
+    entity_id: str
+    summary: str
+    observations: List[str]
+    contributing_signals: List[Dict[str, Any]]
+    recommended_review_actions: List[str]
+    uncertainty: str
+    insufficient_information: List[str]
+
+class PaginatedResponse(BaseModel):
+    items: List[Any]
+    total: int
+    page: int
+    size: int

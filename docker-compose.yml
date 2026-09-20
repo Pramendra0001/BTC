@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: btcshield
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d btcshield"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - btcshield-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../deployment/docker/Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/btcshield
+      - SECRET_KEY=changeme123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - btcshield-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../deployment/docker/Dockerfile.frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - btcshield-network
+
+volumes:
+  pgdata:
+
+networks:
+  btcshield-network:
+    driver: bridge

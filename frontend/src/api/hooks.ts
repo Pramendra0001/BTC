@@ -1,0 +1,28 @@
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { apiClient } from './client'
+
+export const useDashboard = () => useQuery({ queryKey: ['dashboard'], queryFn: async () => (await apiClient.get('/api/dashboard')).data })
+export const useAlerts = (params?: any) => useQuery({ queryKey: ['alerts', params], queryFn: async () => (await apiClient.get('/api/alerts', { params })).data })
+export const useAlert = (id: string) => useQuery({ queryKey: ['alert', id], queryFn: async () => (await apiClient.get(`/api/alerts/${id}`)).data })
+export const useWallets = (params?: any) => useQuery({ queryKey: ['wallets', params], queryFn: async () => (await apiClient.get('/api/wallets', { params })).data })
+export const useWallet = (address: string) => useQuery({ queryKey: ['wallet', address], queryFn: async () => (await apiClient.get(`/api/wallets/${address}`)).data })
+export const useTransactions = (params?: any) => useQuery({ queryKey: ['transactions', params], queryFn: async () => (await apiClient.get('/api/transactions', { params })).data })
+export const useTransaction = (txid: string) => useQuery({ queryKey: ['transaction', txid], queryFn: async () => (await apiClient.get(`/api/transactions/${txid}`)).data })
+export const useIP = (ip: string) => useQuery({ queryKey: ['ip', ip], queryFn: async () => (await apiClient.get(`/api/ips/${ip}`)).data })
+export const useASN = (asn: string) => useQuery({ queryKey: ['asn', asn], queryFn: async () => (await apiClient.get(`/api/asns/${asn}`)).data })
+export const useGraph = (entityType: string, entityId: string) => useQuery({ queryKey: ['graph', entityType, entityId], queryFn: async () => (await apiClient.get(`/api/graph`, { params: { entityType, entityId } })).data })
+export const useTimeline = (entityType: string, entityId: string) => useQuery({ queryKey: ['timeline', entityType, entityId], queryFn: async () => (await apiClient.get(`/api/timeline`, { params: { entityType, entityId } })).data })
+export const useEvidence = (id: string) => useQuery({ queryKey: ['evidence', id], queryFn: async () => (await apiClient.get(`/api/evidence/${id}`)).data })
+export const useCases = (params?: any) => useQuery({ queryKey: ['cases', params], queryFn: async () => (await apiClient.get('/api/cases', { params })).data })
+export const useCase = (id: string) => useQuery({ queryKey: ['case', id], queryFn: async () => (await apiClient.get(`/api/cases/${id}`)).data })
+export const useModels = () => useQuery({ queryKey: ['models'], queryFn: async () => (await apiClient.get('/api/models')).data })
+export const useDatasets = () => useQuery({ queryKey: ['datasets'], queryFn: async () => (await apiClient.get('/api/datasets')).data })
+export const useSearch = (query: string) => useQuery({ queryKey: ['search', query], queryFn: async () => (await apiClient.get('/api/search', { params: { q: query } })).data })
+export const useSystemStatus = () => useQuery({ queryKey: ['system-status'], queryFn: async () => (await apiClient.get('/api/system/status')).data })
+export const useAIInterpretation = (entityType: string, entityId: string) => useQuery({ queryKey: ['ai-interpretation', entityType, entityId], queryFn: async () => (await apiClient.get('/api/ai/interpretation', { params: { entityType, entityId } })).data })
+
+export const useUploadDataset = () => useMutation({ mutationFn: async (data: any) => (await apiClient.post('/api/datasets', data)).data })
+export const useCreateCase = () => useMutation({ mutationFn: async (data: any) => (await apiClient.post('/api/cases', data)).data })
+export const useUpdateCase = () => useMutation({ mutationFn: async ({ id, data }: { id: string; data: any }) => (await apiClient.put(`/api/cases/${id}`, data)).data })
+export const useAddNote = () => useMutation({ mutationFn: async ({ id, data }: { id: string; data: any }) => (await apiClient.post(`/api/cases/${id}/notes`, data)).data })
+export const useRunPipeline = () => useMutation({ mutationFn: async (id: string) => (await apiClient.post(`/api/datasets/${id}/process`)).data })

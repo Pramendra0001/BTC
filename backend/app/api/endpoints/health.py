@@ -1,0 +1,25 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.schemas.schemas import HealthResponse, SystemStatusResponse
+
+router = APIRouter()
+
+@router.get("/health", response_model=HealthResponse)
+def get_health():
+    return {"status": "ok"}
+
+@router.get("/system/status", response_model=SystemStatusResponse)
+def get_system_status(db: Session = Depends(get_db)):
+    db_status = "ok"
+    try:
+        db.execute("SELECT 1")
+    except:
+        db_status = "error"
+        
+    return {
+        "database": db_status,
+        "ml_service": "ok",
+        "ai_provider": "mock",
+        "uptime_seconds": 3600
+    }
