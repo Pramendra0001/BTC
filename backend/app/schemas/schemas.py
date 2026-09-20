@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Any, Dict, Union
 from datetime import datetime
 
 class UserBase(BaseModel):
@@ -217,10 +217,14 @@ class GraphResponse(BaseModel):
     edges: List[GraphEdgeResponse]
 
 class TimelineEventResponse(BaseModel):
-    timestamp: datetime
-    event_type: str
-    description: str
-    details: Dict[str, Any]
+    timestamp: Optional[Union[datetime, str]] = None
+    event_type: Optional[str] = None
+    type: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
+    entity_type: Optional[str] = None
+    entity_id: Optional[str] = None
+    details: Optional[Dict[str, Any]] = None
 
 class TimelineResponse(BaseModel):
     entity_type: str

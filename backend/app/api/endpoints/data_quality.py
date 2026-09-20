@@ -79,6 +79,7 @@ def get_data_quality_summary(db: Session = Depends(get_db)):
         ]
     }
 
+@router.get("/quarantine")
 @router.get("/rejected-records")
 def get_rejected_records(
     dataset_id: int = Query(None),

@@ -32,3 +32,20 @@ def get_alert_detail(id: int, db: Session = Depends(get_db), current_user: User 
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
     return alert
+
+@router.get("/{id}/explain")
+@router.post("/{id}/explain")
+def explain_alert(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Generate explainable AI investigation brief for an alert."""
+    alert = db.query(Alert).filter(Alert.id == id).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    from app.services.ai_service import get_interpretation
+    interp = get_interpretation(db, alert.entity_type, alert.entity_id)
+    interp["alert_id"] = alert.id
+    interp["priority"] = alert.priority
+    interp["primary_findings"] = interp.get("summary")
+    interp["contributing_factors"] = interp.get("contributing_signals", [])
+    interp["recommended_actions"] = interp.get("recommended_review_actions", [])
+    interp["uncertainty_caveats"] = interp.get("uncertainty")
+    return interp

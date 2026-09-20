@@ -309,3 +309,77 @@ def test_jobs_endpoints(client):
     jobs = res_jobs.json()
     assert isinstance(jobs, list)
     assert len(jobs) >= 1
+
+def test_timeline_endpoint(client, db_session):
+    from app.models.models import Transaction, TransactionInput
+    from datetime import datetime
+
+    auth_res = client.post("/api/auth/login", json={
+        "username": "testadmin",
+        "password": "testadmin123"
+    })
+    token = auth_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    tx = Transaction(
+        txid="tx_timeline_001",
+        timestamp=datetime.utcnow(),
+        fee=100.0,
+        script_type="p2wpkh",
+        total_input=10000.0,
+        total_output=9900.0
+    )
+    db_session.add(tx)
+    db_session.commit()
+    db_session.refresh(tx)
+
+    inp = TransactionInput(
+        transaction_id=tx.id,
+        wallet_address="bc1qtimelineaddr",
+        amount=10000.0,
+        position=0
+    )
+    db_session.add(inp)
+    db_session.commit()
+
+    res = client.get("/api/timeline/WALLET/bc1qtimelineaddr", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["entity_type"] == "WALLET"
+    assert data["entity_id"] == "bc1qtimelineaddr"
+    assert len(data["events"]) >= 1
+    assert data["events"][0]["type"] == "TRANSACTION"
+
+def test_alert_explain_endpoint(client, db_session):
+    from app.models.models import Alert
+
+    auth_res = client.post("/api/auth/login", json={
+        "username": "testadmin",
+        "password": "testadmin123"
+    })
+    token = auth_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    alert = Alert(
+        entity_type="WALLET",
+        entity_id="bc1qalertaddr",
+        priority="HIGH",
+        status="NEW",
+        anomaly_score=88.5
+    )
+    db_session.add(alert)
+    db_session.commit()
+    db_session.refresh(alert)
+
+    res = client.get(f"/api/alerts/{alert.id}/explain", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["alert_id"] == alert.id
+    assert "primary_findings" in data
+    assert "recommended_actions" in data
+
+def test_data_quality_quarantine_alias(client):
+    res = client.get("/api/data-quality/quarantine")
+    assert res.status_code == 200
+    assert "rejected_records" in res.json()
+
