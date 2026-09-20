@@ -137,7 +137,7 @@ export default function SystemPage() {
           <div className="p-3.5 bg-slate-950 rounded-lg border border-slate-800/80 space-y-1">
             <div className="font-bold text-white flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              MODE A: SIH OFFLINE LINUX STACK
+              MODE A: OFFLINE AIR-GAPPED LINUX STACK
             </div>
             <p className="text-slate-400 text-[11px] leading-relaxed">
               Fully self-contained within Docker Compose. Zero internet dependency. Built-in MockAIProvider ensures explainability without cloud AI keys.

@@ -115,7 +115,7 @@ export default function AppLayout() {
             </span>
           </div>
           <div className="text-[11px] text-slate-400 text-center font-mono">
-            SIH 2026 • Problem 26146
+            BTC-SHIELD Intelligence Platform
           </div>
         </div>
       </aside>

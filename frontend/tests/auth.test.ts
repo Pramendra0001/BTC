@@ -169,8 +169,8 @@ test('registration still works and success switches to login', async () => {
   await executeRegister(
     mockApi,
     {
-      username: 'jury_member',
-      email: 'jury@example.com',
+      username: 'investigator_test',
+      email: 'investigator@example.com',
       password: 'strong-password-123',
       confirmPassword: 'strong-password-123',
     },
@@ -183,12 +183,12 @@ test('registration still works and success switches to login', async () => {
   );
 
   assert.deepEqual(registeredPayload, {
-    username: 'jury_member',
-    email: 'jury@example.com',
+    username: 'investigator_test',
+    email: 'investigator@example.com',
     password: 'strong-password-123',
   });
   assert.equal(currentMode, 'login', 'Must switch mode to login upon registration success');
-  assert.equal(loginUser, 'jury_member', 'Must prefill login username');
+  assert.equal(loginUser, 'investigator_test', 'Must prefill login username');
   assert.equal(errorMsg, null);
   assert.match(successMsg || '', /Account created successfully/);
 });

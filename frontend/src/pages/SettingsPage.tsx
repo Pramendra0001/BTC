@@ -60,7 +60,7 @@ export default function SettingsPage() {
             <WifiOff size={20} />
           </div>
           <div>
-            <div className="text-xs font-bold text-white">SIH Air-Gapped Mode</div>
+            <div className="text-xs font-bold text-white">Air-Gapped Forensic Mode</div>
             <div className="text-[11px] text-slate-400">100% Offline execution • Zero external egress</div>
           </div>
         </div>

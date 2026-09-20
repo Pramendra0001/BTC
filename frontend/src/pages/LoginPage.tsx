@@ -133,7 +133,7 @@ export default function LoginPage() {
             Bitcoin Transaction & Network Intelligence Platform
           </p>
           <div className="text-[10px] font-mono text-blue-400 uppercase tracking-widest">
-            SIH 2026 • NTRO Problem Statement 26146
+            Autonomous Transaction & Network Intelligence
           </div>
         </div>
 
@@ -169,7 +169,7 @@ export default function LoginPage() {
 
           <div className="border-b border-slate-800 pb-3">
             <h2 className="text-sm font-bold text-white">
-              {mode === 'login' ? 'Investigator Authentication' : 'Create Investigator / Jury Account'}
+              {mode === 'login' ? 'Investigator Authentication' : 'Create New Investigator Account'}
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               {mode === 'login'
@@ -248,7 +248,7 @@ export default function LoginPage() {
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Min. 3 characters (e.g. jury_member)"
+                    placeholder="Min. 3 characters (e.g. investigator)"
                   />
                 </div>
               </div>
@@ -263,7 +263,7 @@ export default function LoginPage() {
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
-                    placeholder="e.g. jury@example.com"
+                    placeholder="e.g. investigator@example.com"
                   />
                 </div>
               </div>
