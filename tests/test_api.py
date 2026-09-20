@@ -80,20 +80,20 @@ def test_protected_endpoints_unauthenticated(client):
 def test_public_self_registration(client):
     # 1. Public registration succeeds without any token
     reg_res = client.post("/api/auth/register", json={
-        "username": "jury_member",
-        "email": "jury@example.com",
+        "username": "analyst_user",
+        "email": "analyst@example.com",
         "password": "strong-password-123"
     })
     assert reg_res.status_code == 201
     data = reg_res.json()
-    assert data["username"] == "jury_member"
-    assert data["email"] == "jury@example.com"
+    assert data["username"] == "analyst_user"
+    assert data["email"] == "analyst@example.com"
     assert data["role"] == "VIEWER"
     assert data["is_active"] is True
 
     # 2. Registered user can immediately login
     login_res = client.post("/api/auth/login", json={
-        "username": "jury_member",
+        "username": "analyst_user",
         "password": "strong-password-123"
     })
     assert login_res.status_code == 200
@@ -104,8 +104,8 @@ def test_public_self_registration(client):
     me_res = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me_res.status_code == 200
     me_data = me_res.json()
-    assert me_data["username"] == "jury_member"
-    assert me_data["email"] == "jury@example.com"
+    assert me_data["username"] == "analyst_user"
+    assert me_data["email"] == "analyst@example.com"
     assert me_data["role"] == "VIEWER"
     assert me_data["is_active"] is True
 

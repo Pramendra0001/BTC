@@ -45,7 +45,7 @@ def register_user(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Public self-registration endpoint for investigators and jury members.
+    """Public self-registration endpoint for investigators and analysts.
     
     Forces role to VIEWER. Privileged roles cannot be self-assigned.
     """
