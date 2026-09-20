@@ -93,11 +93,8 @@ export default function AppLayout() {
               className="w-8 h-8 object-contain shrink-0" 
             />
             <div>
-              <div className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5 font-mono">
+              <div className="font-bold text-sm tracking-tight text-white font-mono">
                 BTC-SHIELD
-                <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                  INTEL
-                </span>
               </div>
               <div className="text-[10px] text-slate-400">
                 Forensic Intelligence Platform
