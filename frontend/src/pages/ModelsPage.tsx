@@ -3,7 +3,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Cpu, CheckCircle2, ShieldAlert, GitBranch, Layers, Sparkles } from 'lucide-react';
+import { Cpu, CheckCircle2, ShieldAlert, GitBranch, Layers } from 'lucide-react';
 import { formatDate } from '../utils/format';
 
 export default function ModelsPage() {

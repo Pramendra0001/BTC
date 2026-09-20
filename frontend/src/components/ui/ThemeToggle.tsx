@@ -22,10 +22,10 @@ export function ThemeToggle() {
             onClick={() => setTheme(opt.value)}
             title={`Switch to ${opt.label} theme (Active: ${resolvedTheme})`}
             aria-label={`Switch to ${opt.label} theme`}
-            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2 py-0.8 rounded text-xs font-medium transition-all cursor-pointer ${
               isSelected
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'bg-slate-800 text-slate-100 font-semibold border border-slate-700 shadow-xs'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-slate-850/60'
             }`}
           >
             <Icon size={13} className={isSelected ? 'text-white' : 'text-slate-400'} />

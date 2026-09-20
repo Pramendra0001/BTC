@@ -181,7 +181,10 @@ export default function AlertsPage() {
                         <div className="flex items-center gap-2">
                           <div className="w-16 bg-slate-800 h-2 rounded-full overflow-hidden">
                             <div 
-                              className="h-full bg-gradient-to-r from-blue-500 via-amber-500 to-rose-500" 
+                              className={`h-full ${
+                                alert.anomaly_score >= 80 ? 'bg-rose-500' : 
+                                alert.anomaly_score >= 60 ? 'bg-amber-500' : 'bg-blue-500'
+                              }`} 
                               style={{ width: `${Math.min(alert.anomaly_score, 100)}%` }}
                             />
                           </div>

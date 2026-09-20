@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
 import { 
   ZoomIn, ZoomOut, Maximize2, RotateCcw, Download, 
-  Layers, X
+  X
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -73,26 +73,27 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
         {
           selector: 'node',
           style: {
-            'background-color': isLight ? '#cbd5e1' : '#334155',
+            'background-color': isLight ? '#D9D7D1' : '#262B30',
             'label': 'data(label)',
-            'color': isLight ? '#0f172a' : '#f8fafc',
+            'color': isLight ? '#181A1C' : '#F1F3F5',
             'font-size': '10px',
+            'font-family': 'monospace',
             'text-valign': 'bottom',
             'text-margin-y': 4,
-            'text-outline-color': isLight ? '#ffffff' : '#020617',
+            'text-outline-color': isLight ? '#FFFFFF' : '#0B0D0F',
             'text-outline-width': 2,
-            'width': 28,
-            'height': 28,
-            'border-width': 2,
-            'border-color': isLight ? '#94a3b8' : '#475569',
+            'width': 26,
+            'height': 26,
+            'border-width': 1.5,
+            'border-color': isLight ? '#C7C4BC' : '#343B42',
           }
         },
         // WALLET Nodes
         {
           selector: 'node[type = "WALLET"]',
           style: {
-            'background-color': '#2563eb',
-            'border-color': '#60a5fa',
+            'background-color': '#2563EB',
+            'border-color': '#60A5FA',
             'shape': 'ellipse',
           }
         },
@@ -100,11 +101,11 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
         {
           selector: 'node[type = "TRANSACTION"]',
           style: {
-            'background-color': '#9333ea',
-            'border-color': '#c084fc',
+            'background-color': '#7C3AED',
+            'border-color': '#A78BFA',
             'shape': 'round-rectangle',
-            'width': 24,
-            'height': 24,
+            'width': 22,
+            'height': 22,
           }
         },
         // IP Nodes
@@ -112,52 +113,49 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
           selector: 'node[type = "IP"]',
           style: {
             'background-color': '#059669',
-            'border-color': '#34d399',
+            'border-color': '#34D399',
             'shape': 'diamond',
-            'width': 30,
-            'height': 30,
+            'width': 26,
+            'height': 26,
           }
         },
         // ASN Nodes
         {
           selector: 'node[type = "ASN"]',
           style: {
-            'background-color': '#d97706',
-            'border-color': '#fbbf24',
+            'background-color': '#D97706',
+            'border-color': '#FBBF24',
             'shape': 'hexagon',
-            'width': 32,
-            'height': 32,
+            'width': 28,
+            'height': 28,
           }
         },
-        // Anomalous Node Outline
+        // Anomalous Node Outline (Restrained solid border, zero neon glow)
         {
           selector: 'node[?is_anomalous]',
           style: {
-            'border-color': '#ef4444',
-            'border-width': 3,
+            'border-color': '#DC2626',
+            'border-width': 2.5,
             'border-style': 'solid',
-            'shadow-blur': 12,
-            'shadow-color': '#ef4444',
-            'shadow-opacity': 0.8,
           }
         },
         // Center Selected Node
         {
           selector: 'node[?is_center]',
           style: {
-            'border-color': '#38bdf8',
-            'border-width': 4,
-            'width': 36,
-            'height': 36,
+            'border-color': isLight ? '#1D63D8' : '#2B73E8',
+            'border-width': 3,
+            'width': 32,
+            'height': 32,
           }
         },
         // Edges
         {
           selector: 'edge',
           style: {
-            'width': 1.5,
-            'line-color': isLight ? '#94a3b8' : '#334155',
-            'target-arrow-color': isLight ? '#64748b' : '#475569',
+            'width': 1.2,
+            'line-color': isLight ? '#C7C4BC' : '#343B42',
+            'target-arrow-color': isLight ? '#9E9A90' : '#4B535D',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             'opacity': 0.85,
@@ -356,7 +354,10 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex-1 bg-slate-800 h-2 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-rose-500" 
+                    className={`h-full ${
+                      selectedNode.anomaly_score >= 80 ? 'bg-rose-500' : 
+                      selectedNode.anomaly_score >= 60 ? 'bg-amber-500' : 'bg-blue-500'
+                    }`} 
                     style={{ width: `${Math.min(selectedNode.anomaly_score, 100)}%` }}
                   />
                 </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { ShieldAlert, Lock, User, Mail, ArrowRight, CheckCircle2, AlertCircle, UserPlus, LogIn } from 'lucide-react';
 
@@ -119,35 +119,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 text-slate-100">
-      <div className="w-full max-w-md space-y-6">
-        {/* Brand */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 mx-auto">
-            <ShieldAlert size={28} />
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 text-slate-100 font-sans">
+      <div className="w-full max-w-md space-y-5">
+        {/* Brand Header */}
+        <div className="text-center space-y-1.5">
+          <div className="w-10 h-10 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 mx-auto">
+            <ShieldAlert size={22} />
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-white font-mono">
+          <h1 className="text-xl font-bold font-mono tracking-tight text-white">
             BTC-SHIELD
           </h1>
           <p className="text-xs text-slate-400">
             Bitcoin Transaction & Network Intelligence Platform
           </p>
-          <div className="text-[10px] font-mono text-blue-400 uppercase tracking-widest">
+          <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
             Autonomous Transaction & Network Intelligence
           </div>
         </div>
 
-        {/* Card */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+        {/* Authentication Box */}
+        <div className="bg-slate-900 border border-slate-800 rounded p-6 space-y-4 shadow-xl">
           {/* Mode Switch Tabs */}
-          <div className="flex bg-slate-950 border border-slate-800 rounded-xl p-1 gap-1">
+          <div className="flex bg-slate-850 border border-slate-800 rounded p-0.5 gap-1">
             <button
               type="button"
               onClick={() => handleModeSwitch('login')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded text-xs font-mono font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'login'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-slate-800 text-white border border-slate-700 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <LogIn size={13} />
@@ -156,10 +156,10 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleModeSwitch('register')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-1.5 px-3 rounded text-xs font-mono font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 mode === 'register'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-slate-800 text-white border border-slate-700 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <UserPlus size={13} />
@@ -167,11 +167,11 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="border-b border-slate-800 pb-3">
-            <h2 className="text-sm font-bold text-white">
+          <div className="border-b border-slate-800 pb-2.5">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
               {mode === 'login' ? 'Investigator Authentication' : 'Create New Investigator Account'}
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-400 mt-0.5">
               {mode === 'login'
                 ? 'Enter authorized credentials to access intelligence feeds'
                 : 'Self-registered accounts are granted secure VIEWER inspection privileges'}
@@ -179,46 +179,48 @@ export default function LoginPage() {
           </div>
 
           {successMsg && (
-            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 size={15} className="shrink-0" />
+            <div className="p-2.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-400 flex items-center gap-2 font-mono">
+              <CheckCircle2 size={14} className="shrink-0" />
               <span>{successMsg}</span>
             </div>
           )}
 
           {errorMsg && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400 flex items-center gap-2">
-              <AlertCircle size={15} className="shrink-0" />
+            <div className="p-2.5 rounded bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400 flex items-center gap-2 font-mono">
+              <AlertCircle size={14} className="shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {mode === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">INVESTIGATOR ID / USERNAME</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">INVESTIGATOR ID / USERNAME</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="text"
                     required
+                    autoComplete="username"
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="Enter investigator ID or username"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">SECURITY ACCESS KEY / PASSWORD</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">SECURITY ACCESS KEY / PASSWORD</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="password"
                     required
+                    autoComplete="current-password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="Enter security access key"
                   />
                 </div>
@@ -227,94 +229,105 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 {isLoading ? 'Authenticating...' : (
                   <>
-                    Enter Command Center <ArrowRight size={14} />
+                    Authenticate Session <ArrowRight size={13} />
                   </>
                 )}
               </button>
             </form>
           ) : (
-            <form onSubmit={handleRegister} className="space-y-3.5">
+            <form onSubmit={handleRegister} className="space-y-3">
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">DESIRED USERNAME</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">DESIRED USERNAME</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <User className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="text"
                     required
+                    autoComplete="username"
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="Min. 3 characters (e.g. investigator)"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">EMAIL ADDRESS</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">EMAIL ADDRESS</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="e.g. investigator@example.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">PASSWORD</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">PASSWORD</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="Min. 8 characters"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-slate-300 mb-1.5">CONFIRM PASSWORD</label>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1">CONFIRM PASSWORD</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                  <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-blue-500"
+                    className="w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded text-xs font-mono text-white focus:outline-none focus:border-blue-500"
                     placeholder="Re-enter your password"
                   />
                 </div>
               </div>
 
-              <div className="p-2.5 rounded-lg bg-blue-950/40 border border-blue-900/40 text-[11px] text-blue-300 leading-relaxed">
-                🛡️ Assigned Role: <span className="font-semibold text-white">VIEWER</span>. Viewers have read-only access to all forensic feeds, alerts, and transaction graphs.
+              <div className="p-2 rounded bg-slate-850 border border-slate-800 text-[10px] text-slate-400 font-mono leading-relaxed">
+                Role: <span className="font-bold text-slate-200">VIEWER</span>. Read-only inspection privileges for all intelligence feeds and graphs.
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                className="w-full py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 {isLoading ? 'Creating Account...' : (
                   <>
-                    Create Account <UserPlus size={14} />
+                    Create Account <UserPlus size={13} />
                   </>
                 )}
               </button>
             </form>
           )}
+        </div>
+
+        {/* Legal & Terms Footer */}
+        <div className="flex items-center justify-center gap-3 text-[11px] font-mono text-slate-500">
+          <Link to="/terms" className="hover:text-slate-400 transition-colors">Terms of Service (Draft)</Link>
+          <span>•</span>
+          <Link to="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy (Draft)</Link>
         </div>
       </div>
     </div>

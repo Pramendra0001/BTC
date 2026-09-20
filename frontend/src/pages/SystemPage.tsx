@@ -4,7 +4,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { 
-  Activity, Server, Database, Cpu, Sparkles, Globe, 
+  Activity, Server, Database, Cpu, Bot, Globe, 
   ShieldCheck, CheckCircle2, AlertTriangle, RefreshCw 
 } from 'lucide-react';
 
@@ -61,7 +61,7 @@ export default function SystemPage() {
       name: 'Explainable AI Provider',
       description: 'Deterministic rule-based explainability (Zero-Hallucination mode)',
       status: 'OPERATIONAL',
-      icon: <Sparkles className="text-amber-400" size={20} />,
+      icon: <Bot className="text-blue-400" size={20} />,
       metric: `Provider: ${status?.ai_provider || 'Mock (Offline Safe)'}`,
     },
     {

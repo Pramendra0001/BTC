@@ -24,6 +24,8 @@ import HeuristicsPage from './pages/HeuristicsPage'
 import DataQualityPage from './pages/DataQualityPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import SettingsPage from './pages/SettingsPage'
+import TermsPage from './pages/TermsPage'
+import PrivacyPage from './pages/PrivacyPage'
 import { ThemeProvider } from './context/ThemeContext'
 
 const queryClient = new QueryClient()
@@ -58,6 +60,8 @@ function App() {
             <Route path="settings" element={<SettingsPage />} />
             <Route path="system" element={<SystemPage />} />
             <Route path="search" element={<SearchResultsPage />} />
+            <Route path="terms" element={<TermsPage />} />
+            <Route path="privacy" element={<PrivacyPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

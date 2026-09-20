@@ -28,6 +28,13 @@ export const useAlert = (id: string | number) =>
     enabled: !!id
   })
 
+export const useAlertExplain = (id: string | number) =>
+  useQuery({
+    queryKey: ['alert-explain', id],
+    queryFn: async () => (await apiClient.get(`/api/alerts/${id}/explain`)).data,
+    enabled: !!id
+  })
+
 // Wallets
 export const useWallets = (params?: { skip?: number; limit?: number }) => 
   useQuery({ 
@@ -99,6 +106,12 @@ export const useTimeline = (entityType: string, entityId: string) =>
   })
 
 // Evidence
+export const useEvidenceList = (params?: { entity_type?: string; entity_id?: string; category?: string }) => 
+  useQuery({ 
+    queryKey: ['evidence-list', params], 
+    queryFn: async () => (await apiClient.get('/api/evidence/', { params })).data 
+  });
+
 export const useEvidence = (id: string | number) => 
   useQuery({ 
     queryKey: ['evidence', id], 
