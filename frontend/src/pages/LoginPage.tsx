@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '../api/client';
-import { ShieldAlert, Lock, User, Mail, ArrowRight, CheckCircle2, AlertCircle, UserPlus, LogIn } from 'lucide-react';
+import { Lock, User, Mail, ArrowRight, CheckCircle2, AlertCircle, UserPlus, LogIn } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import logoLight from '../assets/logo-light.png';
+import logoDark from '../assets/logo-dark.png';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [mode, setMode] = useState<'login' | 'register'>('login');
 
   // Login form state - strictly no hardcoded credentials
@@ -122,18 +126,19 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 text-slate-100 font-sans">
       <div className="w-full max-w-md space-y-5">
         {/* Brand Header */}
-        <div className="text-center space-y-1.5">
-          <div className="w-10 h-10 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-blue-400 mx-auto">
-            <ShieldAlert size={22} />
+        <div className="text-center space-y-2">
+          <div className="flex justify-center mb-1">
+            <img 
+              src={resolvedTheme === 'dark' ? logoDark : logoLight} 
+              alt="BTC-SHIELD" 
+              className="h-28 w-auto object-contain" 
+            />
           </div>
-          <h1 className="text-xl font-bold font-mono tracking-tight text-white">
-            BTC-SHIELD
-          </h1>
           <p className="text-xs text-slate-400">
-            Bitcoin Transaction & Network Intelligence Platform
+            Bitcoin Transaction &amp; Network Intelligence Platform
           </p>
           <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-            Autonomous Transaction & Network Intelligence
+            Autonomous Transaction &amp; Network Intelligence
           </div>
         </div>
 

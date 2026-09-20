@@ -8,6 +8,9 @@ import {
 import { useSearch, useSystemStatus } from '../api/hooks';
 import { truncateAddress } from '../utils/format';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { useTheme } from '../context/ThemeContext';
+import shieldLight from '../assets/shield-light.png';
+import shieldDark from '../assets/shield-dark.png';
 
 const navItems = [
   { name: 'Command Center', path: '/', icon: <LayoutDashboard size={17} /> },
@@ -35,6 +38,8 @@ export default function AppLayout() {
 
   const { data: searchData, isLoading: isSearching } = useSearch(searchQuery);
   const { data: systemStatus } = useSystemStatus();
+  const { resolvedTheme } = useTheme();
+  const shieldLogo = resolvedTheme === 'dark' ? shieldDark : shieldLight;
 
   // Close search dropdown on click outside
   useEffect(() => {
@@ -82,9 +87,11 @@ export default function AppLayout() {
         {/* Brand Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded bg-slate-850 border border-slate-750 flex items-center justify-center text-blue-400">
-              <ShieldAlert size={18} />
-            </div>
+            <img 
+              src={shieldLogo} 
+              alt="BTC-SHIELD" 
+              className="w-8 h-8 object-contain shrink-0" 
+            />
             <div>
               <div className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5 font-mono">
                 BTC-SHIELD
