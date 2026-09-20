@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import List, Optional, Any, Dict
 from datetime import datetime
 
@@ -10,6 +10,19 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+
+class UserRegister(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50, description="Unique username (3-50 characters)")
+    email: EmailStr = Field(..., description="Valid email address")
+    password: str = Field(..., min_length=8, max_length=128, description="Secure password (minimum 8 characters)")
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        weak_defaults = {"admin123", "changeme123", "password123", "12345678", "password", "qwerty123"}
+        if v.lower() in weak_defaults:
+            raise ValueError("Password is too common or predictable. Please choose a stronger password.")
+        return v
 
 class UserLogin(BaseModel):
     username: str

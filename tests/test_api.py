@@ -48,6 +48,25 @@ def test_openapi_login_contract(client):
     assert "username" in schema["properties"]
     assert "password" in schema["properties"]
 
+def test_openapi_register_contract(client):
+    # Verify OpenAPI documentation for /api/auth/register contains UserRegister without editable role
+    res = client.get("/api/openapi.json")
+    assert res.status_code == 200
+    openapi = res.json()
+    reg_post = openapi["paths"]["/api/auth/register"]["post"]
+    assert "requestBody" in reg_post
+    content = reg_post["requestBody"]["content"]
+    assert "application/json" in content
+    schema_ref = content["application/json"]["schema"]["$ref"]
+    schema_key = schema_ref.split("/")[-1]
+    assert schema_key == "UserRegister"
+    schema = openapi["components"]["schemas"]["UserRegister"]
+    assert "properties" in schema
+    assert "username" in schema["properties"]
+    assert "email" in schema["properties"]
+    assert "password" in schema["properties"]
+    assert "role" not in schema["properties"]
+
 def test_protected_endpoints_unauthenticated(client):
     # Protected endpoint rejects unauthenticated request
     res_me = client.get("/api/auth/me")
@@ -56,54 +75,109 @@ def test_protected_endpoints_unauthenticated(client):
     res_dash = client.get("/api/dashboard/")
     assert res_dash.status_code == 401
 
-def test_admin_register_user(client):
-    # Authenticate as administrator
-    auth_res = client.post("/api/auth/login", json={
-        "username": "testadmin",
-        "password": "testadmin123"
-    })
-    token = auth_res.json()["access_token"]
-    admin_headers = {"Authorization": f"Bearer {token}"}
-
-    # 1. Administrator JWT permits /api/auth/register
+def test_public_self_registration(client):
+    # 1. Public registration succeeds without any token
     reg_res = client.post("/api/auth/register", json={
-        "username": "newinvestigator",
-        "email": "investigator@btcshield.gov",
-        "password": "securepassword123",
-        "role": "INVESTIGATOR"
-    }, headers=admin_headers)
-    assert reg_res.status_code == 200
-    user_data = reg_res.json()
-    assert user_data["username"] == "newinvestigator"
-    assert user_data["role"] == "INVESTIGATOR"
-
-    # 2. Login as newly registered user succeeds
-    login_new = client.post("/api/auth/login", json={
-        "username": "newinvestigator",
-        "password": "securepassword123"
+        "username": "jury_member",
+        "email": "jury@example.com",
+        "password": "strong-password-123"
     })
-    assert login_new.status_code == 200
-    assert "access_token" in login_new.json()
+    assert reg_res.status_code == 201
+    data = reg_res.json()
+    assert data["username"] == "jury_member"
+    assert data["email"] == "jury@example.com"
+    assert data["role"] == "VIEWER"
+    assert data["is_active"] is True
 
-    # 3. Non-administrator JWT cannot register users (403 Forbidden)
-    new_token = login_new.json()["access_token"]
-    non_admin_headers = {"Authorization": f"Bearer {new_token}"}
-    unauth_reg = client.post("/api/auth/register", json={
-        "username": "anotheruser",
-        "email": "another@btcshield.gov",
-        "password": "anotherpassword123",
-        "role": "ANALYST"
-    }, headers=non_admin_headers)
-    assert unauth_reg.status_code == 403
-
-    # 4. Unauthenticated request rejected (401 Unauthorized)
-    no_auth_reg = client.post("/api/auth/register", json={
-        "username": "noauthuser",
-        "email": "noauth@btcshield.gov",
-        "password": "password123",
-        "role": "ANALYST"
+    # 2. Registered user can immediately login
+    login_res = client.post("/api/auth/login", json={
+        "username": "jury_member",
+        "password": "strong-password-123"
     })
-    assert no_auth_reg.status_code == 401
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    assert token
+
+    # 3. Newly registered user JWT works with /api/auth/me
+    me_res = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_res.status_code == 200
+    me_data = me_res.json()
+    assert me_data["username"] == "jury_member"
+    assert me_data["email"] == "jury@example.com"
+    assert me_data["role"] == "VIEWER"
+    assert me_data["is_active"] is True
+
+def test_registration_prevents_privilege_escalation(client):
+    # Attempt to supply privileged role "ADMINISTRATOR" in self-registration
+    reg_res = client.post("/api/auth/register", json={
+        "username": "malicious_attacker",
+        "email": "attacker@example.com",
+        "password": "strong-password-123",
+        "role": "ADMINISTRATOR"
+    })
+    # Must succeed as VIEWER or ignore/reject role, NEVER assign ADMINISTRATOR
+    assert reg_res.status_code == 201
+    assert reg_res.json()["role"] == "VIEWER"
+
+    # Verify user in database actually has role VIEWER
+    login_res = client.post("/api/auth/login", json={
+        "username": "malicious_attacker",
+        "password": "strong-password-123"
+    })
+    token = login_res.json()["access_token"]
+    me_res = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_res.json()["role"] == "VIEWER"
+
+def test_registration_duplicate_handling(client):
+    # Register base user
+    client.post("/api/auth/register", json={
+        "username": "existing_user",
+        "email": "existing@example.com",
+        "password": "secure-password-123"
+    })
+
+    # Duplicate username -> 409 Conflict
+    dup_user_res = client.post("/api/auth/register", json={
+        "username": "existing_user",
+        "email": "another_email@example.com",
+        "password": "secure-password-123"
+    })
+    assert dup_user_res.status_code == 409
+    assert dup_user_res.json()["detail"] == "Username already registered"
+
+    # Duplicate email -> 409 Conflict
+    dup_email_res = client.post("/api/auth/register", json={
+        "username": "another_username",
+        "email": "existing@example.com",
+        "password": "secure-password-123"
+    })
+    assert dup_email_res.status_code == 409
+    assert dup_email_res.json()["detail"] == "Email address already registered"
+
+def test_registration_validation_errors(client):
+    # Invalid email format -> 422
+    bad_email = client.post("/api/auth/register", json={
+        "username": "validname",
+        "email": "not-a-valid-email",
+        "password": "secure-password-123"
+    })
+    assert bad_email.status_code == 422
+
+    # Weak password (< 8 chars) -> 422
+    short_pass = client.post("/api/auth/register", json={
+        "username": "validname2",
+        "email": "user2@example.com",
+        "password": "short"
+    })
+    assert short_pass.status_code == 422
+
+    # Predictable password -> 422
+    predictable_pass = client.post("/api/auth/register", json={
+        "username": "validname3",
+        "email": "user3@example.com",
+        "password": "admin123"
+    })
+    assert predictable_pass.status_code == 422
 
 def test_dashboard_endpoint(client):
     # Authenticate

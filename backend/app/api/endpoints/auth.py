@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user, require_role
-from app.models.models import User
-from app.schemas.schemas import UserResponse, UserCreate, Token, UserLogin
+from app.models.models import User, RoleEnum
+from app.schemas.schemas import UserResponse, UserCreate, Token, UserLogin, UserRegister
 from datetime import timedelta
 from app.core.config import settings
 
@@ -39,21 +39,52 @@ def login_for_access_token(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/register", response_model=UserResponse)
-def register_user(user_in: UserCreate, db: Session = Depends(get_db), current_user: User = Depends(require_role(["ADMINISTRATOR"]))):
-    user = db.query(User).filter(User.username == user_in.username).first()
-    if user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def register_user(
+    user_in: UserRegister,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Public self-registration endpoint for investigators and jury members.
+    
+    Forces role to VIEWER. Privileged roles cannot be self-assigned.
+    """
+    # Check duplicate username -> HTTP 409
+    if db.query(User).filter(User.username == user_in.username).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Username already registered"
+        )
+    
+    # Check duplicate email -> HTTP 409
+    if db.query(User).filter(User.email == user_in.email).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email address already registered"
+        )
     
     new_user = User(
         username=user_in.username,
         email=user_in.email,
         hashed_password=get_password_hash(user_in.password),
-        role=user_in.role
+        role=RoleEnum.VIEWER,
+        is_active=True
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    from app.services import audit_service
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    audit_service.log_action(
+        db,
+        action="USER_SELF_REGISTER",
+        user_id=new_user.id,
+        entity_type="USER",
+        entity_id=str(new_user.id),
+        details={"username": new_user.username, "role": new_user.role},
+        ip_address=client_ip
+    )
     return new_user
 
 @router.get("/me", response_model=UserResponse)
