@@ -49,7 +49,7 @@ def test_openapi_login_contract(client):
     assert "password" in schema["properties"]
 
 def test_openapi_register_contract(client):
-    # Verify OpenAPI documentation for /api/auth/register contains UserRegister without editable role
+    # Verify OpenAPI documentation for /api/auth/register contains PublicUserRegister without role or is_active
     res = client.get("/api/openapi.json")
     assert res.status_code == 200
     openapi = res.json()
@@ -59,13 +59,15 @@ def test_openapi_register_contract(client):
     assert "application/json" in content
     schema_ref = content["application/json"]["schema"]["$ref"]
     schema_key = schema_ref.split("/")[-1]
-    assert schema_key == "UserRegister"
-    schema = openapi["components"]["schemas"]["UserRegister"]
+    assert schema_key == "PublicUserRegister"
+    schema = openapi["components"]["schemas"]["PublicUserRegister"]
     assert "properties" in schema
     assert "username" in schema["properties"]
     assert "email" in schema["properties"]
     assert "password" in schema["properties"]
     assert "role" not in schema["properties"]
+    assert "is_active" not in schema["properties"]
+    assert "permissions" not in schema["properties"]
 
 def test_protected_endpoints_unauthenticated(client):
     # Protected endpoint rejects unauthenticated request
@@ -115,7 +117,7 @@ def test_registration_prevents_privilege_escalation(client):
         "password": "strong-password-123",
         "role": "ADMINISTRATOR"
     })
-    # Must succeed as VIEWER or ignore/reject role, NEVER assign ADMINISTRATOR
+    # Must succeed as VIEWER, NEVER assign ADMINISTRATOR
     assert reg_res.status_code == 201
     assert reg_res.json()["role"] == "VIEWER"
 
@@ -127,6 +129,28 @@ def test_registration_prevents_privilege_escalation(client):
     token = login_res.json()["access_token"]
     me_res = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me_res.json()["role"] == "VIEWER"
+
+def test_registration_prevents_is_active_manipulation(client):
+    # Attempt to supply is_active=false in self-registration
+    reg_res = client.post("/api/auth/register", json={
+        "username": "active_test_user",
+        "email": "activetest@example.com",
+        "password": "strong-password-123",
+        "is_active": False
+    })
+    # Must ignore client is_active and assign True
+    assert reg_res.status_code == 201
+    assert reg_res.json()["is_active"] is True
+
+    # Verify user can log in and account is active
+    login_res = client.post("/api/auth/login", json={
+        "username": "active_test_user",
+        "password": "strong-password-123"
+    })
+    assert login_res.status_code == 200
+    token = login_res.json()["access_token"]
+    me_res = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_res.json()["is_active"] is True
 
 def test_registration_duplicate_handling(client):
     # Register base user

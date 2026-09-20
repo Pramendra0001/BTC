@@ -11,7 +11,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-class UserRegister(BaseModel):
+class PublicUserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="Unique username (3-50 characters)")
     email: EmailStr = Field(..., description="Valid email address")
     password: str = Field(..., min_length=8, max_length=128, description="Secure password (minimum 8 characters)")
@@ -23,6 +23,8 @@ class UserRegister(BaseModel):
         if v.lower() in weak_defaults:
             raise ValueError("Password is too common or predictable. Please choose a stronger password.")
         return v
+
+UserRegister = PublicUserRegister
 
 class UserLogin(BaseModel):
     username: str

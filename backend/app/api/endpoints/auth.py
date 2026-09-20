@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token, get_current_user, require_role
 from app.models.models import User, RoleEnum
-from app.schemas.schemas import UserResponse, UserCreate, Token, UserLogin, UserRegister
+from app.schemas.schemas import UserResponse, UserCreate, Token, UserLogin, PublicUserRegister
 from datetime import timedelta
 from app.core.config import settings
 
@@ -41,7 +41,7 @@ def login_for_access_token(
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(
-    user_in: UserRegister,
+    user_in: PublicUserRegister,
     request: Request,
     db: Session = Depends(get_db)
 ):
