@@ -82,15 +82,16 @@ BTC-SHIELD includes an automated GitHub Actions deployment workflow (`.github/wo
    - Go to `Settings` -> `Pages` in the GitHub repository.
    - Set source to `GitHub Actions`.
 2. **Build Configuration:**
-   - Vite is configured with relative base paths (`./`) and copies `index.html` to `404.html` so client-side SPA routing works on all subpaths (`/alerts`, `/graph`, `/heuristics`).
-3. Every push to `main` automatically builds and publishes the latest production UI.
+   - Vite is configured with base path `/BTC/` and copies `index.html` to `404.html` so client-side SPA routing works on all subpaths (`/BTC/alerts`, `/BTC/graph`, `/BTC/heuristics`).
+3. Every push to `main` triggers GitHub Actions to build and deploy the production UI artifact.
 
 ### 3.2 Backend on Cloud Host (Render / Railway / AWS EC2)
-Configure environment variables on your cloud provider:
+Production environment template for deployment:
 ```bash
 DATABASE_URL=postgresql://neondb_owner:password@ep-xyz.us-east-2.aws.neon.tech/btcshield?sslmode=require
 JWT_SECRET=super-secure-production-random-secret-key-min-32-chars
 CORS_ORIGINS=["https://pramendra0001.github.io","http://localhost:5173"]
+ENVIRONMENT=production
 AI_PROVIDER=mock
 LOG_LEVEL=INFO
 ```
@@ -101,13 +102,14 @@ LOG_LEVEL=INFO
 
 | Variable | Default Value | Description |
 | :--- | :--- | :--- |
-| `PROJECT_NAME` | `BTC-SHIELD` | Application title and API header identity |
+| `PROJECT_NAME` | `BTC-SHIELD Backend` | Application title and API header identity |
 | `API_V1_STR` | `/api` | Base API route prefix |
+| `ENVIRONMENT` | `development` | Environment mode (`development`, `testing`, `production`) |
 | `DATABASE_URL` | `sqlite:///btcshield.db` | SQLAlchemy connection string (SQLite or PostgreSQL) |
-| `JWT_SECRET` | `change-this-secret-in-production` | Secret key for signing JWT authorization tokens |
+| `JWT_SECRET` | `dev-insecure-secret-key-32-chars-long-min` | Secret key for signing JWT tokens (min 32 chars in prod) |
 | `JWT_ALGORITHM` | `HS256` | Cryptographic algorithm for JWT |
-| `JWT_EXPIRATION_MINUTES`| `30` | Access token lifespan |
-| `CORS_ORIGINS` | `["*"]` | Allowed CORS origins for browser security |
+| `JWT_EXPIRATION_MINUTES`| `1440` (24h) | Access token lifespan |
+| `CORS_ORIGINS` | `["http://localhost:5173","http://localhost:3000","https://pramendra0001.github.io"]` | Allowed CORS origins |
 | `AI_PROVIDER` | `mock` | AI explainability provider (`mock` or `gemini`) |
 | `LOG_LEVEL` | `INFO` | Application log verbosity (`DEBUG`, `INFO`, `WARNING`) |
 

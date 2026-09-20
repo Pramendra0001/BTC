@@ -10,7 +10,7 @@
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
 [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF.svg)](https://vitejs.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Live Demo](https://img.shields.io/badge/Demo-GitHub%20Pages-success.svg)](https://pramendra0001.github.io/BTC/)
+[![Pages Deploy](https://img.shields.io/badge/Pages%20Deploy-Ready-blue.svg)](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml)
 
 **Target Competition:** Smart India Hackathon 2026  
 **Problem Statement:** 26146 — AI-Powered Monitoring & Analysis of Bitcoin Transaction Traffic  
@@ -28,7 +28,7 @@ BTC-SHIELD is an advanced intelligence and link analysis platform developed for 
    $$\text{Raw Telemetry} \rightarrow \text{Normalized Entities} \rightarrow \text{23 Behavioral Features} \rightarrow \text{Unsupervised ML} \rightarrow \text{Evidence} \rightarrow \text{Case Dossier}$$
 2. **Dual-Mode Deployment:**
    - **Mode A (SIH Finals Mode):** 100% self-contained, air-gapped offline Linux execution (Docker Compose or local Python/Node preview). Zero outbound internet or external API dependencies.
-   - **Mode B (Cloud Production Mode):** Single Page Application deployed to GitHub Pages, backed by containerized FastAPI microservices and Neon PostgreSQL.
+   - **Mode B (Cloud Production Architecture):** Production-ready architecture for Single Page Application deployment to GitHub Pages, containerized FastAPI microservices, and Neon PostgreSQL database.
 3. **Multi-Hop Link Analysis:** Interactive Cytoscape.js directed multigraph supporting 1 to 3 hops, hierarchical layouts, PageRank centrality, and forensic image export.
 4. **Explainable AI Assistant:** Deterministic, evidence-grounded explainability assistant providing natural language findings, recommended investigative actions, and explicit uncertainty assessments.
 

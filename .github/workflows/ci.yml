@@ -27,7 +27,7 @@ jobs:
 
       - name: Run Backend Tests
         run: |
-          PYTHONPATH=backend pytest tests/ -v || true
+          PYTHONPATH=backend pytest tests/ -v
 
   frontend-build:
     name: Frontend Typecheck & Build
@@ -45,6 +45,10 @@ jobs:
       - name: Install dependencies
         working-directory: ./frontend
         run: npm ci
+
+      - name: Lint Frontend
+        working-directory: ./frontend
+        run: npm run lint
 
       - name: Build Frontend
         working-directory: ./frontend
