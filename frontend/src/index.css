@@ -4,8 +4,14 @@
   --color-slate-950: #020617;
   --color-slate-900: #0f172a;
   --color-slate-800: #1e293b;
-  --color-slate-100: #f1f5f9;
+  --color-slate-700: #334155;
+  --color-slate-600: #475569;
+  --color-slate-400: #94a3b8;
   --color-slate-300: #cbd5e1;
+  --color-slate-200: #e2e8f0;
+  --color-slate-100: #f1f5f9;
+  --color-slate-50: #f8fafc;
+  --color-white: #ffffff;
   --color-emerald-500: #10b981;
   --color-amber-500: #f59e0b;
   --color-rose-500: #f43f5e;
@@ -13,6 +19,53 @@
   --color-violet-500: #8b5cf6;
 }
 
+/* Light Theme Design Tokens — Specially designed for clean, high-contrast operations */
+html.light,
+[data-theme="light"] {
+  --color-slate-950: #f8fafc; /* Outermost canvas background */
+  --color-slate-900: #ffffff; /* Card & Surface background */
+  --color-slate-800: #e2e8f0; /* Default borders and dividers */
+  --color-slate-700: #cbd5e1; /* Secondary borders */
+  --color-slate-600: #94a3b8; /* Tertiary elements */
+  --color-slate-400: #64748b; /* Muted labels and secondary metadata */
+  --color-slate-300: #334155; /* Secondary text */
+  --color-slate-200: #1e293b; /* Prominent text */
+  --color-slate-100: #0f172a; /* Primary body text */
+  --color-white: #020617;     /* High contrast headings / titles */
+}
+
+/* Dark Theme Design Tokens — Default SIH / NTRO Intelligence Command Center */
+html.dark,
+[data-theme="dark"] {
+  --color-slate-950: #020617;
+  --color-slate-900: #0f172a;
+  --color-slate-800: #1e293b;
+  --color-slate-700: #334155;
+  --color-slate-600: #475569;
+  --color-slate-400: #94a3b8;
+  --color-slate-300: #cbd5e1;
+  --color-slate-200: #e2e8f0;
+  --color-slate-100: #f1f5f9;
+  --color-white: #ffffff;
+}
+
 body {
-  @apply bg-slate-950 text-slate-100 antialiased;
+  background-color: var(--color-slate-950);
+  color: var(--color-slate-100);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Form input adaptations in Light Theme */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8;
 }

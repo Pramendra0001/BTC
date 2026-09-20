@@ -143,7 +143,7 @@ npm run dev
 ```
 
 Open browser to `http://localhost:5173`  
-**Default Credentials:** `admin` / `admin123`
+**Authentication & Access:** Self-register a new investigator account directly via the secure UI registration portal (`/login` -> Register tab) or use administrator credentials configured in your environment (`ADMIN_USERNAME` / `ADMIN_PASSWORD`).
 
 ---
 
@@ -169,20 +169,25 @@ pytest tests -v
 
 ### Verified Test Matrix:
 - `tests/test_ingestion.py`: CSV, JSON, XML multi-format parsing, address/IP syntax validators, SHA-256 duplicate quarantine.
+- `tests/test_heuristics.py`: Entropy computation, peeling-chain cascade tracking, CoinJoin mixer detection.
 - `tests/test_feature_engineering.py`: 23 behavioral features, Shannon entropy calculations, inter-arrival burstiness ($CV$).
 - `tests/test_ml_pipeline.py`: Isolation Forest anomaly scoring, DBSCAN adaptive epsilon, score normalization ($[0 - 100]$).
 - `tests/test_graph.py`: NetworkX directed multigraph, edge typing, Degree/PageRank centrality, Cytoscape JSON output.
 - `tests/test_evidence_engine.py`: Evidence signal generation across 8 categories, strength scoring.
 - `tests/test_alert_prioritizer.py`: Compound risk calculation, data sufficiency confidence, priority tier classification.
+- `tests/test_config.py`: Render plain-string and comma-separated CORS_ORIGINS parser, security validation.
 - `tests/test_api.py`: FastAPI REST client endpoints (health, auth, dashboard, cases, heuristics, data quality, audit logs, users, jobs).
+- `frontend/tests/theme.test.ts`: Theme provider lifecycle, dark/light toggle, media query resolution, persistence.
+- `frontend/tests/auth.test.ts`: JWT storage verification, fake credentials prevention, error handling.
 
-**Result: 20 passed in ~16 seconds.**
+**Result: 47 automated tests passing across backend (39 pytest) and frontend (8 Vitest).**
 
 ---
 
 ## 6. Technical Documentation Index
 
 Detailed engineering documentation is available in the `docs/` directory:
+- [SIH 26146 Acceptance Matrix](docs/SIH_26146_ACCEPTANCE_MATRIX.md) — Exhaustive 22-requirement audit with verification proof.
 - [System Architecture](docs/ARCHITECTURE.md) — Comprehensive architectural specification and data flow.
 - [System Design & Schemas](docs/SYSTEM_DESIGN.md) — Full SQL schemas, foreign keys, and indexes.
 - [REST API Reference](docs/API_REFERENCE.md) — Exhaustive 49-endpoint API contract.

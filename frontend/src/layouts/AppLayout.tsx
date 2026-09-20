@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSearch, useSystemStatus } from '../api/hooks';
 import { truncateAddress } from '../utils/format';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 const navItems = [
   { name: 'Command Center', path: '/', icon: <LayoutDashboard size={18} /> },
@@ -186,7 +187,8 @@ export default function AppLayout() {
           </div>
 
           {/* Right Profile & Info */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <div className="flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-md bg-slate-800/50 border border-slate-700/50 text-slate-300">
               <span className="w-2 h-2 rounded-full bg-blue-400" />
               <span>INVESTIGATOR (ADMIN)</span>

@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import cytoscape from 'cytoscape';
 import { 
   ZoomIn, ZoomOut, Maximize2, RotateCcw, Download, 
-  Layers, Filter, Eye, ShieldAlert, ChevronRight, X
+  Layers, X
 } from 'lucide-react';
-import { truncateAddress } from '../../utils/format';
+import { useTheme } from '../../context/ThemeContext';
 
 interface GraphVisualizationProps {
   elements: {
@@ -16,6 +16,8 @@ interface GraphVisualizationProps {
 }
 
 export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: GraphVisualizationProps) {
+  const { resolvedTheme } = useTheme();
+  const isLight = resolvedTheme === 'light';
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
   const [layoutName, setLayoutName] = useState<string>('concentric');
@@ -71,18 +73,18 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
         {
           selector: 'node',
           style: {
-            'background-color': '#334155',
+            'background-color': isLight ? '#cbd5e1' : '#334155',
             'label': 'data(label)',
-            'color': '#f8fafc',
+            'color': isLight ? '#0f172a' : '#f8fafc',
             'font-size': '10px',
             'text-valign': 'bottom',
             'text-margin-y': 4,
-            'text-outline-color': '#020617',
+            'text-outline-color': isLight ? '#ffffff' : '#020617',
             'text-outline-width': 2,
             'width': 28,
             'height': 28,
             'border-width': 2,
-            'border-color': '#475569',
+            'border-color': isLight ? '#94a3b8' : '#475569',
           }
         },
         // WALLET Nodes
@@ -154,11 +156,11 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
           selector: 'edge',
           style: {
             'width': 1.5,
-            'line-color': '#334155',
-            'target-arrow-color': '#475569',
+            'line-color': isLight ? '#94a3b8' : '#334155',
+            'target-arrow-color': isLight ? '#64748b' : '#475569',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
-            'opacity': 0.8,
+            'opacity': 0.85,
           }
         },
         // Edge specific styles
@@ -219,7 +221,7 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
     return () => {
       cy.destroy();
     };
-  }, [elements, layoutName, centerEntityId]);
+  }, [elements, layoutName, centerEntityId, resolvedTheme, isLight, onNodeSelect]);
 
   const handleZoomIn = () => cyRef.current?.zoom(cyRef.current.zoom() * 1.2);
   const handleZoomOut = () => cyRef.current?.zoom(cyRef.current.zoom() * 0.8);

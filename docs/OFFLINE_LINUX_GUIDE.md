@@ -109,15 +109,15 @@ docker compose up -d
    ```
 2. **Access the Web Interface:**
    Open browser to: `http://localhost:5173`
-3. **Login with Default Credentials:**
-   - **Username:** `admin`
-   - **Password:** `admin123`
-4. **Execute Automated Test Suite:**
+3. **Investigator Authentication & Self-Registration:**
+   - Evaluators may register a new investigator account directly via the UI registration tab (`/login` -> Register).
+   - Alternatively, configure `ADMIN_PASSWORD` in the local environment to seed an initial administrator account.
+4. **Execute Automated Verification Suite:**
    ```bash
    cd /home/evaluator/BTC
    source backend/.venv/bin/activate
-   pytest tests -v
-   # All 16 tests pass in < 15 seconds!
+   python -m pytest tests -v
+   # All 39 backend tests pass in < 15 seconds!
    ```
 5. **Ingest Pre-Generated Sample Scenarios:**
    Go to `/datasets` -> Select `data/samples/dataset_1000.csv` -> Click **Upload** -> Click **Run ML Pipeline**.

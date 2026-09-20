@@ -24,17 +24,19 @@ import HeuristicsPage from './pages/HeuristicsPage'
 import DataQualityPage from './pages/DataQualityPage'
 import AuditLogsPage from './pages/AuditLogsPage'
 import SettingsPage from './pages/SettingsPage'
+import { ThemeProvider } from './context/ThemeContext'
 
 const queryClient = new QueryClient()
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter basename={import.meta.env.BASE_URL}>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<DashboardPage />} />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<DashboardPage />} />
             <Route path="alerts" element={<AlertsPage />} />
             <Route path="alerts/:id" element={<AlertDetailPage />} />
             <Route path="wallets" element={<WalletsPage />} />
@@ -60,6 +62,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
+  </ThemeProvider>
   )
 }
 
