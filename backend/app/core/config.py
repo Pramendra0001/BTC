@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
-from pydantic import model_validator
-from typing import List
+from pydantic import model_validator, field_validator
+from typing import List, Union
+import json
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "BTC-SHIELD Backend"
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRATION_MINUTES: int = 60 * 24  # 24 hours
     
-    CORS_ORIGINS: List[str] = [
+    CORS_ORIGINS: Union[List[str], str] = [
         "https://pramendra0001.github.io",
         "http://localhost:5173",
         "http://localhost:3000",
@@ -31,19 +32,20 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 50
     INGESTION_BATCH_SIZE: int = 1000
 
-    @model_validator(mode="before")
+    @field_validator("CORS_ORIGINS", mode="after")
     @classmethod
-    def parse_cors_origins(cls, values):
-        if isinstance(values, dict):
-            cors = values.get("CORS_ORIGINS")
-            if isinstance(cors, str):
-                import json
-                cors = cors.strip()
-                if cors.startswith("[") and cors.endswith("]"):
-                    values["CORS_ORIGINS"] = json.loads(cors)
-                else:
-                    values["CORS_ORIGINS"] = [orig.strip() for orig in cors.split(",") if orig.strip()]
-        return values
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("[") and v.endswith("]"):
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list):
+                        return [str(x).strip() for x in parsed if str(x).strip()]
+                except Exception:
+                    pass
+            return [x.strip() for x in v.split(",") if x.strip()]
+        return v
 
     @model_validator(mode="after")
     def validate_security(self):
