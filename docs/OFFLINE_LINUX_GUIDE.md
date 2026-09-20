@@ -120,7 +120,7 @@ docker compose up -d
    # All 39 backend tests pass in < 15 seconds!
    ```
 5. **Ingest Pre-Generated Sample Scenarios:**
-   Go to `/datasets` -> Select `data/samples/dataset_1000.csv` -> Click **Upload** -> Click **Run ML Pipeline**.
+   Go to `/datasets` -> Select `data/samples/btc_shield_synthetic_transactions.csv` -> Click **Upload** -> Click **Run ML Pipeline**.
 
 ---
 

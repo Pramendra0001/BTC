@@ -10,7 +10,7 @@
 ## Quick Reference Demonstration Checklist
 - [ ] Backend active on `http://localhost:8000` (FastAPI Swagger `/docs`)
 - [ ] Frontend active on `http://localhost:5173`
-- [ ] Test dataset ready at `data/samples/dataset_1000.csv`
+- [ ] Test dataset ready at `data/samples/btc_shield_synthetic_transactions.csv`
 - [ ] Default login credentials: `admin` / `admin123`
 - [ ] Network adapter disabled (optional for offline verification proof)
 
@@ -33,7 +33,7 @@
 **Screen:** Dataset Management (`/datasets`)  
 **Action:**
 1. Click **Ingest Dataset** button.
-2. Select `data/samples/dataset_1000.csv` (or demonstrate drag-and-drop of JSON/XML).
+2. Select `data/samples/btc_shield_synthetic_transactions.csv` (or demonstrate drag-and-drop of JSON/XML).
 3. Click **Upload Dataset**.
 **Talking Points:**
 > "Our ingestion subsystem handles RFC 4180 CSV, JSON, and XML telemetry feeds.  

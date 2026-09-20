@@ -5,6 +5,7 @@ Multi-format data ingestion with validation, normalization, and quality tracking
 import json
 import csv
 import io
+import ast
 try:
     import defusedxml.ElementTree as ET
 except ImportError:
@@ -81,6 +82,110 @@ def safe_float(val, default=0.0) -> float:
         return float(val)
     except (ValueError, TypeError):
         return default
+
+def parse_address_list(raw_val) -> list[str]:
+    """
+    Polyglot address list parser supporting:
+    A. Native Python list/tuple: ["addr1", "addr2"]
+    B. JSON-stringified arrays: '["addr1", "addr2"]'
+    C. Legacy semicolon-separated strings: "addr1;addr2" or comma-separated
+    """
+    if not raw_val:
+        return []
+    if isinstance(raw_val, (list, tuple)):
+        return [str(a).strip() for a in raw_val if str(a).strip()]
+    if isinstance(raw_val, str):
+        val_str = raw_val.strip()
+        if not val_str:
+            return []
+        if val_str.startswith("[") and val_str.endswith("]"):
+            try:
+                parsed = json.loads(val_str)
+                if isinstance(parsed, (list, tuple)):
+                    return [str(a).strip() for a in parsed if str(a).strip()]
+            except (json.JSONDecodeError, ValueError):
+                try:
+                    parsed = ast.literal_eval(val_str)
+                    if isinstance(parsed, (list, tuple)):
+                        return [str(a).strip() for a in parsed if str(a).strip()]
+                except Exception:
+                    val_str = val_str[1:-1]
+        if ";" in val_str:
+            parts = val_str.split(";")
+        elif "," in val_str:
+            parts = val_str.split(",")
+        else:
+            parts = [val_str]
+        return [p.strip().strip("'\"").strip() for p in parts if p.strip().strip("'\"").strip()]
+    return [str(raw_val).strip()]
+
+def parse_amount_list(raw_val) -> list[float]:
+    """
+    Polyglot amount list parser supporting:
+    A. Native Python list/tuple: [0.5, 1.2] or ["0.5", "1.2"]
+    B. JSON-stringified arrays: '[0.5, 1.2]' or '["0.5", "1.2"]'
+    C. Semicolon-separated or comma-separated strings: "0.5;1.2"
+    """
+    if raw_val is None or raw_val == "":
+        return []
+    if isinstance(raw_val, (int, float)):
+        return [float(raw_val)]
+    if isinstance(raw_val, (list, tuple)):
+        res = []
+        for a in raw_val:
+            try:
+                res.append(float(a))
+            except (ValueError, TypeError):
+                res.append(0.0)
+        return res
+    if isinstance(raw_val, str):
+        val_str = raw_val.strip()
+        if not val_str:
+            return []
+        if val_str.startswith("[") and val_str.endswith("]"):
+            try:
+                parsed = json.loads(val_str)
+                if isinstance(parsed, (list, tuple)):
+                    return parse_amount_list(parsed)
+            except (json.JSONDecodeError, ValueError):
+                try:
+                    parsed = ast.literal_eval(val_str)
+                    if isinstance(parsed, (list, tuple)):
+                        return parse_amount_list(parsed)
+                except Exception:
+                    val_str = val_str[1:-1]
+        if ";" in val_str:
+            parts = val_str.split(";")
+        elif "," in val_str:
+            parts = val_str.split(",")
+        else:
+            parts = [val_str]
+        res = []
+        for p in parts:
+            item = p.strip().strip("'\"").strip()
+            if item:
+                try:
+                    res.append(float(item))
+                except (ValueError, TypeError):
+                    res.append(0.0)
+        return res
+    try:
+        return [float(raw_val)]
+    except (ValueError, TypeError):
+        return []
+
+def calculate_fee(raw_fee, total_input: float, total_output: float) -> float:
+    """
+    Fee calculation:
+    - If explicit fee is present, preserve/use it.
+    - If fee is absent (None or empty string): fee = max(0.0, round(total_input - total_output, 8))
+    """
+    if raw_fee is not None and str(raw_fee).strip() != "":
+        try:
+            return float(raw_fee)
+        except (ValueError, TypeError):
+            pass
+    return max(0.0, round(total_input - total_output, 8))
 
 def detect_format(filename: str) -> str:
     """Detect file format from extension."""
@@ -218,6 +323,15 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
 
         dataset.total_records = total
 
+        # Pre-populate existing TXIDs and entity caches to avoid per-record DB round-trips
+        existing_txids = set(r[0] for r in db.query(Transaction.txid).all())
+        wallet_cache = {}
+        ip_cache = {}
+        asn_cache = {}
+
+        orig_expire = getattr(db, "expire_on_commit", True)
+        db.expire_on_commit = False
+
         for i, rec in enumerate(records):
             try:
                 # Validate
@@ -249,24 +363,25 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
                 # --- Create normalized entities ---
                 ts = normalize_timestamp(rec.get("timestamp"))
 
-                # Parse semicolon-separated fields
-                input_addrs = [a.strip() for a in rec.get("input_addresses", "").split(";") if a.strip()]
-                output_addrs = [a.strip() for a in rec.get("output_addresses", "").split(";") if a.strip()]
-                input_amts = [safe_float(a) for a in rec.get("input_amounts", "").split(";") if a.strip()]
-                output_amts = [safe_float(a) for a in rec.get("output_amounts", "").split(";") if a.strip()]
+                # Polyglot address and amount parsing
+                input_addrs = parse_address_list(rec.get("input_addresses"))
+                output_addrs = parse_address_list(rec.get("output_addresses"))
+                input_amts = parse_amount_list(rec.get("input_amounts"))
+                output_amts = parse_amount_list(rec.get("output_amounts"))
 
-                total_input = sum(input_amts) if input_amts else 0
-                total_output = sum(output_amts) if output_amts else 0
-                fee = safe_float(rec.get("fee", 0))
+                total_input = round(sum(input_amts), 8) if input_amts else 0.0
+                total_output = round(sum(output_amts), 8) if output_amts else 0.0
+                fee = calculate_fee(rec.get("fee"), total_input, total_output)
 
                 # Create or get transaction
-                existing_tx = db.query(Transaction).filter(Transaction.txid == rec["txid"]).first()
-                if existing_tx:
-                    tx = existing_tx
+                txid = rec["txid"]
+                if txid in existing_txids:
+                    pass
                 else:
+                    existing_txids.add(txid)
                     tx = Transaction(
                         dataset_id=dataset.id,
-                        txid=rec["txid"],
+                        txid=txid,
                         timestamp=ts,
                         fee=fee,
                         script_type=rec.get("script_type", ""),
@@ -278,7 +393,7 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
 
                     # Create transaction inputs
                     for pos, addr in enumerate(input_addrs):
-                        amt = input_amts[pos] if pos < len(input_amts) else 0
+                        amt = input_amts[pos] if pos < len(input_amts) else 0.0
                         ti = TransactionInput(
                             transaction_id=tx.id,
                             wallet_address=addr,
@@ -289,7 +404,7 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
 
                     # Create transaction outputs
                     for pos, addr in enumerate(output_addrs):
-                        amt = output_amts[pos] if pos < len(output_amts) else 0
+                        amt = output_amts[pos] if pos < len(output_amts) else 0.0
                         to = TransactionOutput(
                             transaction_id=tx.id,
                             wallet_address=addr,
@@ -301,18 +416,20 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
                     # Resolve wallet entities
                     all_addrs = set(input_addrs + output_addrs)
                     for addr in all_addrs:
-                        wallet = db.query(Wallet).filter(Wallet.address == addr).first()
+                        wallet = wallet_cache.get(addr)
                         if not wallet:
-                            wallet = Wallet(
-                                address=addr,
-                                first_seen=ts,
-                                last_seen=ts,
-                                total_sent=0,
-                                total_received=0,
-                                tx_count=0
-                            )
-                            db.add(wallet)
-                            db.flush()
+                            wallet = db.query(Wallet).filter(Wallet.address == addr).first()
+                            if not wallet:
+                                wallet = Wallet(
+                                    address=addr,
+                                    first_seen=ts,
+                                    last_seen=ts,
+                                    total_sent=0.0,
+                                    total_received=0.0,
+                                    tx_count=0
+                                )
+                                db.add(wallet)
+                            wallet_cache[addr] = wallet
 
                         # Update wallet stats
                         wallet.tx_count = (wallet.tx_count or 0) + 1
@@ -323,19 +440,20 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
 
                         if addr in input_addrs:
                             idx = input_addrs.index(addr)
-                            amt = input_amts[idx] if idx < len(input_amts) else 0
-                            wallet.total_sent = (wallet.total_sent or 0) + amt
+                            amt = input_amts[idx] if idx < len(input_amts) else 0.0
+                            wallet.total_sent = (wallet.total_sent or 0.0) + amt
                         if addr in output_addrs:
                             idx = output_addrs.index(addr)
-                            amt = output_amts[idx] if idx < len(output_amts) else 0
-                            wallet.total_received = (wallet.total_received or 0) + amt
+                            amt = output_amts[idx] if idx < len(output_amts) else 0.0
+                            wallet.total_received = (wallet.total_received or 0.0) + amt
 
                 # Create network observation
                 if rec.get("src_ip"):
+                    src_ip = rec["src_ip"]
                     net_obs = NetworkObservation(
                         dataset_id=dataset.id,
-                        transaction_id=rec["txid"],
-                        src_ip=rec.get("src_ip", ""),
+                        transaction_id=txid,
+                        src_ip=src_ip,
                         dst_ip=rec.get("dst_ip", ""),
                         src_port=int(rec.get("src_port", 0)) if rec.get("src_port") else None,
                         dst_port=int(rec.get("dst_port", 0)) if rec.get("dst_port") else None,
@@ -346,17 +464,20 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
                     db.add(net_obs)
 
                     # Resolve IP entity
-                    ip_ent = db.query(IPEntity).filter(IPEntity.ip_address == rec["src_ip"]).first()
+                    ip_ent = ip_cache.get(src_ip)
                     if not ip_ent:
-                        ip_ent = IPEntity(
-                            ip_address=rec["src_ip"],
-                            first_seen=ts,
-                            last_seen=ts,
-                            observation_count=0,
-                            asn=rec.get("asn", ""),
-                            country=rec.get("geo_country", "")
-                        )
-                        db.add(ip_ent)
+                        ip_ent = db.query(IPEntity).filter(IPEntity.ip_address == src_ip).first()
+                        if not ip_ent:
+                            ip_ent = IPEntity(
+                                ip_address=src_ip,
+                                first_seen=ts,
+                                last_seen=ts,
+                                observation_count=0,
+                                asn=rec.get("asn", ""),
+                                country=rec.get("geo_country", "")
+                            )
+                            db.add(ip_ent)
+                        ip_cache[src_ip] = ip_ent
                     ip_ent.observation_count = (ip_ent.observation_count or 0) + 1
                     if ts and (ip_ent.last_seen is None or ts > ip_ent.last_seen):
                         ip_ent.last_seen = ts
@@ -364,15 +485,18 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
                     # Resolve ASN entity
                     asn_val = rec.get("asn", "")
                     if asn_val:
-                        asn_ent = db.query(ASNEntity).filter(ASNEntity.asn_number == asn_val).first()
+                        asn_ent = asn_cache.get(asn_val)
                         if not asn_ent:
-                            asn_ent = ASNEntity(
-                                asn_number=asn_val,
-                                name=f"ASN {asn_val}",
-                                country_count=0,
-                                ip_count=0
-                            )
-                            db.add(asn_ent)
+                            asn_ent = db.query(ASNEntity).filter(ASNEntity.asn_number == asn_val).first()
+                            if not asn_ent:
+                                asn_ent = ASNEntity(
+                                    asn_number=asn_val,
+                                    name=f"ASN {asn_val}",
+                                    country_count=0,
+                                    ip_count=0
+                                )
+                                db.add(asn_ent)
+                            asn_cache[asn_val] = asn_ent
 
                 valid_count += 1
 
@@ -412,3 +536,5 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
         db.commit()
         logger.error(f"Dataset {dataset_id} processing failed: {e}")
         raise
+    finally:
+        db.expire_on_commit = orig_expire

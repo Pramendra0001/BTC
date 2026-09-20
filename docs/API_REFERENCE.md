@@ -116,7 +116,7 @@ Uploads raw transaction/telemetry file (CSV, JSON, XML), validates records, and 
     "message": "Dataset uploaded and processed",
     "dataset": {
       "id": 1,
-      "name": "dataset_1000.csv",
+      "name": "btc_shield_synthetic_transactions.csv",
       "format": "csv",
       "status": "COMPLETED",
       "total_records": 1000,

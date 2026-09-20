@@ -19,7 +19,7 @@ sleep 10
 echo "Ingesting sample data..."
 curl -X POST http://localhost:8000/api/v1/ingest \
   -H "Content-Type: application/json" \
-  -d '{"file_path": "/app/data/samples/dataset_1000.csv"}' || echo "Note: Replace with actual ingest logic"
+  -d '{"file_path": "/app/data/samples/btc_shield_synthetic_transactions.csv"}' || echo "Note: Replace with actual ingest logic"
 
 echo "Demo is running! Access the frontend at http://localhost:3000"
 echo "To stop: docker-compose down"

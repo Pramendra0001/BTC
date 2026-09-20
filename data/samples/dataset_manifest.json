@@ -1,0 +1,19 @@
+{
+  "dataset_name": "BTC-SHIELD Synthetic Investigation Dataset",
+  "version": "1.1",
+  "generation_seed": 26146,
+  "records": 1000,
+  "nature": "synthetic",
+  "official_status": "Not an NTRO-provided dataset",
+  "purpose": "Development, testing, demonstration, and reproducible evaluation of BTC-SHIELD.",
+  "scenarios": {
+    "normal_baseline": 555,
+    "entity_cluster_common_input": 132,
+    "high_value_anomaly": 28,
+    "rapid_temporal_sequence": 45,
+    "peeling_chain": 106,
+    "mixing_coinjoin_like": 11,
+    "ip_wallet_correlation_anomaly": 33,
+    "multi_hop_graph_flow": 90
+  }
+}
