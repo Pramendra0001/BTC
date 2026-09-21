@@ -633,7 +633,7 @@ def process_relational_bundle_async(dataset_id: int, bundle_bytes: bytes, job_id
                         out_amts = parse_amount_list(row.get("output_amounts"))
                         tin = sum(in_amts)
                         tout = sum(out_amts)
-                        fee = safe_float(row.get("fee"), default=calculate_fee(tin, tout))
+                        fee = calculate_fee(row.get("fee"), tin, tout)
 
                         tx = Transaction(
                             dataset_id=dataset.id,
