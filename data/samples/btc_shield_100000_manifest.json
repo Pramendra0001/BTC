@@ -1,0 +1,50 @@
+{
+  "dataset": "BTC-SHIELD Ground-Ready Synthetic Dataset",
+  "version": "4.0",
+  "transaction_records": 100000,
+  "edge_records": 350131,
+  "wallet_records": 45000,
+  "time_range_utc": [
+    "2026-03-20T04:41:29.945435Z",
+    "2026-05-24T07:44:59.928133Z"
+  ],
+  "core_schema_columns": [
+    "timestamp",
+    "src_ip",
+    "dst_ip",
+    "src_port",
+    "dst_port",
+    "txid",
+    "input_addresses",
+    "output_addresses",
+    "input_amounts",
+    "output_amounts",
+    "fee",
+    "script_type",
+    "geo_country",
+    "asn",
+    "scenario_label"
+  ],
+  "scenario_counts": {
+    "NORMAL_BASELINE": 78263,
+    "FAN_OUT_PEELING": 3555,
+    "AMOUNT_ANOMALY": 2520,
+    "FAN_IN_CONSOLIDATION": 3619,
+    "GEO_HOPPING": 2052,
+    "MULTI_SIGNAL_ANOMALY": 2552,
+    "MIXING_COINJOIN_LIKE": 1002,
+    "BURST_ACTIVITY": 5469,
+    "IP_WALLET_CORRELATION": 968
+  },
+  "files": {
+    "primary_transactions": "btc_shield_transactions_100000.csv",
+    "graph_edges": "btc_shield_edges_100000.csv",
+    "analytics_enrichment": "btc_shield_enrichment_100000.csv",
+    "wallet_entities": "btc_shield_wallets.csv"
+  },
+  "integration_rule": "Primary transactions file matches BTC-SHIELD's transaction ingestion fields; enrichment/edges/wallets are keyed by txid/address for graph and dashboard joins.",
+  "ml_rule": "Do not train on scenario_label, ground_truth, risk_score, risk_level or signal columns; they are evaluation/demo ground truth and derived metadata.",
+  "provenance": "Synthetic data. Designed to emulate transaction/network structure for an SIH/academic prototype; it is not real NTRO telemetry, real intercepted traffic, or evidence of real-world illicit activity.",
+  "network_safety": "IPs are documentation-only TEST-NET ranges; ASNs are identifiers for synthetic network observations and should not be interpreted as real attribution.",
+  "amount_unit": "satoshis"
+}

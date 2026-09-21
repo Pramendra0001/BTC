@@ -63,4 +63,8 @@ data/geoip/*.mmdb
 
 # Large benchmark datasets & archives (local benchmark only)
 *.zip
-data/samples/*10000*
+data/samples/*.csv
+data/samples/*.zip
+!data/samples/.gitkeep
+!data/samples/*.md
+!data/samples/*.json

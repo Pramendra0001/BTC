@@ -199,13 +199,21 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
 
     # Adaptive eps based on data characteristics
     from sklearn.neighbors import NearestNeighbors
-    nn = NearestNeighbors(n_neighbors=min(5, len(X)))
-    nn.fit(X_scaled)
-    distances, _ = nn.kneighbors(X_scaled)
+    nn_samples = min(5000, len(X))
+    if len(X) > 5000:
+        sub_idx = np.random.RandomState(42).choice(len(X), nn_samples, replace=False)
+        nn_fit_data = X_scaled[sub_idx]
+    else:
+        nn_fit_data = X_scaled
+
+    nn = NearestNeighbors(n_neighbors=min(5, nn_samples))
+    nn.fit(nn_fit_data)
+    distances, _ = nn.kneighbors(nn_fit_data)
     eps = float(np.percentile(distances[:, -1], 90))
     eps = max(eps, 0.5)  # minimum eps
 
-    clusterer = DBSCAN(eps=eps, min_samples=max(2, len(X) // 20))
+    min_samples_val = min(50, max(5, len(X) // 500))
+    clusterer = DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=-1)
     labels = clusterer.fit_predict(X_scaled)
 
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
@@ -218,15 +226,17 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
         "n_noise_points": n_noise,
         "noise_ratio": n_noise / len(X) if len(X) > 0 else 0,
         "eps": eps,
-        "min_samples": max(2, len(X) // 20),
+        "min_samples": min_samples_val,
     }
 
     # Silhouette score (only if we have >= 2 clusters and not all noise)
     if n_clusters >= 2 and n_noise < len(X):
         non_noise_mask = labels != -1
-        if np.sum(non_noise_mask) > 1:
+        non_noise_count = int(np.sum(non_noise_mask))
+        if non_noise_count > 10:
             try:
-                sil = silhouette_score(X_scaled[non_noise_mask], labels[non_noise_mask])
+                sample_sz = min(5000, non_noise_count)
+                sil = silhouette_score(X_scaled[non_noise_mask], labels[non_noise_mask], sample_size=sample_sz, random_state=42)
                 eval_metrics["silhouette_score"] = float(sil)
             except Exception:
                 eval_metrics["silhouette_score"] = None
@@ -245,7 +255,7 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
         feature_schema_version="2.0",
         parameters={
             "eps": eps,
-            "min_samples": max(2, len(X) // 20),
+            "min_samples": min_samples_val,
             "metric": "euclidean",
             "n_features": len(FEATURE_COLUMNS),
         },

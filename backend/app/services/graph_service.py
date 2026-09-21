@@ -10,6 +10,7 @@ from app.models.models import (
     NetworkObservation, IPEntity, ASNEntity, GraphNode, GraphEdge,
     AnomalyResult
 )
+from collections import defaultdict
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,14 +24,16 @@ def build_graph(db: Session) -> nx.DiGraph:
     """
     G = nx.DiGraph()
 
+    # Pre-fetch latest anomalies in a single query
+    anomalies_map = {}
+    anomaly_records = db.query(AnomalyResult).filter(AnomalyResult.entity_type == "WALLET").all()
+    for ar in anomaly_records:
+        anomalies_map[ar.entity_id] = ar.anomaly_score
+
     # --- Add Wallet nodes ---
     wallets = db.query(Wallet).all()
     for w in wallets:
-        anomaly = db.query(AnomalyResult).filter(
-            AnomalyResult.entity_type == "WALLET",
-            AnomalyResult.entity_id == w.address
-        ).order_by(AnomalyResult.created_at.desc()).first()
-
+        score = anomalies_map.get(w.address)
         G.add_node(f"WALLET:{w.address}", **{
             "type": "WALLET",
             "label": w.address[:12] + "..." if len(w.address) > 12 else w.address,
@@ -38,8 +41,18 @@ def build_graph(db: Session) -> nx.DiGraph:
             "tx_count": w.tx_count or 0,
             "total_sent": w.total_sent or 0,
             "total_received": w.total_received or 0,
-            "anomaly_score": anomaly.anomaly_score if anomaly else None,
+            "anomaly_score": score,
         })
+
+    # Pre-fetch all inputs and outputs in 2 queries instead of 2 * len(transactions)
+    all_inputs = db.query(TransactionInput).all()
+    all_outputs = db.query(TransactionOutput).all()
+    inputs_by_tx = defaultdict(list)
+    outputs_by_tx = defaultdict(list)
+    for inp in all_inputs:
+        inputs_by_tx[inp.transaction_id].append(inp)
+    for out in all_outputs:
+        outputs_by_tx[out.transaction_id].append(out)
 
     # --- Add Transaction nodes and edges ---
     transactions = db.query(Transaction).all()
@@ -55,9 +68,7 @@ def build_graph(db: Session) -> nx.DiGraph:
         })
 
         # Input edges: WALLET -> TRANSACTION
-        inputs = db.query(TransactionInput).filter(
-            TransactionInput.transaction_id == tx.id
-        ).all()
+        inputs = inputs_by_tx.get(tx.id, [])
         for inp in inputs:
             wallet_node = f"WALLET:{inp.wallet_address}"
             tx_node = f"TX:{tx.txid}"
@@ -69,9 +80,7 @@ def build_graph(db: Session) -> nx.DiGraph:
                 })
 
         # Output edges: TRANSACTION -> WALLET
-        outputs = db.query(TransactionOutput).filter(
-            TransactionOutput.transaction_id == tx.id
-        ).all()
+        outputs = outputs_by_tx.get(tx.id, [])
         for out in outputs:
             wallet_node = f"WALLET:{out.wallet_address}"
             tx_node = f"TX:{tx.txid}"
@@ -319,21 +328,28 @@ def persist_graph(db: Session):
 
     centrality = compute_centrality(G)
 
+    node_batch = []
     for node_id in G.nodes():
         data = dict(G.nodes[node_id])
         node_type = data.get("type", "UNKNOWN")
         label = data.get("label", node_id)
-
         data["centrality"] = centrality.get(node_id, {})
-
         gn = GraphNode(
             node_type=node_type,
             node_id=node_id,
             label=label,
             properties=data,
         )
-        db.add(gn)
+        node_batch.append(gn)
+        if len(node_batch) >= 5000:
+            db.bulk_save_objects(node_batch)
+            db.commit()
+            node_batch = []
+    if node_batch:
+        db.bulk_save_objects(node_batch)
+        db.commit()
 
+    edge_batch = []
     for source, target in G.edges():
         edge_data = dict(G[source][target])
         edge_type = edge_data.get("type", "ASSOCIATED_WITH")
@@ -348,7 +364,13 @@ def persist_graph(db: Session):
             properties=edge_data,
             provenance=edge_data.get("provenance", "derived"),
         )
-        db.add(ge)
+        edge_batch.append(ge)
+        if len(edge_batch) >= 5000:
+            db.bulk_save_objects(edge_batch)
+            db.commit()
+            edge_batch = []
+    if edge_batch:
+        db.bulk_save_objects(edge_batch)
+        db.commit()
 
-    db.commit()
     logger.info(f"Graph persisted: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")

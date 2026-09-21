@@ -83,6 +83,9 @@ class Wallet(Base):
     __tablename__ = "wallets"
     id = Column(Integer, primary_key=True, index=True)
     address = Column(String, unique=True, index=True)
+    wallet_type = Column(String, nullable=True)
+    country = Column(String, nullable=True)
+    synthetic_balance_sats = Column(Float, nullable=True)
     first_seen = Column(DateTime)
     last_seen = Column(DateTime)
     total_sent = Column(Float, default=0)

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     
     AI_PROVIDER: str = "mock"
     LOG_LEVEL: str = "INFO"
-    MAX_UPLOAD_SIZE_MB: int = 50
+    MAX_UPLOAD_SIZE_MB: int = 250
     INGESTION_BATCH_SIZE: int = 1000
 
     @field_validator("CORS_ORIGINS", mode="after")

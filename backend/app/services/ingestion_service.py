@@ -538,3 +538,236 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
         raise
     finally:
         db.expire_on_commit = orig_expire
+
+
+import zipfile
+import tempfile
+import os
+
+def process_relational_bundle_async(dataset_id: int, bundle_bytes: bytes, job_id: Optional[str] = None):
+    """
+    Background worker function for streaming relational dataset bundle ingestion.
+    Executes in a detached thread with its own SQLAlchemy session.
+    Dependency order:
+    1. Wallets (btc_shield_wallets.csv)
+    2. Transactions & Network (btc_shield_transactions_100000.csv)
+    3. Edges (btc_shield_edges_100000.csv)
+    4. Enrichment (btc_shield_enrichment_100000.csv)
+    """
+    from app.core.database import SessionLocal
+    from app.services import job_service
+    from app.models.models import GraphEdge, RawRecord
+
+    db = SessionLocal()
+    orig_expire = db.expire_on_commit
+    db.expire_on_commit = False
+
+    try:
+        if job_id:
+            job_service.update_job(job_id, "PROCESSING", 5, "Extracting relational archive in memory...")
+
+        dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+        if not dataset:
+            logger.error(f"Dataset {dataset_id} not found in background ingestion.")
+            return
+
+        with zipfile.ZipFile(io.BytesIO(bundle_bytes)) as z:
+            namelist = z.namelist()
+
+            wallets_fname = next((n for n in namelist if "wallets" in n.lower() and n.endswith(".csv")), None)
+            tx_fname = next((n for n in namelist if "transactions" in n.lower() and n.endswith(".csv")), None)
+            edges_fname = next((n for n in namelist if "edges" in n.lower() and n.endswith(".csv")), None)
+            enrich_fname = next((n for n in namelist if "enrichment" in n.lower() and n.endswith(".csv")), None)
+
+            # 1. Wallets (45,000)
+            if wallets_fname:
+                if job_id:
+                    job_service.update_job(job_id, "PROCESSING", 15, "Ingesting wallet entities...")
+                with z.open(wallets_fname) as wf:
+                    w_lines = io.TextIOWrapper(wf, encoding="utf-8")
+                    reader = csv.DictReader(w_lines)
+                    w_batch = []
+                    for row in reader:
+                        addr = row.get("address")
+                        if not addr:
+                            continue
+                        w = Wallet(
+                            address=addr,
+                            wallet_type=row.get("wallet_type"),
+                            country=row.get("country"),
+                            synthetic_balance_sats=safe_float(row.get("synthetic_balance_sats")),
+                            tx_count=int(safe_float(row.get("observed_transaction_count"))),
+                            total_sent=0.0,
+                            total_received=0.0
+                        )
+                        w_batch.append(w)
+                        if len(w_batch) >= 5000:
+                            db.bulk_save_objects(w_batch)
+                            db.commit()
+                            w_batch = []
+                    if w_batch:
+                        db.bulk_save_objects(w_batch)
+                        db.commit()
+
+            # 2. Transactions & Network Observations (100,000)
+            if tx_fname:
+                if job_id:
+                    job_service.update_job(job_id, "PROCESSING", 40, "Ingesting 100,000 transactions and network observations...")
+                with z.open(tx_fname) as tf:
+                    t_lines = io.TextIOWrapper(tf, encoding="utf-8")
+                    reader = csv.DictReader(t_lines)
+                    tx_batch = []
+                    net_batch = []
+                    raw_batch = []
+
+                    line_no = 0
+                    valid_tx = 0
+                    for row in reader:
+                        line_no += 1
+                        txid = row.get("txid")
+                        if not txid:
+                            continue
+
+                        ts = normalize_timestamp(row.get("timestamp"))
+                        in_amts = parse_amount_list(row.get("input_amounts"))
+                        out_amts = parse_amount_list(row.get("output_amounts"))
+                        tin = sum(in_amts)
+                        tout = sum(out_amts)
+                        fee = safe_float(row.get("fee"), default=calculate_fee(tin, tout))
+
+                        tx = Transaction(
+                            dataset_id=dataset.id,
+                            txid=txid,
+                            timestamp=ts,
+                            fee=fee,
+                            script_type=row.get("script_type"),
+                            total_input=tin,
+                            total_output=tout
+                        )
+                        tx_batch.append(tx)
+
+                        src_ip = row.get("src_ip", "")
+                        if src_ip:
+                            net = NetworkObservation(
+                                dataset_id=dataset.id,
+                                transaction_id=txid,
+                                src_ip=src_ip,
+                                dst_ip=row.get("dst_ip", ""),
+                                src_port=int(safe_float(row.get("src_port"))),
+                                dst_port=int(safe_float(row.get("dst_port"))),
+                                timestamp=ts,
+                                geo_country=row.get("geo_country", ""),
+                                asn=row.get("asn", "")
+                            )
+                            net_batch.append(net)
+
+                        # RawRecord for audit
+                        raw = RawRecord(
+                            dataset_id=dataset.id,
+                            line_number=line_no,
+                            raw_data=row,
+                            is_valid=True
+                        )
+                        raw_batch.append(raw)
+                        valid_tx += 1
+
+                        if len(tx_batch) >= 5000:
+                            db.bulk_save_objects(tx_batch)
+                            db.bulk_save_objects(net_batch)
+                            db.bulk_save_objects(raw_batch)
+                            db.commit()
+                            tx_batch, net_batch, raw_batch = [], [], []
+
+                    if tx_batch:
+                        db.bulk_save_objects(tx_batch)
+                        db.bulk_save_objects(net_batch)
+                        db.bulk_save_objects(raw_batch)
+                        db.commit()
+
+                    dataset.total_records = line_no
+                    dataset.valid_records = valid_tx
+                    dataset.invalid_records = 0
+                    db.commit()
+
+            # 3. Edges (350,131)
+            if edges_fname:
+                if job_id:
+                    job_service.update_job(job_id, "PROCESSING", 70, "Ingesting 350,131 graph edges...")
+                with z.open(edges_fname) as ef:
+                    e_lines = io.TextIOWrapper(ef, encoding="utf-8")
+                    reader = csv.DictReader(e_lines)
+                    edge_batch = []
+                    for row in reader:
+                        ge = GraphEdge(
+                            source_type="TRANSACTION",
+                            source_id=row.get("source_txid"),
+                            target_type="TRANSACTION",
+                            target_id=row.get("target_txid"),
+                            edge_type=row.get("edge_type", "MONEY_FLOW"),
+                            weight=1.0,
+                            properties={"wallet_address": row.get("wallet_address")},
+                            provenance="SYNTHETIC_100K"
+                        )
+                        edge_batch.append(ge)
+                        if len(edge_batch) >= 10000:
+                            db.bulk_save_objects(edge_batch)
+                            db.commit()
+                            edge_batch = []
+                    if edge_batch:
+                        db.bulk_save_objects(edge_batch)
+                        db.commit()
+
+            # 4. Enrichment (100,000)
+            if enrich_fname:
+                if job_id:
+                    job_service.update_job(job_id, "PROCESSING", 90, "Ingesting enrichment and ground-truth metadata...")
+                with z.open(enrich_fname) as enf:
+                    en_lines = io.TextIOWrapper(enf, encoding="utf-8")
+                    reader = csv.DictReader(en_lines)
+                    en_batch = []
+                    line_no = 0
+                    for row in reader:
+                        line_no += 1
+                        raw = RawRecord(
+                            dataset_id=dataset.id,
+                            line_number=line_no,
+                            raw_data=row,
+                            is_valid=True
+                        )
+                        en_batch.append(raw)
+                        if len(en_batch) >= 10000:
+                            db.bulk_save_objects(en_batch)
+                            db.commit()
+                            en_batch = []
+                    if en_batch:
+                        db.bulk_save_objects(en_batch)
+                        db.commit()
+
+        dataset.status = "COMPLETED"
+        db.commit()
+
+        if job_id:
+            job_service.update_job(
+                job_id,
+                "COMPLETED",
+                100,
+                "Relational dataset 100K ingestion successfully finished!",
+                result={"dataset_id": dataset.id, "total_records": dataset.total_records}
+            )
+
+        logger.info(f"Relational dataset bundle {dataset_id} completed successfully.")
+
+    except Exception as e:
+        logger.error(f"Relational bundle processing failed for dataset {dataset_id}: {e}")
+        try:
+            dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+            if dataset:
+                dataset.status = "FAILED"
+                db.commit()
+        except Exception:
+            pass
+        if job_id:
+            job_service.update_job(job_id, "FAILED", 0, f"Ingestion error: {str(e)}")
+    finally:
+        db.expire_on_commit = orig_expire
+        db.close()
