@@ -93,7 +93,7 @@ def train_isolation_forest(db: Session, dataset_id: int) -> int | None:
         n_estimators=100,
         max_samples="auto",
         random_state=random_state,
-        n_jobs=-1
+        n_jobs=1
     )
     clf.fit(X_scaled)
 
@@ -154,7 +154,8 @@ def train_isolation_forest(db: Session, dataset_id: int) -> int | None:
     db.add(run)
     db.flush()
 
-    # Store anomaly results
+    # Store anomaly results in batches of 5000 to keep memory under 20MB
+    ar_batch = []
     for i, entity in enumerate(valid_entities):
         ar = AnomalyResult(
             model_run_id=run.id,
@@ -163,9 +164,15 @@ def train_isolation_forest(db: Session, dataset_id: int) -> int | None:
             anomaly_score=float(scaled_scores[i]),
             cluster_id=None
         )
-        db.add(ar)
+        ar_batch.append(ar)
+        if len(ar_batch) >= 5000:
+            db.bulk_save_objects(ar_batch)
+            db.commit()
+            ar_batch = []
+    if ar_batch:
+        db.bulk_save_objects(ar_batch)
+        db.commit()
 
-    db.commit()
     logger.info(
         f"Isolation Forest trained: {n_anomalies} anomalies detected out of {len(X)} entities. "
         f"Model version: {model_version}"
@@ -213,7 +220,7 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
     eps = max(eps, 0.5)  # minimum eps
 
     min_samples_val = min(50, max(5, len(X) // 500))
-    clusterer = DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=-1)
+    clusterer = DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=1)
     labels = clusterer.fit_predict(X_scaled)
 
     n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
@@ -267,9 +274,9 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
     db.add(run)
     db.flush()
 
-    # Store cluster assignments as anomaly results
+    # Store cluster assignments as anomaly results in batches of 5000
+    ar_batch = []
     for i, entity in enumerate(valid_entities):
-        # Noise points in DBSCAN (label=-1) are potentially anomalous
         cluster_label = int(labels[i])
         ar = AnomalyResult(
             model_run_id=run.id,
@@ -278,9 +285,15 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
             anomaly_score=100.0 if cluster_label == -1 else 0.0,
             cluster_id=cluster_label
         )
-        db.add(ar)
+        ar_batch.append(ar)
+        if len(ar_batch) >= 5000:
+            db.bulk_save_objects(ar_batch)
+            db.commit()
+            ar_batch = []
+    if ar_batch:
+        db.bulk_save_objects(ar_batch)
+        db.commit()
 
-    db.commit()
     logger.info(
         f"DBSCAN completed: {n_clusters} clusters, {n_noise} noise points. "
         f"Model version: {model_version}"
@@ -289,9 +302,12 @@ def train_dbscan(db: Session, dataset_id: int) -> int | None:
 
 
 def run_full_ml_pipeline(db: Session, dataset_id: int):
-    """Run the complete ML pipeline: Isolation Forest + DBSCAN."""
+    """Run the complete ML pipeline: Isolation Forest + DBSCAN with proactive GC."""
+    import gc
     logger.info(f"Starting ML pipeline for dataset {dataset_id}")
     if_run = train_isolation_forest(db, dataset_id)
+    gc.collect()
     dbscan_run = train_dbscan(db, dataset_id)
+    gc.collect()
     logger.info(f"ML pipeline complete. IF run: {if_run}, DBSCAN run: {dbscan_run}")
     return {"isolation_forest_run": if_run, "dbscan_run": dbscan_run}

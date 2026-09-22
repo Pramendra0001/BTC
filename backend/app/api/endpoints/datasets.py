@@ -174,6 +174,9 @@ def reset_application_data(
     }
 
 
+import tempfile
+import shutil
+
 @router.post("/upload-bundle")
 async def upload_dataset_bundle(
     file: UploadFile = File(...),
@@ -183,13 +186,17 @@ async def upload_dataset_bundle(
     """
     Upload and asynchronously ingest a relational dataset bundle (zip archive containing
     transactions, wallets, edges, and enrichment).
+    Streams directly to a temporary disk file to preserve cgroup memory on 512 MB instances.
     """
     ds = Dataset(name=file.filename, filename=file.filename, format="ZIP_RELATIONAL", status="PROCESSING")
     db.add(ds)
     db.commit()
     db.refresh(ds)
 
-    bundle_bytes = await file.read()
+    # Stream upload directly to disk instead of holding 50+ MB in RAM
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp:
+        shutil.copyfileobj(file.file, tmp)
+        tmp_path = tmp.name
 
     from app.services import job_service, audit_service
     job_id = job_service.create_job(
@@ -209,7 +216,7 @@ async def upload_dataset_bundle(
     from app.services.ingestion_service import process_relational_bundle_async
     thread = threading.Thread(
         target=process_relational_bundle_async,
-        args=(ds.id, bundle_bytes, job_id),
+        args=(ds.id, tmp_path, job_id),
         daemon=True
     )
     thread.start()

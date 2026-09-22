@@ -52,23 +52,26 @@ def get_dashboard(db: Session) -> dict:
         ModelRun.training_timestamp.desc()
     ).first()
 
-    # Anomaly score distribution (for chart)
-    anomaly_distribution = {"0-20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0}
-    anomaly_results = db.query(AnomalyResult).filter(
-        AnomalyResult.anomaly_score.isnot(None)
-    ).all()
-    for ar in anomaly_results:
-        score = ar.anomaly_score
-        if score <= 20:
-            anomaly_distribution["0-20"] += 1
-        elif score <= 40:
-            anomaly_distribution["20-40"] += 1
-        elif score <= 60:
-            anomaly_distribution["40-60"] += 1
-        elif score <= 80:
-            anomaly_distribution["60-80"] += 1
-        else:
-            anomaly_distribution["80-100"] += 1
+    # Anomaly score distribution (SQL bucketed aggregation — zero ORM allocations)
+    from sqlalchemy import case
+    dist_row = db.query(
+        func.count(case((AnomalyResult.anomaly_score <= 20, 1))),
+        func.count(case(((AnomalyResult.anomaly_score > 20) & (AnomalyResult.anomaly_score <= 40), 1))),
+        func.count(case(((AnomalyResult.anomaly_score > 40) & (AnomalyResult.anomaly_score <= 60), 1))),
+        func.count(case(((AnomalyResult.anomaly_score > 60) & (AnomalyResult.anomaly_score <= 80), 1))),
+        func.count(case((AnomalyResult.anomaly_score > 80, 1)))
+    ).filter(AnomalyResult.anomaly_score.isnot(None)).first()
+
+    if dist_row:
+        anomaly_distribution = {
+            "0-20": dist_row[0] or 0,
+            "20-40": dist_row[1] or 0,
+            "40-60": dist_row[2] or 0,
+            "60-80": dist_row[3] or 0,
+            "80-100": dist_row[4] or 0,
+        }
+    else:
+        anomaly_distribution = {"0-20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0}
 
     # Recent alerts
     recent_alerts = db.query(Alert).order_by(

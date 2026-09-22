@@ -16,7 +16,7 @@ from app.models.models import (
     NetworkObservation, Wallet, IPEntity, ASNEntity
 )
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union, List, Dict, Any
 import re
 import logging
 import hashlib
@@ -543,11 +543,13 @@ def process_dataset(db: Session, dataset_id: int, file_content: bytes):
 import zipfile
 import tempfile
 import os
+import gc
 
-def process_relational_bundle_async(dataset_id: int, bundle_bytes: bytes, job_id: Optional[str] = None):
+def process_relational_bundle_async(dataset_id: int, bundle_source: Union[bytes, str], job_id: Optional[str] = None):
     """
     Background worker function for streaming relational dataset bundle ingestion.
     Executes in a detached thread with its own SQLAlchemy session.
+    Accepts either raw bytes or a disk file path (recommended for low memory).
     Dependency order:
     1. Wallets (btc_shield_wallets.csv)
     2. Transactions & Network (btc_shield_transactions_100000.csv)
@@ -564,14 +566,15 @@ def process_relational_bundle_async(dataset_id: int, bundle_bytes: bytes, job_id
 
     try:
         if job_id:
-            job_service.update_job(job_id, "PROCESSING", 5, "Extracting relational archive in memory...")
+            job_service.update_job(job_id, "PROCESSING", 5, "Extracting relational archive...")
 
         dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
         if not dataset:
             logger.error(f"Dataset {dataset_id} not found in background ingestion.")
             return
 
-        with zipfile.ZipFile(io.BytesIO(bundle_bytes)) as z:
+        zip_target = bundle_source if isinstance(bundle_source, str) else io.BytesIO(bundle_source)
+        with zipfile.ZipFile(zip_target, "r") as z:
             namelist = z.namelist()
 
             wallets_fname = next((n for n in namelist if "wallets" in n.lower() and n.endswith(".csv")), None)
@@ -771,3 +774,9 @@ def process_relational_bundle_async(dataset_id: int, bundle_bytes: bytes, job_id
     finally:
         db.expire_on_commit = orig_expire
         db.close()
+        if isinstance(bundle_source, str) and os.path.exists(bundle_source):
+            try:
+                os.remove(bundle_source)
+            except Exception:
+                pass
+        gc.collect()

@@ -34,6 +34,12 @@ def generate_alerts(db: Session):
 
     model_version = latest_model.model_version if latest_model else "none"
 
+    # Pre-fetch all anomaly scores in a single query
+    anomaly_map = {
+        (ar.entity_type, ar.entity_id): ar.anomaly_score
+        for ar in db.query(AnomalyResult).filter(AnomalyResult.anomaly_score.isnot(None)).all()
+    }
+
     # Group evidence by entity
     evidences = db.query(Evidence).all()
     entity_evidence_map: dict[tuple[str, str], list[Evidence]] = {}
@@ -47,14 +53,7 @@ def generate_alerts(db: Session):
 
     for (entity_type, entity_id), ev_list in entity_evidence_map.items():
         # --- Anomaly Score ---
-        # Get the IF anomaly score for this entity
-        anomaly_result = db.query(AnomalyResult).filter(
-            AnomalyResult.entity_type == entity_type,
-            AnomalyResult.entity_id == entity_id,
-            AnomalyResult.anomaly_score.isnot(None)
-        ).order_by(AnomalyResult.created_at.desc()).first()
-
-        anomaly_score = anomaly_result.anomaly_score if anomaly_result else 0
+        anomaly_score = anomaly_map.get((entity_type, entity_id), 0.0)
 
         # --- Confidence ---
         # Based on evidence quantity and diversity
