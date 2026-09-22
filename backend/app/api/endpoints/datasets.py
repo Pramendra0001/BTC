@@ -62,17 +62,45 @@ def trigger_processing(id: int, db: Session = Depends(get_db), current_user: Use
     if not ds:
         raise HTTPException(status_code=404, detail="Dataset not found")
     
-    # Run full intelligence pipeline
+    # Run full intelligence pipeline with proactive session expunging and garbage collection
+    import gc
+
     resolve_all(db)
-    compute_all_features(db)
-    ml_result = run_full_ml_pipeline(db, id)
-    persist_graph(db)
-    ev_count = generate_evidence(db)
-    alert_count = generate_alerts(db)
-    
-    ds.status = "PIPELINE_COMPLETE"
     db.commit()
-    
+    db.expunge_all()
+    gc.collect()
+
+    compute_all_features(db)
+    db.commit()
+    db.expunge_all()
+    gc.collect()
+
+    ml_result = run_full_ml_pipeline(db, id)
+    db.commit()
+    db.expunge_all()
+    gc.collect()
+
+    persist_graph(db)
+    db.commit()
+    db.expunge_all()
+    gc.collect()
+
+    ev_count = generate_evidence(db)
+    db.commit()
+    db.expunge_all()
+    gc.collect()
+
+    alert_count = generate_alerts(db)
+    db.commit()
+    db.expunge_all()
+    gc.collect()
+
+    # Refresh dataset reference after expunging
+    ds = db.query(Dataset).filter(Dataset.id == id).first()
+    if ds:
+        ds.status = "PIPELINE_COMPLETE"
+        db.commit()
+
     return {
         "message": f"Processing complete for dataset {id}",
         "dataset_id": id,

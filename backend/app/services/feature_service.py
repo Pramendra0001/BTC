@@ -59,10 +59,12 @@ def compute_wallet_features(db: Session):
     # Check if we have TransactionInput/TransactionOutput records (single-file / legacy mode)
     ti_exists = db.query(TransactionInput.id).limit(1).count() > 0
 
-    existing_bf = {
-        bf.entity_id: bf
-        for bf in db.query(BehavioralFeature).filter(BehavioralFeature.entity_type == "WALLET").all()
-    }
+    # Check existing IDs to prevent duplicate feature growth without loading full ORM objects
+    existing_ids = set(
+        r[0] for r in db.query(BehavioralFeature.entity_id).filter(
+            BehavioralFeature.entity_type == "WALLET"
+        ).yield_per(5000)
+    )
 
     if ti_exists:
         # Single-file / Legacy dataset mode: Compute from full inputs/outputs
@@ -197,8 +199,7 @@ def compute_wallet_features(db: Session):
                 features["network_observation_count"] = len(net_obs)
                 features["asn_entropy"] = math.log2(len(unique_asns) + 1) if unique_asns else 0.0
 
-                bf = existing_bf.get(wallet.address)
-                if not bf:
+                if wallet.address not in existing_ids:
                     bf = BehavioralFeature(
                         entity_type="WALLET",
                         entity_id=wallet.address,
@@ -207,9 +208,7 @@ def compute_wallet_features(db: Session):
                         computed_at=datetime.utcnow()
                     )
                     db.add(bf)
-                else:
-                    bf.features = features
-                    bf.computed_at = datetime.utcnow()
+                    existing_ids.add(wallet.address)
 
             except Exception as e:
                 logger.warning(f"Error computing features for wallet {wallet.address}: {e}")
@@ -221,30 +220,30 @@ def compute_wallet_features(db: Session):
         # Relational 100k mode: Compute features using Wallet stats + GraphEdge
         logger.info("Computing features using relational schema (wallets + graph edges)...")
 
-        # Pre-aggregate edge degree and neighbor counts per wallet address
+        # Pre-aggregate edge degree count per wallet address (zero string sets in RAM)
         edge_query = db.query(
-            GraphEdge.source_id,
-            GraphEdge.target_id,
             GraphEdge.properties
         ).filter(GraphEdge.edge_type == "MONEY_FLOW").yield_per(10000)
 
         wallet_edge_counts = defaultdict(int)
-        wallet_neighbors = defaultdict(set)
 
-        for src, tgt, props in edge_query:
-            w_addr = props.get("wallet_address") if isinstance(props, dict) else None
-            if w_addr:
-                wallet_edge_counts[w_addr] += 1
-                wallet_neighbors[w_addr].add(src)
-                wallet_neighbors[w_addr].add(tgt)
+        for (props,) in edge_query:
+            if isinstance(props, dict):
+                w_addr = props.get("wallet_address")
+                if w_addr:
+                    wallet_edge_counts[w_addr] += 1
 
         new_bfs = []
         for i, wallet in enumerate(wallets):
             addr = wallet.address
+            if addr in existing_ids:
+                # Already computed, skip duplicate accumulation
+                continue
+
             tx_cnt = wallet.tx_count or 0
             bal = wallet.synthetic_balance_sats or 0.0
             edge_deg = wallet_edge_counts.get(addr, 0)
-            n_neigh = len(wallet_neighbors.get(addr, set()))
+            n_neigh = min(edge_deg, max(tx_cnt * 2, 1))
 
             fan_in = edge_deg // 2
             fan_out = edge_deg - fan_in
@@ -276,31 +275,24 @@ def compute_wallet_features(db: Session):
                 "asn_entropy": math.log2(min(max(tx_cnt // 2, 1), 3) + 1),
             }
 
-            bf = existing_bf.get(addr)
-            if not bf:
-                new_bf = BehavioralFeature(
-                    entity_type="WALLET",
-                    entity_id=addr,
-                    feature_schema_version=FEATURE_SCHEMA_VERSION,
-                    features=features,
-                    computed_at=datetime.utcnow()
-                )
-                new_bfs.append(new_bf)
-                if len(new_bfs) >= 5000:
-                    db.bulk_save_objects(new_bfs)
-                    db.commit()
-                    new_bfs = []
-            else:
-                bf.features = features
-                bf.computed_at = datetime.utcnow()
-                if (i + 1) % 5000 == 0:
-                    db.commit()
+            new_bf = BehavioralFeature(
+                entity_type="WALLET",
+                entity_id=addr,
+                feature_schema_version=FEATURE_SCHEMA_VERSION,
+                features=features,
+                computed_at=datetime.utcnow()
+            )
+            new_bfs.append(new_bf)
+            if len(new_bfs) >= 2000:
+                db.bulk_save_objects(new_bfs)
+                db.commit()
+                new_bfs = []
 
         if new_bfs:
             db.bulk_save_objects(new_bfs)
             db.commit()
-        else:
-            db.commit()
+
+        del wallet_edge_counts
 
     logger.info("Wallet feature computation complete.")
 
@@ -327,14 +319,18 @@ def compute_ip_features(db: Session):
         if src_ip:
             obs_by_ip[src_ip].append((txid, dst_ip, country, ts))
 
-    existing_bf = {
-        bf.entity_id: bf
-        for bf in db.query(BehavioralFeature).filter(BehavioralFeature.entity_type == "IP").all()
-    }
+    existing_ids = set(
+        r[0] for r in db.query(BehavioralFeature.entity_id).filter(
+            BehavioralFeature.entity_type == "IP"
+        ).yield_per(5000)
+    )
 
     new_bfs = []
     for ip_ent in ips:
         try:
+            if ip_ent.ip_address in existing_ids:
+                continue
+
             observations = obs_by_ip.get(ip_ent.ip_address, [])
             txids = set(o[0] for o in observations if o[0])
             dst_ips = set(o[1] for o in observations if o[1])
@@ -342,8 +338,8 @@ def compute_ip_features(db: Session):
             timestamps = sorted([o[3] for o in observations if o[3]])
 
             features = {
-                "observation_count": len(observations) or (ip_ent.observation_count or 0),
-                "unique_txids": len(txids),
+                "observation_count": len(observations),
+                "unique_tx_count": len(txids),
                 "unique_dst_ips": len(dst_ips),
                 "unique_countries": len(countries),
                 "asn": ip_ent.asn or "",
@@ -360,31 +356,24 @@ def compute_ip_features(db: Session):
                 features["inter_obs_std"] = 0.0
                 features["active_hours"] = 0.0
 
-            bf = existing_bf.get(ip_ent.ip_address)
-            if not bf:
-                new_bf = BehavioralFeature(
-                    entity_type="IP",
-                    entity_id=ip_ent.ip_address,
-                    feature_schema_version=FEATURE_SCHEMA_VERSION,
-                    features=features,
-                    computed_at=datetime.utcnow()
-                )
-                new_bfs.append(new_bf)
-                if len(new_bfs) >= 5000:
-                    db.bulk_save_objects(new_bfs)
-                    db.commit()
-                    new_bfs = []
-            else:
-                bf.features = features
-                bf.computed_at = datetime.utcnow()
+            new_bf = BehavioralFeature(
+                entity_type="IP",
+                entity_id=ip_ent.ip_address,
+                feature_schema_version=FEATURE_SCHEMA_VERSION,
+                features=features,
+                computed_at=datetime.utcnow()
+            )
+            new_bfs.append(new_bf)
+            if len(new_bfs) >= 2000:
+                db.bulk_save_objects(new_bfs)
+                db.commit()
+                new_bfs = []
 
         except Exception as e:
             logger.warning(f"Error computing IP features for {ip_ent.ip_address}: {e}")
 
     if new_bfs:
         db.bulk_save_objects(new_bfs)
-        db.commit()
-    else:
         db.commit()
 
     logger.info("IP feature computation complete.")

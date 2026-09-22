@@ -34,12 +34,6 @@ def generate_alerts(db: Session):
 
     model_version = latest_model.model_version if latest_model else "none"
 
-    # Pre-fetch all anomaly scores in a single query
-    anomaly_map = {
-        (ar.entity_type, ar.entity_id): ar.anomaly_score
-        for ar in db.query(AnomalyResult).filter(AnomalyResult.anomaly_score.isnot(None)).all()
-    }
-
     # Group evidence by entity
     evidences = db.query(Evidence).all()
     entity_evidence_map: dict[tuple[str, str], list[Evidence]] = {}
@@ -48,6 +42,21 @@ def generate_alerts(db: Session):
         if key not in entity_evidence_map:
             entity_evidence_map[key] = []
         entity_evidence_map[key].append(ev)
+
+    # Pre-fetch anomaly scores ONLY for entities with evidence via lightweight raw tuples
+    entity_ids = [e[1] for e in entity_evidence_map.keys()]
+    if entity_ids:
+        anomaly_tuples = db.query(
+            AnomalyResult.entity_type,
+            AnomalyResult.entity_id,
+            AnomalyResult.anomaly_score
+        ).filter(
+            AnomalyResult.entity_id.in_(entity_ids),
+            AnomalyResult.anomaly_score.isnot(None)
+        ).all()
+        anomaly_map = {(row[0], row[1]): float(row[2]) for row in anomaly_tuples}
+    else:
+        anomaly_map = {}
 
     alert_count = 0
 
