@@ -88,13 +88,28 @@ Each resolved entity (wallet address or network IP) is transformed into a high-d
   - `60 - 80`: High anomaly requiring review.
   - `80 - 100`: Extreme outlier with severe multi-dimensional deviation.
 
-### 3.2 DBSCAN (Density-Based Behavioral Clustering)
-- **Algorithm Principle:** Groups entities that have at least `min_samples = 3` neighbors within a distance $\epsilon$.
-- **Adaptive Epsilon Optimization:** Rather than a static hardcoded epsilon, BTC-SHIELD computes the $k$-nearest neighbor distance distribution across all standard-scaled feature vectors and adaptively selects the 90th percentile distance:
-  $$\epsilon = \text{Percentile}_{90}(\text{k-NN Distances})$$
-- **Noise Classification:** Entities that fail to belong to any dense cluster are assigned Cluster ID `-1` (behavioral noise points) and flagged for investigative review.
-- **Evaluation Metric:** Cluster separation is evaluated using the Silhouette Score:
-  $$s = \frac{b - a}{\max(a, b)}$$
+### 3.2 Cohort Behavioral Clustering (Dual-Scale Architecture)
+
+To support both small unit test fixtures and large production cohorts ($45,000+$ entities) within strict container memory bounds ($512\text{ MB}$ RSS), BTC-SHIELD implements a dual-scale clustering architecture:
+
+#### A. Small Cohort Mode ($N \le 1,000$ Entities)
+- **Algorithm:** Standard Scikit-Learn `DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=1)`
+- **Adaptive Epsilon Optimization:** Rather than a static hardcoded epsilon, BTC-SHIELD computes the $k$-nearest neighbor distance distribution across all standard-scaled feature vectors ($k=\min(5, N)$) and adaptively selects the 80th percentile distance:
+  $$\epsilon = \max\Big(0.5, \; \text{Percentile}_{80}(\text{k-NN Distances})\Big)$$
+- **Min Samples:** Dynamically set to $\min(10, \max(3, \lfloor N / 50 \rfloor))$.
+- **Noise Classification:** Un-clusterable points in low-density regions are assigned Cluster ID `-1` (behavioral noise points).
+
+#### B. Large Cohort Mode ($N > 1,000$ Entities — Production Benchmark)
+- **Problem Statement:** Standard DBSCAN on $45,000$ 23-dimensional vectors triggers an $O(N^2)$ memory allocation explosion ($>15\text{ GB}$ RSS), crashing containers with exit code 137.
+- **Engineered Operational Substitute:** `MiniBatchKMeans(n_clusters=12, batch_size=2048, random_state=42, n_init="auto")`.
+- **Distance-to-Centroid Outlier Thresholding:**
+  1. Computes Euclidean distance $d(x_i)$ from each standard-scaled entity vector to its assigned cluster centroid $\mu_{c(i)}$:
+     $$d(x_i) = \| x_i - \mu_{c(i)} \|_2$$
+  2. Computes the 97th percentile distance threshold:
+     $$\tau = \text{Percentile}_{97.0}\big(\{ d(x_i) \}_{i=1}^N \big)$$
+  3. Designates the top 3% furthest entities as behavioral noise:
+     $$\text{Cluster}(x_i) = \begin{cases} -1 & \text{if } d(x_i) > \tau \\ c(i) & \text{otherwise} \end{cases}$$
+- **Algorithmic Reality:** MiniBatchKMeans is **not** claimed to be mathematically equivalent to DBSCAN. It is an engineered operational substitute that achieves $O(N \cdot K)$ memory complexity ($\approx 6.4\text{ MB}$ allocation) while strictly preserving the downstream contract: assigning `cluster_id = -1` to anomalous cohort outliers.
 
 ---
 

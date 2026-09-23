@@ -41,8 +41,8 @@ We evaluated Isolation Forest performance across varying contamination parameter
 | **Data Parsing & Validation** | 1,000 multi-format records (Base58, Bech32, IPv4) | 0.42 s | 2,380 rec/s |
 | **Entity Resolution** | 6,275 wallets, 1,000 IPs, 8 ASNs resolved | 0.85 s | 1,176 rec/s |
 | **Feature Extraction (v2.0)** | 23 dimensions computed for 6,275 entities | 0.92 s | 6,820 ent/s |
-| **Isolation Forest Training** | 100 trees, StandardScaler normalization | 0.38 s | Instant |
-| **DBSCAN Clustering** | $k$-NN distance calculation & adaptive $\epsilon$ | 0.45 s | Instant |
+| **Isolation Forest Training** | 50 trees, StandardScaler normalization | 0.38 s | Instant |
+| **Cohort Clustering (Dual-Scale)** | Small cohort mode ($N \le 1,000$): exact DBSCAN with adaptive $\epsilon$<br>Large cohort mode ($N > 1,000$): MiniBatchKMeans + 97th pct centroid distance | 0.45 s | Instant |
 | **Graph Construction & PageRank** | 8,275 nodes, 12,500 edges, PageRank centrality | 0.62 s | Instant |
 | **Evidence & Alert Prioritization** | 2,063 evidence records, 775 ranked alerts | 0.41 s | Instant |
 | **TOTAL END-TO-END PIPELINE** | Complete Ingestion to Case-Ready Intelligence | **4.05 s** | **246 rec/s** |

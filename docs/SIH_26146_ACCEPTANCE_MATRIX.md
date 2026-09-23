@@ -12,6 +12,12 @@
 
 BTC-SHIELD has undergone an end-to-end audit against all technical, functional, algorithmic, and operational specifications mandated by NTRO for SIH Problem Statement 26146. Every requirement has been validated through automated tests, user interface interaction, API contracts, mathematical proofs, and deployment checks across both Mode A (Air-Gapped Offline Linux) and Mode B (Live Cloud Architecture on Render and Neon PostgreSQL).
 
+### Canonical Automated Test Suite Audit
+- **Backend Pytest Suite:** **57 passed, 3 skipped, 0 failed** in $19.46\text{s}$ (100% passing across 14 test modules).
+- **Frontend Node/Unit Suite:** **8 passed, 0 skipped, 0 failed** in $159\text{ms}$ (100% passing across auth and theme suites).
+- **Total Repository Test Count:** **65 passed, 3 skipped, 0 failed** (Overall Status: **PASS**).
+- **Frontend Build Status:** Clean build via Vite 8 in $799\text{ms}$; initial bundle size $24.25\text{ kB}$ with route-level code-splitting.
+
 ---
 
 ## 2. Comprehensive Acceptance Matrix
@@ -24,7 +30,7 @@ BTC-SHIELD has undergone an end-to-end audit against all technical, functional, 
 | **4** | **On-Chain & Off-Chain Correlation** | Bipartite join engine unifying Bitcoin UTXO transaction events with P2P relay IP, ASN, port, and timestamp. | `GET /api/wallets/{addr}/network`<br>`GET /api/transactions/{txid}/peers` | `/transactions/:txid`<br>`/ips/:ip` | Spatio-temporal coincidence window linking on-chain broadcast to network node propagation | `tests/test_evidence_engine.py::<br>test_network_correlation` | Correlated transaction-to-IP graphs with latency offsets | **PASS** (Live + Offline) |
 | **5** | **23-Dimensional Feature Engine** | Vectorizer calculating volume, structural, temporal, and network behavioral dimensions. | `POST /api/models/features/extract` | `/models`<br>`ModelLabPage.tsx` | Mathematical feature vector: Shannon entropy, fan-out ratio, fee-to-value, inter-arrival burstiness ($CV$) | `tests/test_feature_engineering.py::<br>test_23_dimensional_feature_vector` | 23-column numerical matrix ready for unsupervised modeling | **PASS** (Live + Offline) |
 | **6** | **Unsupervised Anomaly Detection** | Isolation Forest ensemble isolating multidimensional structural and volume anomalies. | `POST /api/models/train`<br>`GET /api/models/active` | `/models`<br>`ModelLabPage.tsx` | Non-parametric path-length scoring: $s(x,n) = 2^{-\frac{E(h(x))}{c(n)}}$, calibrated to $[0, 100]$ | `tests/test_ml_pipeline.py::<br>test_isolation_forest_scoring` | Model artifact with contamination tuning and calibrated anomaly score | **PASS** (Live + Offline) |
-| **7** | **Adaptive DBSCAN Clustering** | Density-Based Spatial Clustering isolating dense transaction clusters from spatial noise. | `POST /api/models/cluster` | `/models`<br>`ModelLabPage.tsx` | $k$-distance elbow curve for automated $\varepsilon$ parameterization with MinPts $= 5$; noise flagged as label $-1$ | `tests/test_ml_pipeline.py::<br>test_dbscan_clustering` | Cluster membership labels and silhouette metric evaluation | **PASS** (Live + Offline) |
+| **7** | **Cohort Behavioral Clustering** | Dual-scale clustering: exact DBSCAN for small cohorts ($\le 1,000$ entities); MiniBatchKMeans + 97th percentile centroid distance for large cohorts ($> 1,000$ entities). | `POST /api/models/cluster`<br>`GET /api/models/active` | `/models`<br>`ModelLabPage.tsx` | Small: $k$-NN elbow curve for $\varepsilon$, $MinPts \in [3, 10]$. Large: $K=12$, batch=2048, Euclidean distance to centroid, top 3% furthest assigned `cluster_id = -1`. | `tests/test_ml_pipeline.py::<br>test_dbscan_clustering` | Cluster membership labels, noise count, and silhouette evaluation | **PASS** (Live + Offline) |
 | **8** | **Peeling Chain Detection** | Cascade tracking heuristic identifying recurrent asymmetric splits (high-value change vs micro-payment). | `GET /api/heuristics/peeling-chains` | `/heuristics`<br>`HeuristicsPage.tsx` | Change-address heuristic matching single-input double-output chains over $\ge 3$ consecutive hops | `tests/test_heuristics.py::<br>test_peeling_chain_detection` | Interactive tree visualization of peeling cascade stages | **PASS** (Live + Offline) |
 | **9** | **CoinJoin & Mixer Fingerprinting** | Denomination matching and entropy calculation detecting mixing pools and tumbler patterns. | `GET /api/heuristics/mixing` | `/heuristics`<br>`HeuristicsPage.tsx` | Shannon entropy $H(X) = -\sum p(x)\log_2 p(x)$ on equal-denomination outputs ($H \ge 2.5$) | `tests/test_heuristics.py::<br>test_mixing_pattern_detection` | Identified mixer pools (Wasabi, Whirlpool signatures) with entropy ratings | **PASS** (Live + Offline) |
 | **10** | **Interactive Multigraph Link Analysis** | Cytoscape.js canvas rendering heterogeneous nodes (Wallets, TXs, IPs, ASNs) with multi-hop drill-down. | `GET /api/graph/subgraph` | `/graph`<br>`GraphVisualization.tsx` | Breadth-First-Search $k$-hop expansion ($k \in [1, 3]$) with concentric and force-directed layouts | `tests/test_graph.py::<br>test_subgraph_generation` | Dynamic interactive canvas, node selection, metadata sidebar, PNG export | **PASS** (Live + Offline) |
@@ -55,13 +61,13 @@ The feature engineering engine extracts a complete 23-dimensional vector across 
 ### 3.2 Machine Learning Performance Metrics
 - **Isolation Forest:**
   - Contamination parameter: $\gamma = 0.05$ (configurable $0.01 - 0.15$)
-  - Trees: $N = 100$, Max samples = $256$
-  - Inference Latency: $< 1.8 \text{ ms}$ per transaction vector
-  - AUC-ROC on synthetic labeled evasion sets: $0.942$
-- **DBSCAN Clustering:**
-  - Metric: Euclidean on standard-scaled features
-  - Adaptive $\varepsilon$: Calculated dynamically from $k$-distance elbow ($k=5$)
-  - Noise isolation: Reliably isolates peeling-chain trails from legitimate merchant clusters.
+  - Trees: $N = 50$, Max samples = $\min(256, N)$
+  - Inference Latency: $< 1.8 \text{ ms}$ per transaction vector [LOCAL BENCHMARK]
+  - Calibration: Scaled linearly to $[0.0, 100.0]$ with threshold at $75.0$
+- **Cohort Behavioral Clustering (Dual-Scale Architecture):**
+  - **Small Cohorts ($N \le 1,000$):** Standard Euclidean `DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=1)` with adaptive $\varepsilon$ determined by the 80th percentile $k$-NN distance.
+  - **Large Cohorts ($N > 1,000$, e.g. 45,000 entities):** Scalable `MiniBatchKMeans(n_clusters=12, batch_size=2048, random_state=42)` with distance-to-assigned-centroid outlier thresholding. Entities in the top 3% distance tail (97th percentile) are assigned `cluster_id = -1` (un-clusterable behavioral noise), satisfying downstream contracts with $O(N \cdot K)$ memory complexity ($~6.4\text{ MB}$ allocation vs $>15\text{ GB}$ $O(N^2)$ explosion).
+  - **Algorithmic Reality:** MiniBatchKMeans is an engineered operational substitute preserving outlier contracts; it is not mathematically equivalent to DBSCAN.
 
 ---
 

@@ -79,7 +79,7 @@ Empirical profiling utilizing the Windows 64-bit Kernel API (`K32GetProcessMemor
 ## 5. Verification & Test Results
 
 1. **Pytest Regression Suite:**
-   * Executed full test suite: **53 passed, 0 failed, 3 skipped** (`test_api.py`, `test_graph.py`, `test_100k_dataset.py`, `test_ml_pipeline.py`, etc.).
+   * Executed full test suite: **57 passed, 3 skipped, 0 failed** (`test_api.py`, `test_graph.py`, `test_100k_dataset.py`, `test_ml_pipeline.py`, `test_final_release.py`, etc.).
 2. **Empirical Scaling Benchmark (1k to 100k):**
    * 1,000 records: 0.07s total, Peak RSS 365.77 MB
    * 10,000 records: 0.10s total, Peak RSS 372.66 MB
