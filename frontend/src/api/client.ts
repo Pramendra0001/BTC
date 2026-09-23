@@ -2,6 +2,7 @@ import axios from 'axios'
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://btc-3jme.onrender.com' : 'http://localhost:8000'),
+  timeout: 25000, // 25s bounded timeout to prevent infinite hanging
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,7 +19,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only handle 401 when not already on the login endpoint or login page
+    // Only handle true 401 unauthorized when not on login endpoint or login page
     const isLoginRequest = error.config?.url?.includes('/auth/login')
     const isOnLoginPage = window.location.pathname.endsWith('/login') || window.location.pathname.endsWith('/login/')
 
@@ -27,7 +28,19 @@ apiClient.interceptors.response.use(
       const baseUrl = import.meta.env.BASE_URL || '/'
       const loginPath = baseUrl.endsWith('/') ? `${baseUrl}login` : `${baseUrl}/login`
       window.location.href = loginPath
+      return Promise.reject(new Error('Session expired. Please log in again.'))
     }
+
+    // Friendly messages for timeouts and network failures
+    if (error.code === 'ECONNABORTED' || error.message?.toLowerCase().includes('timeout')) {
+      error.message = 'Request timed out (server took >25s). Please retry.'
+    } else if (!error.response && error.request) {
+      error.message = 'Unable to connect to the BTC-SHIELD backend. Check network or server status.'
+    } else if (error.response?.status >= 500) {
+      error.message = error.response?.data?.detail || 'Server encountered an error. Please retry shortly.'
+    }
+
     return Promise.reject(error)
   }
 )
+

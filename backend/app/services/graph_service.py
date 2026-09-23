@@ -165,10 +165,16 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
                         visited_entities.add(t_node)
                         next_frontier.add((ge.target_type, ge.target_id))
 
-                # 2. Look in TransactionInput and TransactionOutput
+                # 2. Look in TransactionInput and TransactionOutput with bulk transaction lookup
                 inps = db.query(TransactionInput).filter(TransactionInput.wallet_address == e_id).limit(20).all()
+                outs = db.query(TransactionOutput).filter(TransactionOutput.wallet_address == e_id).limit(20).all()
+                needed_tx_ids = set(inp.transaction_id for inp in inps if inp.transaction_id) | set(out.transaction_id for out in outs if out.transaction_id)
+                tx_map = {}
+                if needed_tx_ids:
+                    tx_map = {t.id: t for t in db.query(Transaction).filter(Transaction.id.in_(needed_tx_ids)).all()}
+
                 for inp in inps:
-                    tx = db.query(Transaction).filter(Transaction.id == inp.transaction_id).first()
+                    tx = tx_map.get(inp.transaction_id)
                     if tx:
                         tx_node = f"TRANSACTION:{tx.txid}"
                         w_node = f"WALLET:{e_id}"
@@ -178,9 +184,8 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
                             visited_entities.add(tx_node)
                             next_frontier.add(("TRANSACTION", tx.txid))
 
-                outs = db.query(TransactionOutput).filter(TransactionOutput.wallet_address == e_id).limit(20).all()
                 for out in outs:
-                    tx = db.query(Transaction).filter(Transaction.id == out.transaction_id).first()
+                    tx = tx_map.get(out.transaction_id)
                     if tx:
                         tx_node = f"TRANSACTION:{tx.txid}"
                         w_node = f"WALLET:{e_id}"

@@ -29,23 +29,23 @@ def detect_peeling_chains(db: Session, min_hops: int = 2, limit: int = 50) -> li
     - 2 outputs (one peel payment, one change output that continues the chain)
     - Output asymmetry where one output is peeled and the remainder forms the change.
     """
-    # Load transactions with 2 outputs
-    txs = db.query(Transaction).all()
+    # Bounded query: Inspect most recent transactions to prevent out-of-memory and 30s hangs on 100k datasets
+    txs = db.query(Transaction).order_by(Transaction.timestamp.desc().nullslast()).limit(2000).all()
     if not txs:
         return []
 
-    # Map inputs: address -> list of (txid, timestamp, amount)
-    # Map outputs: address -> list of (txid, timestamp, amount, position)
     tx_by_id = {tx.id: tx for tx in txs}
     tx_by_txid = {tx.txid: tx for tx in txs}
+    tx_ids = [tx.id for tx in txs]
     
     inputs_by_tx = defaultdict(list)
     outputs_by_tx = defaultdict(list)
     
-    for inp in db.query(TransactionInput).all():
-        inputs_by_tx[inp.transaction_id].append(inp)
-    for out in db.query(TransactionOutput).all():
-        outputs_by_tx[out.transaction_id].append(out)
+    if tx_ids:
+        for inp in db.query(TransactionInput).filter(TransactionInput.transaction_id.in_(tx_ids)).all():
+            inputs_by_tx[inp.transaction_id].append(inp)
+        for out in db.query(TransactionOutput).filter(TransactionOutput.transaction_id.in_(tx_ids)).all():
+            outputs_by_tx[out.transaction_id].append(out)
 
     # Candidate 2-output transactions
     candidate_txids = set()
@@ -162,17 +162,20 @@ def detect_mixing_patterns(db: Session, limit: int = 50) -> list[dict]:
     2. High input count + high output count (many-to-many topology).
     3. Output entropy profile (uniform distribution across participants).
     """
-    txs = db.query(Transaction).all()
+    # Bounded query: Inspect most recent transactions to prevent out-of-memory and 30s hangs on 100k datasets
+    txs = db.query(Transaction).order_by(Transaction.timestamp.desc().nullslast()).limit(2000).all()
     if not txs:
         return []
 
     outputs_by_tx = defaultdict(list)
     inputs_by_tx = defaultdict(list)
+    tx_ids = [tx.id for tx in txs]
 
-    for out in db.query(TransactionOutput).all():
-        outputs_by_tx[out.transaction_id].append(out)
-    for inp in db.query(TransactionInput).all():
-        inputs_by_tx[inp.transaction_id].append(inp)
+    if tx_ids:
+        for out in db.query(TransactionOutput).filter(TransactionOutput.transaction_id.in_(tx_ids)).all():
+            outputs_by_tx[out.transaction_id].append(out)
+        for inp in db.query(TransactionInput).filter(TransactionInput.transaction_id.in_(tx_ids)).all():
+            inputs_by_tx[inp.transaction_id].append(inp)
 
     mix_records = []
 

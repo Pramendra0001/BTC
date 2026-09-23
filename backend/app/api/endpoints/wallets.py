@@ -14,12 +14,19 @@ router = APIRouter()
 def list_wallets(
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
+    search: str = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """List wallets with pagination."""
-    total = db.query(Wallet).count()
-    wallets = db.query(Wallet).offset(skip).limit(limit).all()
+    """List wallets with pagination and indexed prefix search."""
+    from sqlalchemy import func
+    query = db.query(Wallet)
+    if search and len(search.strip()) >= 2:
+        s = search.strip()
+        query = query.filter(Wallet.address.ilike(f"{s}%"))
+
+    total = query.with_entities(func.count(Wallet.id)).scalar() or 0
+    wallets = query.order_by(Wallet.tx_count.desc().nullslast(), Wallet.id.desc()).offset(skip).limit(limit).all()
     return {
         "wallets": [
             {
@@ -44,24 +51,31 @@ def get_wallet(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get full wallet intelligence detail."""
+    """Get full wallet intelligence detail without N+1 query overhead."""
     wallet = db.query(Wallet).filter(Wallet.address == address).first()
     if not wallet:
         raise HTTPException(status_code=404, detail="Wallet not found")
 
-    # Transactions
+    # Bounded inputs and outputs for this wallet
     inputs = db.query(TransactionInput).filter(
         TransactionInput.wallet_address == address
-    ).all()
+    ).limit(50).all()
     outputs = db.query(TransactionOutput).filter(
         TransactionOutput.wallet_address == address
-    ).all()
+    ).limit(50).all()
 
-    tx_ids = set(i.transaction_id for i in inputs) | set(o.transaction_id for o in outputs)
+    tx_ids = list(set(i.transaction_id for i in inputs if i.transaction_id) | set(o.transaction_id for o in outputs if o.transaction_id))
     transactions = []
+    txids_list = []
+
     if tx_ids:
-        txs = db.query(Transaction).filter(Transaction.id.in_(tx_ids)).order_by(Transaction.timestamp.desc()).limit(50).all()
+        txs = db.query(Transaction).filter(
+            Transaction.id.in_(tx_ids)
+        ).order_by(Transaction.timestamp.desc().nullslast()).limit(50).all()
+
         for tx in txs:
+            if tx.txid:
+                txids_list.append(tx.txid)
             direction = "SENT" if any(i.transaction_id == tx.id for i in inputs) else "RECEIVED"
             transactions.append({
                 "txid": tx.txid,
@@ -73,12 +87,11 @@ def get_wallet(
                 "script_type": tx.script_type,
             })
 
-    # Network observations
-    txids = [tx.txid for tx in db.query(Transaction).filter(Transaction.id.in_(tx_ids)).all()] if tx_ids else []
+    # Network observations (uses already-collected txids, avoiding repeated Transaction query)
     observations = []
-    if txids:
+    if txids_list:
         obs_list = db.query(NetworkObservation).filter(
-            NetworkObservation.transaction_id.in_(txids)
+            NetworkObservation.transaction_id.in_(txids_list[:50])
         ).limit(50).all()
         observations = [
             {
@@ -91,28 +104,32 @@ def get_wallet(
             for o in obs_list
         ]
 
-    # Counterparties
+    # Counterparties via 2 bulk queries (completely eliminates N+1 query loop)
     counterparty_addrs = set()
-    for inp in inputs:
-        cp_outputs = db.query(TransactionOutput).filter(
-            TransactionOutput.transaction_id == inp.transaction_id,
-            TransactionOutput.wallet_address != address
-        ).all()
-        for o in cp_outputs:
-            counterparty_addrs.add(o.wallet_address)
-    for out in outputs:
-        cp_inputs = db.query(TransactionInput).filter(
-            TransactionInput.transaction_id == out.transaction_id,
-            TransactionInput.wallet_address != address
-        ).all()
-        for i in cp_inputs:
-            counterparty_addrs.add(i.wallet_address)
+    if tx_ids:
+        cp_out_rows = db.query(TransactionOutput.wallet_address).filter(
+            TransactionOutput.transaction_id.in_(tx_ids),
+            TransactionOutput.wallet_address != address,
+            TransactionOutput.wallet_address.isnot(None)
+        ).limit(100).all()
+        for (cp_addr,) in cp_out_rows:
+            if cp_addr:
+                counterparty_addrs.add(cp_addr)
 
-    # Alerts
+        cp_in_rows = db.query(TransactionInput.wallet_address).filter(
+            TransactionInput.transaction_id.in_(tx_ids),
+            TransactionInput.wallet_address != address,
+            TransactionInput.wallet_address.isnot(None)
+        ).limit(100).all()
+        for (cp_addr,) in cp_in_rows:
+            if cp_addr:
+                counterparty_addrs.add(cp_addr)
+
+    # Alerts (bounded to 20)
     alerts = db.query(Alert).filter(
         Alert.entity_type == "WALLET",
         Alert.entity_id == address
-    ).all()
+    ).limit(20).all()
     alert_list = [
         {
             "id": a.id,
@@ -125,11 +142,11 @@ def get_wallet(
         for a in alerts
     ]
 
-    # Evidence
+    # Evidence (bounded to 20)
     evidence = db.query(Evidence).filter(
         Evidence.entity_type == "WALLET",
         Evidence.entity_id == address
-    ).all()
+    ).limit(20).all()
     evidence_list = [
         {
             "id": e.id,
@@ -144,7 +161,7 @@ def get_wallet(
     bf = db.query(BehavioralFeature).filter(
         BehavioralFeature.entity_type == "WALLET",
         BehavioralFeature.entity_id == address
-    ).first()
+    ).order_by(BehavioralFeature.computed_at.desc()).first()
 
     # Anomaly result
     anomaly = db.query(AnomalyResult).filter(

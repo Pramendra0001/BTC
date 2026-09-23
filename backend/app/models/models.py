@@ -49,7 +49,7 @@ class Transaction(Base):
     id = Column(Integer, primary_key=True, index=True)
     dataset_id = Column(Integer, ForeignKey("datasets.id"))
     txid = Column(String, unique=True, index=True)
-    timestamp = Column(DateTime)
+    timestamp = Column(DateTime, index=True)
     fee = Column(Float)
     script_type = Column(String)
     total_input = Column(Float)
@@ -62,7 +62,7 @@ class Transaction(Base):
 class TransactionInput(Base):
     __tablename__ = "transaction_inputs"
     id = Column(Integer, primary_key=True, index=True)
-    transaction_id = Column(Integer, ForeignKey("transactions.id"))
+    transaction_id = Column(Integer, ForeignKey("transactions.id"), index=True)
     wallet_address = Column(String, index=True)
     amount = Column(Float)
     position = Column(Integer)
@@ -72,7 +72,7 @@ class TransactionInput(Base):
 class TransactionOutput(Base):
     __tablename__ = "transaction_outputs"
     id = Column(Integer, primary_key=True, index=True)
-    transaction_id = Column(Integer, ForeignKey("transactions.id"))
+    transaction_id = Column(Integer, ForeignKey("transactions.id"), index=True)
     wallet_address = Column(String, index=True)
     amount = Column(Float)
     position = Column(Integer)
@@ -90,7 +90,7 @@ class Wallet(Base):
     last_seen = Column(DateTime)
     total_sent = Column(Float, default=0)
     total_received = Column(Float, default=0)
-    tx_count = Column(Integer, default=0)
+    tx_count = Column(Integer, default=0, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class NetworkObservation(Base):
@@ -178,15 +178,15 @@ class Alert(Base):
     id = Column(Integer, primary_key=True, index=True)
     entity_type = Column(String, index=True)
     entity_id = Column(String, index=True)
-    priority = Column(String)
+    priority = Column(String, index=True)
     anomaly_score = Column(Float)
     confidence = Column(Float)
     model_version = Column(String)
     contributing_signals = Column(JSON)
     evidence_ids = Column(JSON)
-    status = Column(String, default="NEW")
+    status = Column(String, default="NEW", index=True)
     review_state = Column(String, default="UNREVIEWED")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Case(Base):
@@ -232,7 +232,7 @@ class AuditLog(Base):
     entity_id = Column(String)
     details = Column(JSON)
     ip_address = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
 class GraphNode(Base):
     __tablename__ = "graph_nodes"
@@ -245,11 +245,11 @@ class GraphNode(Base):
 class GraphEdge(Base):
     __tablename__ = "graph_edges"
     id = Column(Integer, primary_key=True, index=True)
-    source_type = Column(String)
-    source_id = Column(String)
-    target_type = Column(String)
-    target_id = Column(String)
-    edge_type = Column(String)
+    source_type = Column(String, index=True)
+    source_id = Column(String, index=True)
+    target_type = Column(String, index=True)
+    target_id = Column(String, index=True)
+    edge_type = Column(String, index=True)
     weight = Column(Float, default=1.0)
     properties = Column(JSON)
     provenance = Column(String)

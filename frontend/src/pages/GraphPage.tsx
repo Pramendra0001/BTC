@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useGraph, useDashboard, useSearch } from '../api/hooks';
+import { useGraph, useAlerts, useSearch } from '../api/hooks';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
@@ -19,18 +19,20 @@ export default function GraphPage() {
   const [hops, setHops] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const { data: dashboardData } = useDashboard();
+  // Avoid expensive useDashboard() query: only fetch a single top alert if no entity was specified
+  const shouldFetchFallback = !urlEntityId && !entityId;
+  const { data: alertData } = useAlerts(shouldFetchFallback ? { limit: 1 } : undefined);
   const { data: searchResults } = useSearch(searchQuery);
 
   // If no entity is specified in URL, pick the top recent alert entity
   useEffect(() => {
-    if (!entityId && dashboardData?.recentAlerts && dashboardData.recentAlerts.length > 0) {
-      const topAlert = dashboardData.recentAlerts[0];
+    if (!entityId && alertData?.alerts && alertData.alerts.length > 0) {
+      const topAlert = alertData.alerts[0];
       setEntityType(topAlert.entity_type);
       setEntityId(topAlert.entity_id);
       setSearchParams({ entityType: topAlert.entity_type, entityId: topAlert.entity_id });
     }
-  }, [dashboardData, entityId, setSearchParams]);
+  }, [alertData, entityId, setSearchParams]);
 
   const { data: graphData, isLoading, error, refetch } = useGraph(entityType, entityId, hops);
 

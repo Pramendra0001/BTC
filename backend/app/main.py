@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.core.config import settings
@@ -9,6 +9,7 @@ from app.core.security import get_password_hash
 from app.api.router import api_router
 from app.schemas.schemas import HealthResponse
 import logging
+import time
 
 logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger("btcshield.app")
@@ -79,17 +80,31 @@ async def lifespan(app: FastAPI):
 
     if is_prod:
         # In production, schema is verified and aligned safely
-        logger.info("Production mode active: Ensuring schema alignment.")
+        logger.info("Production mode active: Ensuring schema and index alignment.")
         try:
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
                 conn.execute(text("ALTER TABLE wallets ADD COLUMN IF NOT EXISTS wallet_type VARCHAR;"))
                 conn.execute(text("ALTER TABLE wallets ADD COLUMN IF NOT EXISTS country VARCHAR;"))
                 conn.execute(text("ALTER TABLE wallets ADD COLUMN IF NOT EXISTS synthetic_balance_sats DOUBLE PRECISION;"))
+
+                # Performance indexes for high-volume 100k queries
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_graph_edges_src ON graph_edges (source_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_graph_edges_tgt ON graph_edges (target_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_graph_edges_src_tgt ON graph_edges (source_id, target_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tx_inputs_txid ON transaction_inputs (transaction_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_tx_outputs_txid ON transaction_outputs (transaction_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_transactions_ts ON transactions (timestamp DESC);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_wallets_tx_cnt ON wallets (tx_count DESC);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_alerts_entity ON alerts (entity_type, entity_id);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts (created_at DESC);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_alerts_priority ON alerts (priority);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_alerts_status ON alerts (status);"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs (created_at DESC);"))
                 conn.commit()
-            logger.info("Production database connection verified and schema aligned.")
+            logger.info("Production database connection verified, schema aligned, and performance indexes ensured.")
         except Exception as e:
-            logger.warning("Production schema alignment notice: %s", e)
+            logger.warning("Production schema/index alignment notice: %s", e)
     else:
         # Development / offline mode: Ensure local SQLite schema
         logger.info("Development mode active: Ensuring local SQLite tables with create_all().")
@@ -110,6 +125,21 @@ app = FastAPI(
     redoc_url="/redoc",
     lifespan=lifespan
 )
+
+@app.middleware("http")
+async def performance_timing_middleware(request: Request, call_next):
+    """Controlled backend performance timing instrumentation logging slow paths (>1s)."""
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    duration = time.perf_counter() - start_time
+
+    if duration > 1.0:
+        logger.warning(f"[PERF] {request.method} {request.url.path} completed in {duration:.2f}s (SLOW)")
+    else:
+        logger.info(f"[PERF] {request.method} {request.url.path} completed in {duration:.2f}s")
+
+    response.headers["X-Process-Time"] = f"{duration:.3f}s"
+    return response
 
 if settings.CORS_ORIGINS:
     app.add_middleware(

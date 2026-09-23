@@ -246,7 +246,8 @@ export const useRunPipeline = () => {
 export const useHeuristicsSummary = () =>
   useQuery({
     queryKey: ['heuristics-summary'],
-    queryFn: async () => (await apiClient.get('/api/heuristics/summary')).data
+    queryFn: async () => (await apiClient.get('/api/heuristics/summary')).data,
+    staleTime: 60 * 1000,
   })
 
 export const usePeelingChains = (params?: { min_hops?: number; limit?: number }) =>

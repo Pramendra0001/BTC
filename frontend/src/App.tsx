@@ -28,7 +28,23 @@ import TermsPage from './pages/TermsPage'
 import PrivacyPage from './pages/PrivacyPage'
 import { ThemeProvider } from './context/ThemeContext'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Prevent avalanche of refetches on tab focus
+      staleTime: 30 * 1000,        // 30 seconds fresh cache to avoid repeated requests
+      gcTime: 5 * 60 * 1000,       // 5 minutes garbage collection
+      retry: (failureCount, error: any) => {
+        // Do not retry 4xx client errors (401, 403, 404, 422)
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+          return false
+        }
+        // At most 1 retry for transient network issues to avoid hanging
+        return failureCount < 1
+      },
+    },
+  },
+})
 
 function App() {
   return (

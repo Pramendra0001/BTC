@@ -9,18 +9,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def search(db: Session, query: str, limit: int = 20) -> dict:
-    """Search across all entity types. Returns categorized results."""
-    if not query or len(query) < 2:
+def search(db: Session, query: str, limit: int = 5) -> dict:
+    """Search across all entity types with indexed prefix matching and strict limits."""
+    if not query or len(query.strip()) < 2:
         return {"results": [], "total": 0, "query": query}
 
     results = []
     q = query.strip()
+    cat_limit = min(limit, 5)
 
-    # Search wallets
+    # 1. Search wallets using indexed prefix first
     wallets = db.query(Wallet).filter(
-        Wallet.address.ilike(f"%{q}%")
-    ).limit(limit).all()
+        Wallet.address.ilike(f"{q}%")
+    ).limit(cat_limit).all()
+
+    if len(wallets) < cat_limit and len(q) >= 4:
+        sub_wallets = db.query(Wallet).filter(
+            Wallet.address.ilike(f"%{q}%")
+        ).limit(cat_limit - len(wallets)).all()
+        wallets = list({w.address: w for w in (wallets + sub_wallets)}.values())
+
     for w in wallets:
         results.append({
             "type": "WALLET",
@@ -30,16 +38,23 @@ def search(db: Session, query: str, limit: int = 20) -> dict:
             "url": f"/wallets/{w.address}",
         })
 
-    # Search transactions
+    # 2. Search transactions using indexed prefix first
     txs = db.query(Transaction).filter(
-        Transaction.txid.ilike(f"%{q}%")
-    ).limit(limit).all()
+        Transaction.txid.ilike(f"{q}%")
+    ).limit(cat_limit).all()
+
+    if len(txs) < cat_limit and len(q) >= 6:
+        sub_txs = db.query(Transaction).filter(
+            Transaction.txid.ilike(f"%{q}%")
+        ).limit(cat_limit - len(txs)).all()
+        txs = list({t.txid: t for t in (txs + sub_txs)}.values())
+
     for tx in txs:
         results.append({
             "type": "TRANSACTION",
             "id": tx.txid,
             "label": tx.txid,
-            "subtitle": f"Amount: {tx.total_input:.0f} sat | Fee: {tx.fee:.0f} sat",
+            "subtitle": f"Amount: {tx.total_input or 0:.0f} sat | Fee: {tx.fee or 0:.0f} sat",
             "url": f"/transactions/{tx.txid}",
         })
 
