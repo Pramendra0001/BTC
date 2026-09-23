@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useGraph, useAlerts, useSearch } from '../api/hooks';
+import { useGraph, useDefaultGraphEntity, useSearch } from '../api/hooks';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
@@ -19,20 +19,19 @@ export default function GraphPage() {
   const [hops, setHops] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // Avoid expensive useDashboard() query: only fetch a single top alert if no entity was specified
+  // Curated default entity lookup (highest-priority alert or top-degree wallet)
   const shouldFetchFallback = !urlEntityId && !entityId;
-  const { data: alertData } = useAlerts(shouldFetchFallback ? { limit: 1 } : undefined);
+  const { data: defaultEntityData } = useDefaultGraphEntity();
   const { data: searchResults } = useSearch(searchQuery);
 
-  // If no entity is specified in URL, pick the top recent alert entity
+  // If no entity is specified in URL, pick the curated default entity
   useEffect(() => {
-    if (!entityId && alertData?.alerts && alertData.alerts.length > 0) {
-      const topAlert = alertData.alerts[0];
-      setEntityType(topAlert.entity_type);
-      setEntityId(topAlert.entity_id);
-      setSearchParams({ entityType: topAlert.entity_type, entityId: topAlert.entity_id });
+    if (!entityId && defaultEntityData?.entity_id) {
+      setEntityType(defaultEntityData.entity_type);
+      setEntityId(defaultEntityData.entity_id);
+      setSearchParams({ entityType: defaultEntityData.entity_type, entityId: defaultEntityData.entity_id });
     }
-  }, [alertData, entityId, setSearchParams]);
+  }, [defaultEntityData, entityId, setSearchParams]);
 
   const { data: graphData, isLoading, error, refetch } = useGraph(entityType, entityId, hops);
 
@@ -109,13 +108,18 @@ export default function GraphPage() {
 
       {/* Graph Status Info Bar */}
       <div className="bg-slate-900/60 border border-slate-800/80 px-4 py-2 rounded-lg flex items-center justify-between text-xs shrink-0">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <span className="text-slate-400">
             Center Node: <span className="font-mono text-white font-bold">{entityId || 'None'}</span>
           </span>
           <span className="text-slate-400">
             Type: <span className="font-mono text-blue-400">{entityType}</span>
           </span>
+          {graphData?.stats?.is_isolated && (
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30">
+              Isolated entity (no counterparty edges observed within {hops} hop{hops > 1 ? 's' : ''})
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
           <span>Nodes: <strong className="text-white">{graphData?.stats?.node_count || graphData?.nodes?.length || 0}</strong></span>

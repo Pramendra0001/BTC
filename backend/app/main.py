@@ -15,66 +15,60 @@ logging.basicConfig(level=settings.LOG_LEVEL)
 logger = logging.getLogger("btcshield.app")
 
 
-def bootstrap_admin_user():
-    """Environment-driven administrative user initialization.
-    
-    In production mode:
-    - Never uses predictable credentials like 'admin/admin123'.
-    - Only initializes an administrator if a strong ADMIN_PASSWORD is provided in environment variables.
-    - If no password is provided in production, automatic creation is safely skipped.
-    
-    In development/offline mode:
-    - Automatically provisions local default credentials for offline testing and demonstration.
+def bootstrap_system_users():
+    """Environment and presentation-driven user initialization for all 4 RBAC roles:
+    ADMINISTRATOR, INVESTIGATOR, ANALYST, VIEWER.
     """
     db = SessionLocal()
     try:
         is_prod = settings.ENVIRONMENT.lower() == "production"
-        if is_prod:
-            if not settings.ADMIN_PASSWORD:
-                logger.info("Production mode: ADMIN_PASSWORD not configured. Skipping automatic administrator bootstrap.")
-                return
-            if settings.ADMIN_PASSWORD == "admin123" or len(settings.ADMIN_PASSWORD) < 12:
-                logger.warning("Production mode: Provided ADMIN_PASSWORD is weak. Admin bootstrap skipped for security.")
-                return
+        dev_pass = settings.ADMIN_PASSWORD or "admin123"
 
-            admin = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
-            if not admin:
+        # 1. Administrator
+        admin = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
+        if not admin:
+            admin_pass = settings.ADMIN_PASSWORD if (is_prod and settings.ADMIN_PASSWORD) else dev_pass
+            if admin_pass:
                 new_admin = User(
                     username=settings.ADMIN_USERNAME,
                     email=settings.ADMIN_EMAIL,
-                    hashed_password=get_password_hash(settings.ADMIN_PASSWORD),
+                    hashed_password=get_password_hash(admin_pass),
                     role=RoleEnum.ADMINISTRATOR,
                     is_active=True
                 )
                 db.add(new_admin)
-                db.commit()
-                logger.info("Production administrator '%s' successfully bootstrapped from environment.", settings.ADMIN_USERNAME)
-            else:
-                logger.info("Administrator '%s' already registered in production database.", settings.ADMIN_USERNAME)
-        else:
-            # Development/offline default credentials
-            dev_pass = settings.ADMIN_PASSWORD or "admin123"
-            admin = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
-            if not admin:
-                new_admin = User(
-                    username=settings.ADMIN_USERNAME,
-                    email=settings.ADMIN_EMAIL,
-                    hashed_password=get_password_hash(dev_pass),
-                    role=RoleEnum.ADMINISTRATOR,
+                logger.info("Administrator '%s' initialized.", settings.ADMIN_USERNAME)
+
+        # 2. Demo accounts for presentation & evaluation
+        demo_accounts = [
+            ("lead_investigator", "investigator@btcshield.gov", RoleEnum.INVESTIGATOR, "Investigator@2026!"),
+            ("aml_analyst", "analyst@btcshield.gov", RoleEnum.ANALYST, "Analyst@2026!"),
+            ("compliance_viewer", "viewer@btcshield.gov", RoleEnum.VIEWER, "Viewer@2026!"),
+        ]
+
+        for username, email, role, default_pwd in demo_accounts:
+            existing = db.query(User).filter(User.username == username).first()
+            if not existing:
+                u = User(
+                    username=username,
+                    email=email,
+                    hashed_password=get_password_hash(default_pwd),
+                    role=role,
                     is_active=True
                 )
-                db.add(new_admin)
-                db.commit()
-                logger.info("Development administrator '%s' initialized.", settings.ADMIN_USERNAME)
+                db.add(u)
+                logger.info("Demo user '%s' (%s) initialized.", username, role.value)
+
+        db.commit()
     except Exception as e:
-        logger.error("Error during administrator bootstrap: %s", type(e).__name__)
+        logger.error("Error during user bootstrap: %s", type(e).__name__)
     finally:
         db.close()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager for schema verification and bootstrap."""
+    """Application lifespan manager for schema verification, bootstrap, and case seeding."""
     is_prod = settings.ENVIRONMENT.lower() == "production"
     logger.info("Starting BTC-SHIELD backend in %s mode...", settings.ENVIRONMENT)
 
@@ -109,9 +103,29 @@ async def lifespan(app: FastAPI):
         # Development / offline mode: Ensure local SQLite schema
         logger.info("Development mode active: Ensuring local SQLite tables with create_all().")
         Base.metadata.create_all(bind=engine)
+        # Ensure SQLite has newly added columns if btcshield.db was pre-existing
+        try:
+            with engine.connect() as conn:
+                for col_name, col_type in [("wallet_type", "VARCHAR"), ("country", "VARCHAR"), ("synthetic_balance_sats", "FLOAT")]:
+                    try:
+                        conn.execute(text(f"ALTER TABLE wallets ADD COLUMN {col_name} {col_type};"))
+                        conn.commit()
+                    except Exception:
+                        pass
+        except Exception:
+            pass
 
-    # Environment-driven admin bootstrap
-    bootstrap_admin_user()
+    # Provision administrative & demonstration accounts across all 4 RBAC roles
+    bootstrap_system_users()
+
+    # Seed presentation cases if none exist
+    try:
+        from app.services.case_service import seed_presentation_cases
+        seed_db = SessionLocal()
+        seed_presentation_cases(seed_db)
+        seed_db.close()
+    except Exception as e:
+        logger.warning(f"Notice during presentation cases seeding: {e}")
 
     yield
 

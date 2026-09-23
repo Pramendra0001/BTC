@@ -3,9 +3,18 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.models import User
-from app.services.graph_service import get_subgraph, get_path
+from app.services.graph_service import get_subgraph, get_path, get_default_graph_entity
 
 router = APIRouter()
+
+
+@router.get("/default-entity")
+def get_graph_default_entity(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get the highest-priority, best-connected default entity for graph analysis."""
+    return get_default_graph_entity(db)
 
 
 @router.get("/{entity_type}/{entity_id}")

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, AlertCircle, Wallet, ArrowRightLeft, Network, 
@@ -256,7 +256,23 @@ export default function AppLayout() {
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 relative">
-          <Outlet />
+          <Suspense
+            fallback={
+              <div className="space-y-4 p-2 animate-pulse">
+                <div className="h-8 bg-slate-800/60 rounded w-1/3"></div>
+                <div className="h-4 bg-slate-800/40 rounded w-1/2"></div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                  <div className="h-24 bg-slate-800/40 rounded-xl"></div>
+                  <div className="h-24 bg-slate-800/40 rounded-xl"></div>
+                  <div className="h-24 bg-slate-800/40 rounded-xl"></div>
+                  <div className="h-24 bg-slate-800/40 rounded-xl"></div>
+                </div>
+                <div className="h-72 bg-slate-800/30 rounded-xl mt-6"></div>
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

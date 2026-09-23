@@ -130,17 +130,17 @@ class AlertResponse(BaseModel):
     entity_id: str
     priority: str
     anomaly_score: float
-    confidence: float
+    confidence: Optional[float] = 0.0
     status: str
     review_state: str
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 
 class AlertDetailResponse(AlertResponse):
-    contributing_signals: Dict[str, Any]
-    evidence_ids: List[int]
+    contributing_signals: Optional[Union[Dict[str, Any], List[Any]]] = None
+    evidence_ids: Optional[List[int]] = None
 
 class AlertListResponse(BaseModel):
     alerts: List[AlertResponse]

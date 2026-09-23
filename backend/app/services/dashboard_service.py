@@ -104,7 +104,7 @@ def get_dashboard(db: Session) -> dict:
     else:
         anomaly_distribution = {"0-20": 0, "20-40": 0, "40-60": 0, "60-80": 0, "80-100": 0}
 
-    # Recent alerts: Select scalar columns only to avoid loading large JSON columns
+    # Recent alerts: Prioritize highest anomaly score (critical leads) first
     recent_alerts = db.query(
         Alert.id,
         Alert.entity_type,
@@ -114,6 +114,7 @@ def get_dashboard(db: Session) -> dict:
         Alert.status,
         Alert.created_at
     ).order_by(
+        Alert.anomaly_score.desc().nullslast(),
         Alert.created_at.desc()
     ).limit(10).all()
 

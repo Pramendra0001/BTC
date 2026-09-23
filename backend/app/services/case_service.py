@@ -240,3 +240,88 @@ def generate_report(db: Session, case_id: int) -> dict:
     )
 
     return report
+
+
+def seed_presentation_cases(db: Session):
+    """
+    Idempotent seeding of 3 realistic, evidence-backed presentation cases
+    for demonstration and evaluation. Links directly to existing database alerts and evidence.
+    """
+    existing_count = db.query(Case).count()
+    if existing_count > 0:
+        logger.info(f"Presentation cases already exist ({existing_count} cases found). Bypassing seed.")
+        return
+
+    # Find investigator user or fallback to first active user
+    investigator = db.query(User).filter(User.role.in_(["INVESTIGATOR", "ADMINISTRATOR"])).first()
+    if not investigator:
+        investigator = db.query(User).first()
+    user_id = investigator.id if investigator else 1
+
+    # Fetch top alerts to link
+    top_alerts = db.query(Alert).order_by(
+        Alert.anomaly_score.desc().nullslast(),
+        Alert.created_at.desc()
+    ).limit(5).all()
+
+    if not top_alerts:
+        logger.warning("No alerts found in database to link presentation cases to. Skipping case seeding.")
+        return
+
+    # Case 1: High-Velocity Multi-Signal Anomaly
+    a1 = top_alerts[0]
+    c1 = create_case(
+        db=db,
+        title="High-Velocity Multi-Signal Behavioral Anomaly",
+        description="Automated ML pipeline escalation triggered by composite anomaly detection across velocity burst and transaction clustering.",
+        priority="CRITICAL",
+        investigator_id=user_id,
+        alert_id=a1.id
+    )
+    add_note(
+        db=db,
+        case_id=c1.id,
+        user_id=user_id,
+        content=f"Initial review completed. Entity {a1.entity_id[:16]}... exhibits high anomaly score ({round(a1.anomaly_score, 1)}). Graph link analysis initiated."
+    )
+
+    # Case 2: Structured Peeling-Chain Dispersion
+    if len(top_alerts) > 1:
+        a2 = top_alerts[1]
+        c2 = create_case(
+            db=db,
+            title="Structured Peeling-Chain Dispersion Investigation",
+            description="Identification of potential fund structuring via asymmetric sequential change outputs and peel recycling.",
+            priority="HIGH",
+            investigator_id=user_id,
+            alert_id=a2.id
+        )
+        c2.status = "ACTIVE"
+        db.commit()
+        add_note(
+            db=db,
+            case_id=c2.id,
+            user_id=user_id,
+            content=f"Sequential hops identified. Subgraph traces show multi-hop fund dispersion from wallet {a2.entity_id[:16]}..."
+        )
+
+    # Case 3: Cross-Jurisdiction Network Correlation
+    if len(top_alerts) > 2:
+        a3 = top_alerts[2]
+        c3 = create_case(
+            db=db,
+            title="Cross-Jurisdiction Geo-Hopping & Network Correlation",
+            description="Telemetry correlation detected cross-border IP routing switches across autonomous systems within narrow execution windows.",
+            priority="HIGH",
+            investigator_id=user_id,
+            alert_id=a3.id
+        )
+        add_note(
+            db=db,
+            case_id=c3.id,
+            user_id=user_id,
+            content="Correlated network observations across autonomous systems. Flagged for review under SIH 26146 forensic timeline analysis."
+        )
+
+    logger.info("Successfully seeded 3 evidence-backed presentation cases.")
+

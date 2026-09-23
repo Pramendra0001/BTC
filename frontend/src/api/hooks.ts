@@ -98,6 +98,13 @@ export const useGraph = (entityType: string, entityId: string, hops: number = 1)
     enabled: !!entityType && !!entityId
   })
 
+export const useDefaultGraphEntity = () => 
+  useQuery({ 
+    queryKey: ['graph-default-entity'], 
+    queryFn: async () => (await apiClient.get('/api/graph/default-entity')).data,
+    staleTime: 60 * 1000,
+  })
+
 export const useTimeline = (entityType: string, entityId: string) => 
   useQuery({ 
     queryKey: ['timeline', entityType, entityId], 
