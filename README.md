@@ -1,6 +1,6 @@
-# BTC-SHIELD: Bitcoin Transaction & Network Intelligence Platform
+# BTC-SHIELD
 
-> **"Transforming fragmented on-chain Bitcoin ledger movements and off-chain P2P network telemetry into explainable, court-ready forensic intelligence."**
+## AI-Powered Bitcoin Transaction Intelligence, Anomaly Detection & Risk Decision-Support Platform
 
 [![CI Pipeline](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml/badge.svg)](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml)
 [![Deploy Frontend](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml)
@@ -10,639 +10,543 @@
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
 [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF.svg)](https://vitejs.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
-[![Tests Passing](https://img.shields.io/badge/Tests-65%20Passed%20%7C%203%20Skipped-success.svg)](#19-testing--verification)
 
-**Target Competition:** Smart India Hackathon 2026 Grand Finale  
-**Problem Statement ID:** 26146 — AI-Powered Monitoring & Analysis of Bitcoin Transaction Traffic  
-**Sponsoring Organization:** National Technical Research Organisation (NTRO)  
-**Category:** Software | Blockchain Intelligence & Cybersecurity  
-**Deployment Topologies:** Mode A (Air-Gapped Offline Linux Demonstration) & Mode B (Production Cloud Architecture)
+**BTC-SHIELD** is an enterprise-grade blockchain analytics, forensic graph intelligence, and risk decision-support platform. It correlates pseudo-anonymous on-chain Bitcoin transaction ledgers with peer-to-peer (P2P) network observation metadata (source/destination IP addresses, autonomous system numbers, geographic routing telemetry, and script semantics) to surface obfuscated flow topologies, behavioral anomalies, and money laundering syndicates.
+
+> **DECISION-SUPPORT SYSTEM DISCLAIMER**  
+> BTC-SHIELD is an investigatory intelligence and decision-support system. It computes behavioral anomaly scores, surfaces structural heuristics, correlates network telemetry, and generates structured evidentiary records. All algorithmic outputs, risk classifications, and AI-assisted summaries represent analytical risk indicators—not definitive legal proof or determinations of guilt. Every surfaced lead requires human investigator review, corroborating evidence, and formal legal due process before taking compliance or prosecutorial action.
 
 ---
 
-## Table of Contents
-1. [Executive Summary](#1-executive-summary)
-2. [Problem Addressed](#2-problem-addressed)
-3. [SIH 26146 Alignment](#3-sih-26146-alignment)
-4. [Core Capabilities](#4-core-capabilities)
-5. [System Architecture](#5-system-architecture)
-6. [Intelligence & Analytical Engines](#6-intelligence--analytical-engines)
-7. [End-to-End Forensic Workflow](#7-end-to-end-forensic-workflow)
-8. [Platform Modules](#8-platform-modules)
-9. [Data Ingestion & Data Quality](#9-data-ingestion--data-quality)
-10. [Data Provenance](#10-data-provenance)
-11. [Official vs. Derived vs. Synthetic / Demo Data](#11-official-vs-derived-vs-synthetic--demo-data)
-12. [Machine Learning Methodology](#12-machine-learning-methodology)
-13. [Explainability & Evidence Generation](#13-explainability--evidence-generation)
-14. [Security Architecture & Role-Based Access Control](#14-security-architecture--role-based-access-control)
-15. [Technology Stack](#15-technology-stack)
-16. [Quickstart Guide](#16-quickstart-guide)
-17. [Offline & Air-Gapped Deployment](#17-offline--air-gapped-deployment)
-18. [Cloud Deployment Architecture](#18-cloud-deployment-architecture)
-19. [Testing & Verification](#19-testing--verification)
-20. [Performance & Memory Engineering](#20-performance--memory-engineering)
-21. [System Limitations](#21-system-limitations)
-22. [Future Integrations & Roadmap](#22-future-integrations--roadmap)
-23. [Presentation & Demonstration Flow](#23-presentation--demonstration-flow)
-24. [Compliance & Forensic Disclaimer](#24-compliance--forensic-disclaimer)
+### Live Project & Access
 
----
-
-## 1. Executive Summary
-
-**BTC-SHIELD** is an enterprise-grade forensic intelligence and link-analysis system architected specifically for the **National Technical Research Organisation (NTRO)**. It bridges the fundamental investigative gap between pseudonymous, on-chain Bitcoin UTXO ledger activity and off-chain peer-to-peer network propagation telemetry.
-
-By fusing on-chain transaction mechanics (inputs, outputs, scripts, fees, locktimes) with off-chain network telemetry (relay node IP addresses, Autonomous System Numbers [ASNs], TCP ports, geographic jurisdictions, and broadcast timestamps), BTC-SHIELD surfaces illicit financial obfuscation techniques—including high-frequency peeling chains, CoinJoin mixers, nested tumblers, burst velocity routing, and rapid cross-border geo-hopping.
-
-### Foundational Principles
-- **Strict Evidentiary Provenance:** Zero synthetic hallucinations. Every risk score, network edge, and natural language summary traces directly back to immutable raw database records.
-- **Dual-Scale Algorithmic Truth:** Unsupervised anomaly scoring via ensemble Isolation Forest combined with a dual-scale clustering architecture (exact DBSCAN for small investigative cohorts $\le 1,000$ entities; memory-efficient MiniBatchKMeans centroid-distance outlier thresholding for large cohorts $> 1,000$ entities).
-- **Dual-Mode Operational Readiness:** Fully functional in 100% air-gapped, zero-egress offline Linux environments (Mode A for SIH jury evaluation) and high-availability cloud configurations (Mode B on Render and Neon PostgreSQL).
-- **Court-Admissible Dossier Export:** Structured Case Management module with cryptographic SHA-256 chain-of-custody signatures and printable forensic PDF/JSON dossiers.
-
----
-
-## 2. Problem Addressed
-
-Investigating suspicious financial activity on the Bitcoin network presents severe operational challenges for intelligence and law enforcement agencies:
-
-1. **Pseudonymity & UTXO Fragmentation:** Bitcoin transactions do not record real-world identities. Wallets rotate addresses per transaction, fragmenting funds across hundreds of ephemeral unspent transaction outputs (UTXOs).
-2. **Advanced Obfuscation Topology:** Malicious actors utilize automated tumbling cascades (peeling chains where micro-payments are peeled off into merchant services while change cycles indefinitely) and collaborative CoinJoin transactions (equal-denomination outputs with maximum Shannon entropy) to confound traditional heuristic analysis.
-3. **Decoupled Network Observation:** On-chain ledger explorers lack awareness of where or how a transaction was introduced to the P2P broadcast swarm. Conversely, network surveillance appliances observe IP packets but lack UTXO transaction context.
-4. **Volume & Alert Fatigue:** High-throughput Bitcoin traffic generates thousands of statistical anomalies. Without compound risk scoring, data sufficiency confidence weighting, and deterministic natural-language reasoning, forensic investigators drown in false-positive noise.
-
-**BTC-SHIELD resolves these challenges** by establishing a unified bipartite graph correlating ledger events with network telemetry, extracting 23 behavioral features, executing calibrated anomaly models, and generating evidence-grounded investigative dossiers.
-
----
-
-## 3. SIH 26146 Alignment
-
-BTC-SHIELD fulfills **100% of the functional, technical, algorithmic, and operational mandates** specified in NTRO Problem Statement 26146:
-
-| Requirement | Implementation | API / Module | Verification Test | Current Status |
-|---|---|---|---|---|
-| **1. Multi-Format Ingestion** | Streaming parser supporting CSV, JSON (arrays & object envelopes), and XML (`<records><record>...`). | `POST /api/datasets/upload`<br>`backend/app/services/ingestion_service.py` | `tests/test_ingestion.py::<br>test_csv_ingestion`<br>`test_json_ingestion`<br>`test_xml_ingestion` | **PASS (Verified)** |
-| **2. Syntax & Integrity Validation** | Deterministic syntax validators for Base58/Bech32 addresses, IPv4/IPv6, SHA-256 txid hashes, and satoshi range limits. | `POST /api/datasets/validate`<br>`backend/app/services/ingestion_service.py` | `tests/test_ingestion.py::<br>test_record_validation` | **PASS (Verified)** |
-| **3. Data Quality & Quarantine** | Non-blocking quarantine subsystem isolating malformed or duplicate records with line numbers and error diagnostics. | `GET /api/data-quality/quarantine`<br>`GET /api/data-quality/summary` | `tests/test_ingestion.py::<br>test_malformed_record_quarantine` | **PASS (Verified)** |
-| **4. On-Chain & Off-Chain Correlation** | Bipartite join engine linking UTXO transactions to peer relay IP, ASN, port, and geo-jurisdiction within temporal coincidence windows. | `GET /api/wallets/{addr}/network`<br>`GET /api/transactions/{txid}/peers` | `tests/test_evidence_engine.py::<br>test_network_correlation` | **PASS (Verified)** |
-| **5. 23-Dimensional Feature Engine** | Mathematical vectorizer extracting volume, structural, temporal, and network dynamics per entity. | `POST /api/models/features/extract`<br>`backend/app/services/feature_service.py` | `tests/test_feature_engineering.py::<br>test_23_dimensional_feature_vector` | **PASS (Verified)** |
-| **6. Unsupervised Anomaly Detection** | Isolation Forest ensemble scoring entities on non-parametric tree path lengths, calibrated to $[0, 100]$. | `POST /api/models/train`<br>`backend/app/services/ml_service.py` | `tests/test_ml_pipeline.py::<br>test_isolation_forest_scoring` | **PASS (Verified)** |
-| **7. Cohort Behavioral Clustering** | Dual-scale clustering: exact DBSCAN for cohorts $\le 1,000$; MiniBatchKMeans + 97th percentile centroid distance for cohorts $> 1,000$. | `POST /api/models/cluster`<br>`backend/app/services/ml_service.py` | `tests/test_ml_pipeline.py::<br>test_dbscan_clustering` | **PASS (Verified)** |
-| **8. Peeling Chain Detection** | Recursive change-address tracker identifying asymmetric splits (high-value change vs micro-split) over $\ge 3$ consecutive hops. | `GET /api/heuristics/peeling-chains`<br>`backend/app/services/heuristic_service.py` | `tests/test_heuristics.py::<br>test_peeling_chain_detection` | **PASS (Verified)** |
-| **9. CoinJoin & Mixer Fingerprinting** | Equal-denomination output matching with Shannon entropy thresholding ($H \ge 2.5$) detecting privacy tumblers. | `GET /api/heuristics/mixing`<br>`backend/app/services/heuristic_service.py` | `tests/test_heuristics.py::<br>test_mixing_pattern_detection` | **PASS (Verified)** |
-| **10. Multigraph Link Analysis** | Interactive Cytoscape.js canvas rendering Wallets, TXs, IPs, and ASNs with $1 - 3$ hop neighborhood traversal. | `GET /api/graph/subgraph`<br>`GET /api/graph/default-entity`<br>`frontend/src/pages/GraphPage.tsx` | `tests/test_graph.py::<br>test_subgraph_generation` | **PASS (Verified)** |
-| **11. Graph Centrality Metrics** | Network topology analyzer computing Degree Centrality, In/Out degree ratios, and PageRank ($\alpha=0.85$). | `GET /api/graph/metrics`<br>`backend/app/services/graph_service.py` | `tests/test_graph.py::<br>test_centrality_metrics` | **PASS (Verified)** |
-| **12. Compound Alert Prioritizer** | Multi-signal triage queue weighting ML anomaly scores ($45\%$), heuristic triggers ($35\%$), and network indicators ($20\%$). | `GET /api/alerts`<br>`GET /api/alerts/{id}`<br>`backend/app/services/alert_service.py` | `tests/test_alert_prioritizer.py::<br>test_compound_risk_calculation` | **PASS (Verified)** |
-| **13. Data Sufficiency Confidence** | Multi-source observation density metric quantifying observable telemetry depth ($0 - 100\%$). | `GET /api/alerts/{id}/confidence`<br>`backend/app/services/alert_service.py` | `tests/test_alert_prioritizer.py::<br>test_confidence_scoring` | **PASS (Verified)** |
-| **14. Explainable AI Assistant** | Grounded deterministic reasoning assistant producing narrative findings, signal breakdowns, and actions without LLM hallucinations. | `POST /api/alerts/{id}/explain`<br>`backend/app/services/ai_service.py` | `tests/test_api.py::<br>test_alert_explainability` | **PASS (Verified)** |
-| **15. Activity Chronology Timeline** | Normalized microsecond timeline sequencing on-chain transaction events and off-chain network observations chronologically. | `GET /api/timeline/events`<br>`backend/app/api/endpoints/timeline.py` | `tests/test_api.py::<br>test_timeline_events` | **PASS (Verified)** |
-| **16. Evidence Lineage & Provenance** | 5-stage data lineage linking final intelligence claims back to immutable raw database records across 8 signal categories. | `GET /api/evidence`<br>`GET /api/evidence/{id}`<br>`backend/app/services/evidence_service.py` | `tests/test_evidence_engine.py::<br>test_evidence_chain_integrity` | **PASS (Verified)** |
-| **17. Case Management & Dossiers** | Dedicated investigation workspace with entity pinning, immutable notes, and printable forensic intelligence dossiers. | `POST /api/cases`<br>`GET /api/cases/{id}/report`<br>`backend/app/services/case_service.py` | `tests/test_final_release.py::<br>test_case_seeding_and_reporting` | **PASS (Verified)** |
-| **18. Model Lab & Registry** | Versioned registry tracking hyperparameters, training timestamps, feature schemas, and clustering metrics. | `GET /api/models/registry`<br>`GET /api/models/active` | `tests/test_api.py::<br>test_model_registry` | **PASS (Verified)** |
-| **19. Tactical Command Center** | Real-time executive dashboard summarizing operational KPIs, Recharts anomaly histograms, and prioritized leads queue. | `GET /api/dashboard/stats`<br>`GET /api/dashboard/distribution` | `tests/test_api.py::<br>test_dashboard_stats` | **PASS (Verified)** |
-| **20. Adaptive High-Contrast UI** | Professional command center styling with light/dark/system themes, zero initial render flash, and full accessibility. | Client-side persistent state<br>`frontend/src/context/ThemeContext.tsx` | `frontend/tests/theme.test.ts::<br>test_theme_lifecycle` | **PASS (Verified)** |
-| **21. Air-Gapped Offline Execution** | 100% self-contained offline capability in Docker Compose or native Python/Node with zero outbound network calls. | Local SQLite engine<br>`AI_PROVIDER=mock`<br>`docs/OFFLINE_LINUX_GUIDE.md` | `tests/test_api.py`<br>`docs/OFFLINE_LINUX_GUIDE.md` | **PASS (Verified)** |
-| **22. RBAC & Security Hardening** | 4-tier Role-Based Access Control (`ADMINISTRATOR`, `INVESTIGATOR`, `ANALYST`, `VIEWER`), bcrypt hashing, and JWT tokens. | `POST /api/auth/login`<br>`backend/app/core/security.py` | `tests/test_final_release.py::<br>test_rbac_user_seeding` | **PASS (Verified)** |
-
----
-
-## 4. Core Capabilities
-
-1. **Multi-Format Ingestion with Automated Quarantine:**  
-   Ingests structured Bitcoin transaction records and network telemetry from CSV, JSON, and XML streams. Syntax errors, duplicate transactions, and malformed inputs are quarantined with detailed line-level diagnostics without interrupting batch execution.
-2. **23-Dimensional Mathematical Feature Extraction:**  
-   Calculates high-order behavioral statistics spanning financial volume (amounts, fees, fee rates), transaction topology (fan-in, fan-out, script entropy), temporal dynamics (inter-arrival burstiness $CV$, propagation delays), and network dispersion (relay node count, ASN diversity, geo-hopping velocity).
-3. **Dual-Scale Unsupervised Anomaly Radar:**  
-   Employs an Isolation Forest ensemble for multidimensional anomaly scoring, paired with a scalable cohort clustering engine (exact DBSCAN for test and focused cohorts $\le 1,000$ entities; memory-bounded MiniBatchKMeans centroid-distance thresholding for large 45,000+ entity populations).
-4. **Heuristic Obfuscation Detectors:**  
-   Identifies change-address peeling cascades through recursive graph searches and flags privacy mixers (Wasabi, Whirlpool, CoinJoin) through equal-denomination output matching and Shannon entropy ($H \ge 2.5$).
-5. **Interactive Directed Multigraph (Cytoscape.js):**  
-   Visualizes multi-hop entity interactions across Wallets, Transactions, IP addresses, and ASNs. Features concentric, breadth-first, and force-directed layouts, PageRank centrality calculation, entity key normalization, and one-click PNG intelligence export.
-6. **Compound Risk Prioritization Queue:**  
-   Eliminates alert fatigue by computing composite risk ratings ($0 - 100$) combining ML outlier scores, heuristic flags, and network signals, augmented by an explicit Data Sufficiency Confidence rating ($0 - 100\%$).
-7. **Explainable AI Investigation Assistant:**  
-   Synthesizes deterministic, evidence-grounded natural language intelligence summaries without relying on external hallucinating LLMs. Provides clear findings, contributing evidentiary signals, concrete next steps, and explicit uncertainty assessments.
-8. **Formal Case Management & Forensic Reports:**  
-   Enables investigators to pin entities, attach immutable evidence records, log timestamped investigative hypotheses, and generate court-ready forensic intelligence reports complete with investigator attribution and cryptographic verification lines.
-
----
-
-## 5. System Architecture
-
-```
-                                  +---------------------------------------+
-                                  |         RAW TELEMETRY INGESTION       |
-                                  |   CSV / JSON / XML Multi-Format Feeds |
-                                  +-------------------+-------------------+
-                                                      |
-                                                      v
-                                  +---------------------------------------+
-                                  |     ENTITY RESOLUTION & STORAGE       |
-                                  | Wallets, Transactions, IPs, ASNs, Geo |
-                                  +-------------------+-------------------+
-                                                      |
-                                                      v
-                                  +---------------------------------------+
-                                  |   23-DIMENSIONAL FEATURE EXTRACTION   |
-                                  | Volume, Structural, Temporal, Network |
-                                  +-------------------+-------------------+
-                                                      |
-                                                      v
-                                  +---------------------------------------+
-                                  |    UNSUPERVISED ML & ANOMALY RADAR    |
-                                  | Isolation Forest (Calibrated 0-100)   |
-                                  | Dual-Scale Cohort Clustering          |
-                                  | (DBSCAN <=1k / MiniBatchKMeans >1k)   |
-                                  +-------------------+-------------------+
-                                                      |
-                                                      v
-                                  +---------------------------------------+
-                                  |   EVIDENCE & ALERT PRIORITIZATION     |
-                                  | 8 Signal Categories, Compound Risk    |
-                                  | Data Sufficiency Confidence (0-100%)  |
-                                  +-------------------+-------------------+
-                                                      |
-                                                      v
-+-----------------------------------------------------+-----------------------------------------------------+
-|                                              INVESTIGATIVE WORKSPACE                              |
-|  - Tactical Command Center (Recharts)               - Cytoscape.js Link Analysis Multigraph               |
-|  - Explainable AI Investigation Assistant           - Chronological Vertical Timeline                     |
-|  - Case Dossier Workspace & Notes Logger            - Forensic Report Generator (Print & JSON)           |
-+-----------------------------------------------------------------------------------------------------------+
-```
-
-### Data Layer Topologies
-- **Mode A (Offline Air-Gapped):** Local SQLite (`btcshield.db`) synchronized with thread-safe connection pooling, zero egress.
-- **Mode B (Cloud Production):** Serverless Neon PostgreSQL with SSL connection pooling, indexed foreign keys, and migration tracking.
-
----
-
-## 6. Intelligence & Analytical Engines
-
-BTC-SHIELD partitions its analytical workload across nine dedicated engines:
-
-1. **Ingestion & Validation Engine (`ingestion_service.py`):**  
-   Streams records from raw uploads, verifies cryptographic format validity, deduplicates records via SHA-256 content hashes, and quarantines anomalies into `raw_records`.
-2. **Entity Resolution Engine (`graph_service.py`):**  
-   Extracts unique wallets, transaction hashes, IP addresses, and ASNs. Normalizes prefixed entity keys (`wallet:...`, `tx:...`, `ip:...`, `asn:...`) to ensure seamless graph traversal.
-3. **23-Dimensional Feature Engine (`feature_service.py`):**  
-   Executes sliding-window and graph-wide feature aggregation over UTXO and network tables, computing standardized feature matrices.
-4. **Machine Learning Anomaly Engine (`ml_service.py`):**  
-   Trains and evaluates Isolation Forest ensembles and scalable behavioral cohort clusterers, generating calibrated anomaly scores ($0 - 100$) and noise classification flags (`cluster_id = -1`).
-5. **Structural Heuristics Engine (`heuristic_service.py`):**  
-   Applies domain-specific blockchain analysis algorithms to identify peeling chains, change-address reuse, and CoinJoin mixer structures.
-6. **Evidence Generation Engine (`evidence_service.py`):**  
-   Translates raw mathematical anomalies and heuristic triggers into immutable, categorized evidence records across 8 standardized signal categories.
-7. **Alert Prioritization Engine (`alert_service.py`):**  
-   Computes composite compound risk scores and observational data sufficiency ratings, ranking alerts into an actionable triage queue (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
-8. **Explainable AI Assistant Engine (`ai_service.py`):**  
-   Executes deterministic, rule-based natural language synthesis to construct juror-comprehensible investigative briefs without external API dependencies.
-9. **Forensic Case & Reporting Engine (`case_service.py`):**  
-   Manages the investigative case lifecycle (`OPEN`, `INVESTIGATING`, `CLOSED`), associates pinned entities and evidence, and compiles formal forensic reports.
-
----
-
-## 7. End-to-End Forensic Workflow
-
-```
-[Raw Telemetry Feed]
-       │
-       ▼
-[1. Ingest & Quarantine] ──(Invalid / Duplicate)──► [Quarantine Table & Audit Log]
-       │
-       ▼ (Valid Records)
-[2. Entity Resolution] ──► [Wallets, TXs, Network Observations]
-       │
-       ▼
-[3. Feature Extraction] ──► [23-Dimensional Vector Matrix]
-       │
-       ▼
-[4. ML Anomaly Radar] ──► [Isolation Forest Score + Cohort Cluster Outliers]
-       │
-       ▼
-[5. Heuristic Correlation] ──► [Peeling Chain & CoinJoin Fingerprints]
-       │
-       ▼
-[6. Evidence Generation] ──► [Immutable Evidence Records across 8 Categories]
-       │
-       ▼
-[7. Alert Prioritization] ──► [Triage Queue: Compound Risk + Data Sufficiency]
-       │
-       ▼
-[8. Link Analysis] ──► [Cytoscape Multigraph 1-3 Hop Traversal]
-       │
-       ▼
-[9. Case Promotion] ──► [Case Dossier, Investigator Notes, Forensic Report Export]
-```
-
----
-
-## 8. Platform Modules
-
-| Module | Route | Primary Purpose |
+| Resource | URL | Description |
 |---|---|---|
-| **Command Center** | `/` | Executive situational awareness, real-time KPIs, anomaly score distribution, urgent leads queue. |
-| **Alert Prioritizer** | `/alerts` | Ranked alert triage feed with priority/status filtering, compound risk scores, and data sufficiency meters. |
-| **Alert Detail** | `/alerts/:id` | Deep-dive alert analysis, Explainable AI Assistant narrative, evidence signal breakdown, promote-to-case modal. |
-| **Investigation Graph** | `/graph` | Interactive Cytoscape.js multigraph, 1-3 hop neighborhood expansion, PageRank centrality, PNG export. |
-| **Structural Heuristics** | `/heuristics` | Automated detection of asymmetric peeling chains, CoinJoin mixers, and single-tx structural analyzer. |
-| **Wallet Intelligence** | `/wallets` & `/:addr` | Wallet financial profile, balance, net flow, transaction history, and correlated network peers. |
-| **Transaction Analysis** | `/transactions` & `/:txid`| Granular UTXO breakdown, inputs, outputs, fee rates, script types, and fan-out classifications. |
-| **Network Entities** | `/ips/:ip` & `/asns/:asn` | Peer relay history, geographic jurisdictions, hosting ASNs, and correlated on-chain actors. |
-| **Activity Timeline** | `/timeline` | Unified chronological vertical timeline merging on-chain ledger events and network telemetry. |
-| **Evidence Explorer** | `/evidence` | Complete 5-stage evidentiary lineage table across 8 behavioral signal categories. |
-| **Cases & Dossiers** | `/cases` & `/:id` | Investigator case workspaces, pinned entities, attached evidence, notes logger, and report generator. |
-| **Dataset Management** | `/datasets` | Multi-format upload (CSV, JSON, XML), data quality metrics, one-click ML intelligence pipeline execution. |
-| **Data Quality & Quarantine** | `/data-quality` | Ingestion integrity audit, quarantined record inspection with syntax error diagnostics. |
-| **Model Lab** | `/models` | Unsupervised model registry, hyperparameter configurations, feature importance, and silhouette metrics. |
-| **Forensic Audit Trail** | `/audit-logs` | Immutable audit log of all logins, uploads, case creations, and report exports with IP attribution. |
-| **Settings & RBAC** | `/settings` | Role-Based Access Control matrix, background job monitoring, and air-gapped system toggles. |
-| **System Telemetry** | `/system` | Live operational health check across REST API, database, ML engine, and NetworkX multigraph. |
+| **Production Web Application** | [https://pramendra0001.github.io/BTC/](https://pramendra0001.github.io/BTC/) | Single-Page Application deployed on GitHub Pages with dark command center UI |
+| **Backend REST API** | [https://btc-3jme.onrender.com](https://btc-3jme.onrender.com) | FastAPI backend deployed on Render with Python 3.13 |
+| **Interactive OpenAPI Documentation** | [https://btc-3jme.onrender.com/docs](https://btc-3jme.onrender.com/docs) | Swagger UI for interactive exploration of all 20 REST API routers |
+| **API Health Telemetry** | [https://btc-3jme.onrender.com/health](https://btc-3jme.onrender.com/health) | Live system health and operational readiness endpoint |
+| **Source Code Repository** | [https://github.com/Pramendra0001/BTC](https://github.com/Pramendra0001/BTC) | Canonical Git repository containing full-stack code, test suites, and documentation |
 
 ---
 
-## 9. Data Ingestion & Data Quality
+## 1. Executive Summary & Problem Addressed
 
-BTC-SHIELD handles heterogeneous data feeds while guaranteeing that malformed inputs cannot crash the processing pipeline:
+Bitcoin’s public ledger provides cryptographic immutability of value transfers, yet its pseudo-anonymous architecture presents acute forensic challenges for compliance analysts, financial intelligence units, and blockchain investigators:
 
-### 1. Ingestion Formats
-- **CSV:** Tabular records parsed with robust row-by-row streaming.
-- **JSON:** Accepts both raw arrays of transaction objects and wrapped metadata envelopes (`{"records": [...]}`).
-- **XML:** Hardened streaming with `defusedxml` targeting `<records><record>...</record></records>` structures, mitigating XML External Entity (XXE) and Billion Laughs expansion vulnerabilities.
+1. **Transaction Obfuscation:** Illicit operators systematically disperse funds through recursive peeling chains, high-entropy CoinJoin mixing syndicates, and rapid multi-hop fan-out/fan-in consolidation patterns designed to defeat naive address clustering.
+2. **Network/Ledger Disconnection:** On-chain ledger analysis typically operates in total isolation from off-chain P2P network telemetry, leaving investigators blind to geographic hopping, autonomous system concentration, and IP-to-wallet correlations.
+3. **Quadratic Scaling Bottlenecks:** Naive distance-matrix clustering algorithms (such as unconstrained DBSCAN) suffer $O(N^2)$ memory amplification, triggering out-of-memory crashes on realistic forensic cohorts exceeding 10,000 entities.
+4. **Evidentiary Opacity:** Traditional blockchain risk tools often report opaque, unexplainable "black-box" risk percentages that fail courtroom and regulatory standards for auditability, chain of custody, and explainability.
 
-### 2. Syntactic & Integrity Validation
-Every record must satisfy strict deterministic format checks:
-- **Bitcoin Addresses:** Must match standard Base58Check (`1...`, `3...`) or Bech32 SegWit (`bc1q...`, `bc1p...`) regular expressions.
-- **Transaction Hashes:** Must be exactly 64-character lowercase hexadecimal strings (`^[0-9a-fA-F]{64}$`).
-- **IP Addresses:** Validated via standard IPv4/IPv6 socket conversion; invalid octets are rejected.
-- **Financial Balances:** Satoshi amounts must be non-negative integers; transaction inputs must strictly equal outputs plus fees ($\sum In = \sum Out + Fee$).
-
-### 3. Quarantine & Data Quality Assurance
-Records failing validation or identified as duplicate entries via SHA-256 payload hashing are isolated in `raw_records` with `is_valid = False` and an explicit `error_message`. The pipeline logs the exact line number and failure category, allowing investigators to audit ingestion quality without corrupting downstream feature vectors.
+BTC-SHIELD solves these systemic challenges by unifying **on-chain behavioral graph extraction** with **off-chain P2P network telemetry**, applying **calibrated unsupervised anomaly detection**, enforcing **memory-bounded cohort clustering**, and generating **deterministic, tamper-evident case dossiers** with reproducible mathematical reasoning.
 
 ---
 
-## 10. Data Provenance
+## 2. Core Platform Capabilities
 
-To maintain absolute credibility for law enforcement and intelligence juries, BTC-SHIELD strictly defines the origin, boundary, and classification of all data within the platform:
+- **Streaming Multi-Format Ingestion:** High-throughput streaming parser for CSV, JSON, and XML ledger/telemetry files with defensive Pydantic validation, schema isolation of malformed records, and duplicate transaction handling.
+- **23-Dimensional Behavioral Feature Engineering:** Continuous mathematical profiling covering transaction velocity, burstiness, inter-arrival intervals, value concentration, Shannon entropy of counterparty addresses, and network ASN distribution.
+- **Calibrated Unsupervised Anomaly Detection:** Ensemble Isolation Forest (`n_estimators=50`, $\psi=256$) calibrated to normalized $[0, 100]$ risk scores with dynamic contamination bounds ($0.01$ to $0.10$).
+- **Dual-Scale Behavioral Cohort Clustering:** Memory-safe clustering engine running exact DBSCAN on small cohorts ($\le 1,000$ entities) and MiniBatch cohort clustering ($k=12$, batch size 2,048) with 97th percentile centroid distance outlier detection on large cohorts ($> 1,000$ entities), strictly capping peak memory at $O(N \cdot K)$.
+- **Structural Heuristic Engines:** Rule-based detectors identifying recursive peeling cascades ($\ge 3$ consecutive hops with asymmetric change splits) and high-entropy mixing transactions (equal-denomination outputs with Shannon entropy $H \ge 2.5$).
+- **Multi-Entity Directed Graph Intelligence:** Interactive NetworkX and Cytoscape.js multigraph visualization supporting $k$-hop neighborhood expansion, degree/betweenness centrality computation, and shortest-path taint tracking across wallets, transactions, IPs, and ASNs.
+- **Rule-Based Deterministic AI Explanations:** Zero-hallucination forensic summary engine generating plain-language analytical rationales derived directly from mathematical feature thresholds and structural heuristics.
+- **Court-Ready Case Management & Dossier Export:** Comprehensive investigation workflow supporting entity tagging, evidence attachment, chronological investigator notes, and JSON forensic report export with mandatory legal decision-support disclaimers.
+- **Four-Tier Role-Based Access Control (RBAC):** Granular authorization securing administrative, investigative, analytical, and view-only operational boundaries.
 
+---
+
+## 3. End-to-End System Architecture
+
+```text
+===================================================================================================
+                                      BTC-SHIELD ARCHITECTURE
+===================================================================================================
+
+ [ INGESTION & DATA SOURCES ]
+      |
+      +---> CSV / JSON / XML Ledger & P2P Telemetry Files
+      |
+      v
+ [ INGESTION & VALIDATION ENGINE (app/services/ingestion_service.py) ]
+      |
+      +---> Defused XML & Streaming Chunk Parser (yield_per 1000)
+      +---> Pydantic v2 Schema Normalization & Malformed Record Isolation
+      +---> 8-Point Data Quality Rules Enforcement (DQ Score 0-100%)
+      |
+      v
+ [ STORAGE & PERSISTENCE LAYER (app/core/database.py) ]
+      |
+      +---> Neon PostgreSQL (Production Cloud) / SQLite (Offline / Air-Gapped)
+      +---> Relational Schema: Users, Datasets, Transactions, Wallets, IPs, ASNs,
+      |     BehavioralFeatures, ModelRuns, AnomalyResults, Evidence, Alerts, Cases
+      |
+      v
+ [ ANALYTICAL & INTELLIGENCE ENGINES ]
+      |
+      +---> Feature Engineering Engine (app/services/feature_service.py)
+      |     * 23 continuous behavioral dimensions (velocity, burstiness, entropy)
+      |
+      +---> Unsupervised Anomaly Engine (app/services/ml_service.py)
+      |     * Isolation Forest (n_estimators=50, max_samples=min(256, N))
+      |     * Raw score inversion & [0, 100] normalization
+      |
+      +---> Dual-Scale Cohort Clustering Engine (app/services/ml_service.py)
+      |     * <= 1k entities: Exact DBSCAN (adaptive eps, min_samples=3-10)
+      |     * > 1k entities: MiniBatchKMeans (k=12) + Centroid Distance Outlier Thresholding
+      |
+      +---> Structural Heuristics Engine (app/services/heuristics_service.py)
+      |     * Peeling chain cascade detection (>= 3 hops)
+      |     * CoinJoin / mixing detection (equal-denomination outputs, entropy >= 2.5)
+      |
+      +---> Graph & Centrality Engine (app/services/graph_service.py)
+      |     * NetworkX DiGraph: Degree, Betweenness, Centrality, Shortest Path
+      |
+      +---> Alert Prioritization & Evidence Engine (app/services/alert_service.py)
+      |     * Dynamic priority rules (CRITICAL, HIGH, MEDIUM, LOW)
+      |     * Deterministic evidence record generation & Explainable AI summaries
+      |
+      v
+ [ REST API INTERFACE (FastAPI 0.115+ / Uvicorn) ]
+      |
+      +---> 20 Domain Routers: /auth, /dashboard, /alerts, /wallets, /transactions,
+      |     /network, /graph, /timeline, /evidence, /cases, /models, /heuristics, ...
+      |
+      v
+ [ PRESENTATION LAYER (React 19 / Vite 8 / Tailwind CSS v4) ]
+      |
+      +---> 24 Code-Split Dynamic Pages (Dashboard, Graph, Alerts, Cases, Heuristics...)
+      +---> Cytoscape.js Interactive Network Canvas & Recharts Analytics
+      +---> Dual Theme Support (Dark Command Center Default & Light Mode)
+===================================================================================================
 ```
-                                  DATA PROVENANCE ARCHITECTURE
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ 1. OFFICIAL / PUBLIC SOURCE DATA                                                      │
-  │    - Elliptic Graph Benchmark (203k transactions, 4,696 illicit classes)              │
-  │    - Bitcoin Protocol Specifications (BIP 141 SegWit, BIP 173 Bech32, UTXO mechanics) │
-  └────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                           │
-                                           ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ 2. DERIVED ANALYTICAL DATA                                                             │
-  │    - 23-Dimensional Mathematical Feature Vectors                                      │
-  │    - NetworkX Directed Bipartite Multigraph Edges                                      │
-  │    - Isolation Forest Anomaly Scores & Centroid Distance Outlier Flags                │
-  │    - 8 Standardized Evidence Signal Records                                           │
-  └────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                           │
-                                           ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ 3. SYNTHETIC EVALUATION DATASET (Dataset 6)                                            │
-  │    - 100,000 Relational Transactions | 45,000 Wallets | 350,131 Edges                 │
-  │    - Purpose: High-volume stress testing and SIH 26146 jury benchmarking              │
-  │    - NOTE: Explicitly synthetic evaluation data; NOT real-world surveillance traffic   │
-  └────────────────────────────────────────┬───────────────────────────────────────────────┘
-                                           │
-                                           ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ 4. DEMO & PRESENTATION DATA                                                            │
-  │    - 3 Pre-Seeded Presentation Cases (Alpha-Peel, CoinJoin Syndicate, Darknet Gateway)│
-  │    - 4 Pre-Seeded RBAC Demo Accounts (Administrator, Investigator, Analyst, Viewer)   │
-  └────────────────────────────────────────────────────────────────────────────────────────┘
-```
 
 ---
 
-## 11. Official vs. Derived vs. Synthetic / Demo Data
+## 4. Core Intelligence & Analytical Engines
 
-| Dimension | 1. Official / Public Source Data | 2. Derived Analytical Data | 3. Synthetic Benchmark Data (Dataset 6) | 4. Demo & Presentation Data |
+| # | Intelligence Engine | Implementation Module | Core Algorithm / Methodology | Primary Output / Artifact |
 |---|---|---|---|---|
-| **Origin** | Public academic benchmarks (Elliptic) & Bitcoin Core protocol specifications. | Generated dynamically by BTC-SHIELD feature and ML services. | Programmatically generated via deterministic Bitcoin graph synthesizer (`generate_dataset.py`). | Pre-seeded during platform initialization (`main.py` & `case_service.py`). |
-| **Purpose** | Algorithmic baseline validation and protocol conformity. | Mathematical anomaly quantification and graph link analysis. | High-throughput stress-testing ($100\text{k}$ txs, $45\text{k}$ wallets) and SIH demonstration. | Immediate walkthrough ready for evaluators and jury inspection. |
-| **Storage Tables** | External reference schemas / documentation. | `features`, `graph_edges`, `evidence`, `alerts`, `model_runs`. | `raw_records`, `transactions`, `wallets`, `network_observations`. | `cases`, `case_notes`, `case_entities`, `case_evidence`, `users`. |
-| **Realism Nature** | Historical real-world Bitcoin transactions. | Strictly deterministic derived metrics; zero hallucination. | Heavy-tailed realistic amounts, UTXO fee balance, documentation IPs. | Realistic operational scenarios; clearly marked as demonstration leads. |
-| **Forensic Claim** | Public academic reference. | Verified mathematical output. | **Synthetic evaluation benchmark.** | **Demonstration fixture.** |
+| **1** | **Feature Engineering Engine** | `app/services/feature_service.py` | 23 continuous dimensions: volume, net flow, velocity, burstiness, fan-in/fan-out, counterparty entropy, ASN diversity | `BehavioralFeature` records with JSON feature vector |
+| **2** | **Unsupervised Anomaly Detector** | `app/services/ml_service.py` | Calibrated `IsolationForest(n_estimators=50, max_samples=min(256, N), random_state=42)` | Scaled anomaly score ($0-100$) and persisted `joblib` model artifact |
+| **3** | **Dual-Scale Cohort Clustering** | `app/services/ml_service.py` | Exact `DBSCAN` for $N \le 1,000$; `MiniBatchKMeans(k=12)` with 97th-percentile centroid distance outlier marking for $N > 1,000$ | Behavioral cohort `cluster_id` and noise label (`-1`) |
+| **4** | **Structural Heuristics Engine** | `app/services/heuristics_service.py` | Deterministic graph traversal: recursive peeling chains ($\ge 3$ hops) and Shannon entropy ($H \ge 2.5$) for equal-denomination mixing | `HeuristicPatternResponse` with matched hops and addresses |
+| **5** | **Evidence & Alert Prioritizer** | `app/services/alert_service.py` | Multi-signal weighting matrix mapping anomaly scores, heuristic detections, and network diversity to priority tiers | Prioritized `Alert` records and structured `Evidence` cards |
 
 ---
 
-## 12. Machine Learning Methodology
+## 5. Multi-Signal Risk Scoring Methodology
 
-BTC-SHIELD employs an unsupervised machine learning architecture engineered specifically for high-dimensional financial graphs:
+BTC-SHIELD computes composite risk through a deterministic, explainable multi-signal fusion pipeline:
 
-### 12.1 23-Dimensional Behavioral Feature Vector
-The feature extraction engine computes 23 continuous features across four domains:
-
-$$\vec{x} = \Big[ \underbrace{v_1, \dots, v_6}_{\text{Volume}}, \; \underbrace{s_1, \dots, s_7}_{\text{Structural}}, \; \underbrace{t_1, \dots, t_5}_{\text{Temporal}}, \; \underbrace{n_1, \dots, n_5}_{\text{Network}} \Big]^T$$
-
-1. **Volume Features (6):** `total_input_sats`, `total_output_sats`, `fee_sats`, `fee_rate_sat_vb`, `output_value_mean`, `output_value_std`.
-2. **Structural Features (7):** `num_inputs`, `num_outputs`, `fan_out_ratio`, `script_type_entropy`, `is_rbf_enabled`, `has_op_return`, `locktime_type`.
-3. **Temporal Dynamics (5):** `block_interarrival_time`, `burstiness_cv` (Coefficient of Variation: $\sigma / \mu$), `propagation_delay_sec`, `hour_of_day_utc`, `day_of_week`.
-4. **Network Telemetry Correlation (5):** `relay_node_count`, `unique_asn_count`, `cross_border_hop_count`, `tor_or_proxy_risk_score`, `coincident_node_dispersion`.
-
-### 12.2 Isolation Forest Anomaly Detection
-- **Mathematical Principle:** Anomalous data points require fewer random axis-aligned splits to be isolated in binary search trees.
-- **Formulation:** Path length $h(x)$ across $T$ trees is normalized against average path length $c(n)$:
-  $$c(n) = 2 \ln(n - 1) + 0.5772156649 - \frac{2(n - 1)}{n}, \quad s(x, n) = 2^{-\frac{\mathbb{E}(h(x))}{c(n)}}$$
-- **Hyperparameters:** `n_estimators = 50`, `max_samples = min(256, n_samples)`, single-threaded execution (`n_jobs = 1`), `contamination = "auto"`.
-- **Score Calibration:** Raw scores are linearly calibrated to an intuitive scale $[0.0, 100.0]$. Scores exceeding $75.0$ are flagged as anomalous.
-
-### 12.3 Dual-Scale Cohort Behavioral Clustering (Algorithmic Truth)
-To prevent quadratic memory explosion ($O(N^2)$) on production datasets while preserving downstream outlier classification contracts, BTC-SHIELD implements a **dual-scale clustering architecture**:
-
-```
-                              INPUT COHORT SIZE (N)
-                                        │
-                    ┌───────────────────┴───────────────────┐
-                    ▼                                       ▼
-             N <= 1,000 Entities                     N > 1,000 Entities
-         (Tests / Focused Cohorts)              (Production 45k+ Datasets)
-                    │                                       │
-                    ▼                                       ▼
-              Exact DBSCAN                          MiniBatchKMeans
-         - k-NN Distance Elbow                  - n_clusters = 12
-         - Adaptive Epsilon (80th pct)          - batch_size = 2048
-         - min_samples = 3 to 10                - Distance-to-Centroid Analysis
-         - Memory: O(N^2) (Safe for N<=1k)      - Top 3% Furthest (97th pct)
-                    │                             assigned Cluster ID = -1
-                    │                           - Memory: O(N * K) (Safe for 512MB)
-                    │                                       │
-                    └───────────────────┬───────────────────┘
-                                        ▼
-                         UNIFIED OUTLIER CONTRACT
-                       cluster_id = -1 (Noise/Outlier)
+```text
++---------------------------------------------------------------------------------------+
+|                             MULTI-SIGNAL FUSION PIPELINE                              |
++---------------------------------------------------------------------------------------+
+|  1. Behavioral Anomaly Score (0 - 100)                                                |
+|     S_IF = (( -raw_score - min_score ) / ( max_score - min_score )) * 100            |
+|                                                                                       |
+|  2. Structural Heuristics Multiplier                                                  |
+|     +25 pts: Active participation in recursive peeling cascade (>= 3 hops)             |
+|     +30 pts: Involvement in high-entropy CoinJoin / mixing transaction (H >= 2.5)     |
+|                                                                                       |
+|  3. Network Telemetry Indicators                                                      |
+|     +15 pts: Rapid geographic hopping across >= 3 distinct countries in 24 hours      |
+|     +10 pts: High ASN diversity / high routing entropy                                |
+|                                                                                       |
+|  4. Composite Priority Classification                                                 |
+|     * CRITICAL (Score >= 80 OR Anomaly + Active Mixing / Peeling)                     |
+|     * HIGH     (Score 60 - 79 OR High Behavioral Anomaly)                             |
+|     * MEDIUM   (Score 40 - 59 OR Multi-Country Telemetry Discrepancy)                 |
+|     * LOW      (Score < 40: Normal Baseline Activity)                                 |
++---------------------------------------------------------------------------------------+
 ```
 
-- **Small Cohorts ($N \le 1,000$):** Executes exact standard `DBSCAN(eps=eps, min_samples=min_samples_val, n_jobs=1)` with adaptive epsilon computed from the 80th percentile of $k$-NN distances.
-- **Large Cohorts ($N > 1,000$, e.g. 45,000-entity populations):** Executes `MiniBatchKMeans(n_clusters=12, batch_size=2048, random_state=42)`. Following cluster assignment, the Euclidean distance from each feature vector to its assigned cluster centroid is computed. Entities residing in the top 3% distance tail (97th percentile) are assigned `cluster_id = -1` (un-clusterable behavioral noise).
-- **Algorithmic Reality:** MiniBatchKMeans is **not** mathematically identical to DBSCAN; it is an engineered operational substitute that guarantees $O(N \cdot K)$ memory complexity (allocating ~6.4 MB vs >15 GB) while strictly satisfying downstream evidence and alert pipeline requirements.
+Every score modification is accompanied by a discrete `Evidence` record detailing the observed feature values, mathematical thresholds, and contributing signals to maintain strict evidentiary chain-of-custody.
 
 ---
 
-## 13. Explainability & Evidence Generation
+## 6. Investigation Workflow: Ingestion to Case Dossier
 
-BTC-SHIELD guarantees zero black-box hallucinations by grounding all forensic assessments in deterministic rule engines:
-
-### 13.1 Standardized Evidence Categories (8 Signal Types)
-1. `HIGH_ANOMALY_SCORE`: Multi-dimensional feature vector deviation confirmed by Isolation Forest ($Score \ge 75.0$).
-2. `PEELING_CHAIN_CHANGE`: Asymmetric peeling cascade tracking repeated high-value change and micro-expenditure splits.
-3. `COINJOIN_MIXER`: Equal-denomination output matching with high Shannon entropy ($H \ge 2.5$).
-4. `BURST_VELOCITY`: Temporal transaction clustering indicating rapid automated automated dispersion ($CV \ge 2.0$).
-5. `GEO_HOPPING`: Relay node broadcast originating from geographically dispersed jurisdictions within tight temporal windows.
-6. `HIGH_FAN_OUT`: Single-input to high-volume multi-output fan-out patterns indicative of distribution syndicates.
-7. `HIGH_FEE_ANOMALY`: Extreme transaction fee rates paid to guarantee immediate block inclusion.
-8. `HIGH_VALUE_TRANSFER`: Significant satoshi volume transfers exceeding normal historical baseline distributions.
-
-### 13.2 Compound Alert Prioritization & Data Sufficiency
-Alerts are scored on two complementary orthogonal axes:
-- **Compound Risk Score ($0 - 100$):**
-  $$\text{Risk} = 0.45 \cdot S_{\text{ML}} + 0.35 \cdot \sum W_{\text{heuristics}} + 0.20 \cdot C_{\text{network}}$$
-  Categorized into `CRITICAL` ($\ge 85$), `HIGH` ($70 - 84$), `MEDIUM` ($50 - 69$), and `LOW` ($< 50$).
-- **Data Sufficiency Confidence ($0 - 100\%$):**
-  Quantifies observational depth ($N_{\text{observations}}$, $N_{\text{transactions}}$, temporal span $T_{\text{span}}$) so investigators can immediately distinguish high-certainty leads from sparse observations.
-
-### 13.3 Explainable AI Assistant (Zero Hallucination)
-The built-in assistant synthesizes findings into a four-part juror-ready narrative:
-1. **Primary Finding:** Plain-language synthesis of primary anomaly and heuristic drivers.
-2. **Contributing Signals:** Itemized breakdown of active evidence categories with individual strength weights.
-3. **Recommended Investigative Steps:** Actionable directives (e.g., "Inspect change output address `bc1q...` in Graph Analysis", "Query hosting ASN 13335 for relay infrastructure").
-4. **Uncertainty & Forensic Caveats:** Explicit acknowledgment of data limits and alternative legitimate explanations (e.g., exchange batching or mining pool payouts).
+```text
+  [ Step 1: Ingestion ]       User uploads raw CSV, JSON, or XML transaction and telemetry files.
+            |
+            v
+  [ Step 2: Quality Audit ]   System validates schema, computes 8-point data quality metrics, and isolates errors.
+            |
+            v
+  [ Step 3: Entity Profiling] Entity resolution maps unique Wallets, Transactions, IPs, and ASNs.
+            |
+            v
+  [ Step 4: ML & Analytics ]  Feature extraction computes 23 continuous features; Isolation Forest & clustering execute.
+            |
+            v
+  [ Step 5: Heuristics Scan ] Graph algorithms detect peeling chains, mixing transactions, and rapid consolidation.
+            |
+            v
+  [ Step 6: Alert Triage ]    Alert Prioritizer generates prioritized alerts with explainable AI reasoning.
+            |
+            v
+  [ Step 7: Graph Tracking ]  Investigator visualizes $k$-hop subgraphs, expands neighbors, and traces taint flows.
+            |
+            v
+  [ Step 8: Case Dossier ]    Entities & evidence attached to Case; investigator exports courtroom-ready report.
+```
 
 ---
 
-## 14. Security Architecture & Role-Based Access Control
+## 7. Key Application Modules & User Workflows
 
-BTC-SHIELD is architected for deployment in sensitive intelligence and law enforcement environments:
+### 7.1 Command Center Dashboard (`/`)
+- Real-time aggregate statistics: Total Monitored Wallets, Ingested Transactions, Active Alerts, System Risk State, and Data Quality Index.
+- High-priority alert queue with one-click navigation to underlying entity details.
+- Temporal transaction volume distribution and geographical observation breakdown.
 
-### 14.1 Zero Hardcoded Secrets
-- All credentials (`DATABASE_URL`, `JWT_SECRET`, `ADMIN_PASSWORD`) are loaded strictly from environment variables.
-- Production startup checks reject insecure defaults (e.g., short JWT secrets $< 32$ characters or SQLite in production mode).
+### 7.2 Alert Management & Triage (`/alerts`, `/alerts/:id`)
+- Paginated, filterable alert registry supporting filtering by priority (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`), review status (`NEW`, `IN_REVIEW`, `RESOLVED`, `FALSE_POSITIVE`), and entity type.
+- Alert detail view displaying contributing behavioral signals, anomaly score distribution, linked evidence records, and rule-based AI analytical explanations.
 
-### 14.2 Role-Based Access Control (RBAC) Enforcement
-Access is gated at the FastAPI middleware layer across four distinct operational roles:
+### 7.3 Interactive Graph Intelligence (`/graph`)
+- High-performance Cytoscape.js canvas rendering directed multigraph topologies of wallets, transactions, IPs, and ASNs.
+- Capabilities: $k$-hop radius expansion, node degree/betweenness centrality styling, shortest-path calculation between suspect addresses, and layout toggling (CoSE, Breadthfirst, Concentric).
 
-| Capability / Resource | ADMINISTRATOR | INVESTIGATOR | ANALYST | VIEWER |
-|---|:---:|:---:|:---:|:---:|
-| **View Tactical Command Center & KPIs** | Yes | Yes | Yes | Yes |
-| **Inspect Wallets, Transactions, IPs, ASNs** | Yes | Yes | Yes | Yes |
-| **Interactive Graph Traversal (Cytoscape)** | Yes | Yes | Yes | Yes |
-| **Inspect Heuristics & Peeling Chains** | Yes | Yes | Yes | Yes |
-| **Upload Datasets (CSV, JSON, XML)** | Yes | Yes | Yes | No |
-| **Trigger Feature Extraction & Train ML** | Yes | No | Yes | No |
-| **Triage & Update Alert Review Status** | Yes | Yes | No | No |
-| **Create Cases & Attach Evidence** | Yes | Yes | No | No |
-| **Log Timestamped Case Notes** | Yes | Yes | No | No |
-| **Generate & Export Forensic Reports** | Yes | Yes | No | No |
-| **Inspect System Audit Logs** | Yes | Yes | No | No |
-| **User Administration & Role Management** | Yes | No | No | No |
+### 7.4 Structural Heuristics Explorer (`/heuristics`)
+- Dedicated forensic detection interface for:
+  - **Peeling Chain Cascade Detector:** Tracing structured fund dissipation across peeling chains with configurable hop thresholds.
+  - **CoinJoin / Mixing Detector:** Identifying anonymizing mixing pools via equal-denomination output matching and Shannon entropy calculation.
 
-*Public self-registration via `/login` strictly assigns the `VIEWER` role by default, preventing unauthorized privilege escalation.*
+### 7.5 Case Management & Forensic Dossier Export (`/cases`, `/cases/:id`)
+- End-to-end case lifecycle tracking (`OPEN`, `INVESTIGATING`, `CLOSED`, `ARCHIVED`).
+- Case workspaces allowing investigators to attach suspect wallets, transactions, evidence items, and timestamped investigator notes.
+- One-click **Export Forensic Report** generating a structured JSON dossier complete with entity metadata, chronological audit logs, and mandatory decision-support disclaimers.
 
-### 14.3 Pre-Seeded Demonstration Accounts
-For rapid SIH evaluation and jury testing, the following accounts are pre-seeded:
-- `admin` / `Admin@123` (`ADMINISTRATOR`)
-- `lead_investigator` / `Investigator@123` (`INVESTIGATOR`)
-- `aml_analyst` / `Analyst@123` (`ANALYST`)
-- `compliance_viewer` / `Viewer@123` (`VIEWER`)
+### 7.6 Data Quality & Governance Engine (`/data-quality`)
+- Real-time audit dashboard reporting adherence across 8 data quality dimensions.
+- Tabular breakdown of total ingested records, valid rows, isolated malformed rows, duplicate transactions, and overall Data Quality Index ($0-100\%$).
 
 ---
 
-## 15. Technology Stack
+## 8. Data Provenance & Canonical Datasets
 
-### Backend
-- **Language & Runtime:** Python 3.13+
-- **API Framework:** FastAPI 0.115+ with Uvicorn ASGI server
-- **Database & ORM:** SQLAlchemy 2.0 (Sync sessions with PostgreSQL / SQLite compatibility)
-- **Scientific & ML Libraries:** Scikit-Learn 1.5, NumPy, Polars, NetworkX, Joblib
-- **Security & Crypto:** Bcrypt password hashing, PyJWT, DefusedXML
-- **Validation:** Pydantic v2 Settings & Schemas
+BTC-SHIELD maintains strict separation between official benchmark data, synthetic evaluation data, and demonstration fixtures:
 
-### Frontend
-- **Framework & Build:** React 19, TypeScript 5, Vite 8
-- **UI Components & Styling:** Tailwind CSS v4, Lucide React icons
-- **Data Visualization:** Recharts 3 (Anomaly histograms & KPI cards)
-- **Network Graph Canvas:** Cytoscape.js 3 with `cytoscape-dagre` & `cytoscape-concentric` layouts
-- **State & Caching:** TanStack React Query v5 (stale-while-revalidate, zero-render blocking)
+| Dataset Category | Dataset Name / Source | Size / Dimensions | Provenance & Usage Characterization |
+|---|---|---|---|
+| **Synthetic Evaluation Benchmark** | **Dataset 6 (BTC-SHIELD Ground-Ready)** | 100,000 transactions<br>45,000 wallets<br>350,131 edges (42.5 MB CSV) | **Synthetic Data.** Generated to simulate high-volume transaction flow, peeling chains, mixing patterns, and P2P routing telemetry. Used for empirical load and memory testing. |
+| **Public Academic Benchmark** | **Elliptic Graph Benchmark** | 203,769 transactions<br>234,355 directed edges | **Public Reference Dataset.** Academic Bitcoin transaction graph used as a structural topology benchmark for node degree distributions and temporal clustering. |
+| **Pre-Seeded Demonstration Fixtures** | **Forensic Demonstration Scenarios** | 3 cases<br>4 demo accounts | **Deterministic Demo Fixtures.** Pre-configured case dossiers (`Alpha-Peel Cascade`, `CoinJoin Syndicate`, `Darknet Gateway`) used for offline product demonstrations and evaluation walks. |
 
 ---
 
-## 16. Quickstart Guide
+## 9. Data Quality Framework & Integrity Controls
+
+All ingested data is evaluated against an 8-point automated integrity verification matrix:
+
+| Rule ID | Data Quality Dimension | Verification Rule | Severity | Handling on Violation |
+|---|---|---|:---:|---|
+| **DQ-01** | **Cryptographic Hash Integrity** | `txid` must be valid 64-character hexadecimal string | Critical | Row rejected; isolated in `RawRecord` error table |
+| **DQ-02** | **Address Syntax Validation** | Input/output addresses must match Base58Check (P2PKH/P2SH) or Bech32 (P2WPKH/P2WSH) | Critical | Row rejected; isolated with parse error |
+| **DQ-03** | **Non-Negative Value Range** | Value amounts must be positive numbers; fee $\ge 0$ | High | Value clamped or rejected; warning flagged |
+| **DQ-04** | **Temporal Sequence Coherence** | Timestamp must be valid UTC ISO-8601 or UNIX epoch within $[2009\text{-}01\text{-}03, \text{now}]$ | High | Normalized to standard UTC or rejected if unparseable |
+| **DQ-05** | **IP Address Validity** | Network IPs must conform to valid IPv4/IPv6 syntax | Medium | Validated via Python `ipaddress` module; invalid IPs logged |
+| **DQ-06** | **Deduplication Check** | Ingested `txid` must not collide with existing committed records | High | Deduplicated; logged in dataset duplicate counter |
+| **DQ-07** | **Fee Conservation Law** | Total input amount must equal total output amount plus transaction fee ($\sum \text{In} = \sum \text{Out} + \text{Fee}$) | Medium | Flagged as balance anomaly; recorded in evidence table |
+| **DQ-08** | **XML / Payload Defense** | XML files must not contain DTD entity expansion (Billion Laughs defense) | Critical | Defused via `defusedxml`; parsing aborted on entity expansion |
+
+---
+
+## 10. Data-Dependent System Capabilities Matrix
+
+| System Capability | Baseline / Offline Fixtures | Synthetic 100k Benchmark | Real-World Network Feeds (Future) |
+|---|:---:|:---:|:---:|
+| **Authentication & RBAC Enforcement** | Available | Available | Available |
+| **Static Heuristic Detection (Peeling/Mixing)** | Available | Available | Available |
+| **Interactive Cytoscape Graph Visualization** | Available | Available | Available |
+| **Isolation Forest Anomaly Scoring** | Available (Fixture features) | Available (23-dim continuous features) | Requires live feature computation |
+| **Dual-Scale Cohort Clustering** | Exact DBSCAN ($\le 1\text{k}$) | MiniBatch KMeans ($> 1\text{k}$) | Scalable MiniBatch KMeans |
+| **Court-Ready JSON Report Export** | Available | Available | Available |
+| **Real-Time P2P Network Telemetry** | Simulated IP/ASN | Simulated TEST-NET | Requires live node daemon connection |
+
+---
+
+## 11. Technology Stack
+
+### Frontend Architecture
+- **Framework:** React 19 (`19.2.8`)
+- **Language:** TypeScript (`~6.0.2`)
+- **Build Tool:** Vite 8 (`8.3.0`)
+- **Styling:** Tailwind CSS v4 (`4.3.3`)
+- **Graph Visualization:** Cytoscape.js (`3.34.3`)
+- **Analytics & Charting:** Recharts (`3.10.1`)
+- **State Management & Caching:** TanStack React Query (`5.103.1`)
+- **Icons:** Lucide React (`1.47.0`)
+- **Routing:** React Router DOM (`7.13.0`)
+
+### Backend Architecture
+- **Framework:** FastAPI (`>=0.115.0`)
+- **ASGI Server:** Uvicorn (`>=0.30.0`)
+- **Language:** Python 3.13+
+- **Database ORM:** SQLAlchemy 2.0 (`>=2.0.30`) with SQLite (local) and PostgreSQL / Neon (cloud)
+- **Data Validation:** Pydantic v2 (`>=2.7.0`) & Pydantic Settings (`>=2.3.0`)
+- **Authentication & Cryptography:** PyJWT (`>=2.8.0`), Passlib (`>=1.7.4`), Bcrypt (`>=4.0.0`)
+- **XML Parsing Defense:** DefusedXML (`>=0.7.1`)
+
+### Scientific, Graph & Machine Learning
+- **Machine Learning:** Scikit-Learn (`>=1.5.0`) — Isolation Forest, DBSCAN, MiniBatchKMeans, StandardScaler, Silhouette Score
+- **Data Manipulation:** NumPy (`>=1.26.0`), Polars (`>=1.0.0`), Pandas (`>=2.2.0`)
+- **Graph Mathematics:** NetworkX (`>=3.3`) — Centrality metrics, Dijkstra pathfinding, $k$-hop neighborhood expansion
+- **Model Serialization:** Joblib (`>=1.4.0`)
+
+---
+
+## 12. Repository Structure
+
+```text
+BTC/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── endpoints/       # 20 distinct API router modules
+│   │   │   │   ├── alerts.py
+│   │   │   │   ├── auth.py
+│   │   │   │   ├── cases.py
+│   │   │   │   ├── dashboard.py
+│   │   │   │   ├── data_quality.py
+│   │   │   │   ├── graph.py
+│   │   │   │   ├── heuristics.py
+│   │   │   │   └── ...
+│   │   │   └── router.py        # Central API router combining all modules
+│   │   ├── core/
+│   │   │   ├── config.py        # Pydantic BaseSettings & production security validators
+│   │   │   ├── database.py      # SQLAlchemy engine, session maker, base model
+│   │   │   └── security.py      # JWT authentication, bcrypt hashing, RBAC decorators
+│   │   ├── models/
+│   │   │   └── models.py        # SQLAlchemy relational database models
+│   │   ├── schemas/
+│   │   │   └── schemas.py       # Pydantic v2 request/response schemas
+│   │   ├── services/
+│   │   │   ├── alert_service.py # Alert generation & prioritization
+│   │   │   ├── case_service.py  # Case management & report generation
+│   │   │   ├── feature_service.py # 23-dimensional feature computation
+│   │   │   ├── graph_service.py # NetworkX graph algorithms & centrality
+│   │   │   ├── heuristics_service.py # Peeling & CoinJoin detectors
+│   │   │   ├── ingestion_service.py  # Streaming file ingestion & DQ audit
+│   │   │   └── ml_service.py    # Isolation Forest & dual-scale clustering
+│   │   └── main.py              # Application lifespan, CORS, and startup bootstrap
+│   ├── ml_models/               # Persisted joblib model artifacts
+│   ├── requirements.txt         # Pinned backend Python dependencies
+│   └── Dockerfile               # Backend container configuration
+├── frontend/
+│   ├── src/
+│   │   ├── api/                 # Axios HTTP client & API query functions
+│   │   ├── components/          # Reusable UI widgets, modals, charts, and tables
+│   │   ├── context/             # ThemeContext (dark command center default)
+│   │   ├── layouts/             # AppLayout, sidebar navigation, top command bar
+│   │   ├── pages/               # 24 lazy-loaded React page views
+│   │   └── App.tsx              # React Router setup & QueryClient configuration
+│   ├── tests/                   # Frontend unit test suites (auth, theme)
+│   ├── package.json             # NPM dependencies & build scripts
+│   └── vite.config.ts           # Vite configuration & chunk-splitting rules
+├── data/
+│   ├── generators/              # Synthetic dataset generation scripts
+│   ├── samples/                 # Canonical 100k synthetic dataset & manifests
+│   └── schemas/                 # JSON schema contracts
+├── deployment/
+│   ├── docker/                  # Dockerfiles and Nginx configurations
+│   └── github-actions/          # CI/CD deployment definitions
+├── docs/                        # Architectural specifications & guides
+├── tests/                       # Pytest test suite (57 backend test modules)
+├── docker-compose.yml           # Multi-container local orchestration
+└── README.md                    # Canonical project documentation
+```
+
+---
+
+## 13. Installation & Local Development Guide
 
 ### Prerequisites
-- Python 3.13+ (or 3.11/3.12)
-- Node.js 20+ and npm
+- Python 3.13+
+- Node.js 20+ and npm 10+
+- Git
 
-### Local Development Setup
-
+### 13.1 Backend Setup
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Pramendra0001/BTC.git
+# Navigate to repository root
 cd BTC
 
-# 2. Configure and activate Python virtual environment
+# Create and activate Python virtual environment
 python -m venv backend/.venv
-# Windows:
+
+# Windows activation:
 backend\.venv\Scripts\activate
-# Linux / macOS:
+
+# Linux/macOS activation:
 source backend/.venv/bin/activate
 
-# 3. Install backend dependencies
+# Install backend dependencies
 pip install -r backend/requirements.txt
 pip install pytest httpx
 
-# 4. Generate local synthetic test dataset
-python data/generators/generate_dataset.py --size 1000 --format csv --output data/samples
-
-# 5. Launch FastAPI backend (Port 8000)
-cd backend
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+# Start local backend server (SQLite development mode)
+uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
+The backend API is now running at `http://127.0.0.1:8000` with Swagger docs at `http://127.0.0.1:8000/docs`.
 
-In a separate terminal window:
+### 13.2 Frontend Setup
 ```bash
-# 6. Install frontend dependencies and launch development server (Port 5173)
-cd frontend
+# Open a new terminal and navigate to frontend directory
+cd BTC/frontend
+
+# Install Node dependencies
 npm install
+
+# Start Vite development server
 npm run dev
 ```
+The frontend is now accessible at `http://localhost:5173`.
 
-Open your browser to `http://localhost:5173` and authenticate using `admin` / `Admin@123`.
+### 13.3 Pre-Seeded Demonstration Accounts
 
----
-
-## 17. Offline & Air-Gapped Deployment
-
-BTC-SHIELD is certified for 100% air-gapped, zero-egress execution for **SIH Grand Finale Jury Evaluation (Mode A)**:
-
-```bash
-# Execute single-command containerized stack:
-docker compose up -d --build
-```
-- **Frontend SPA:** `http://localhost:3000` (or `http://localhost:5173`)
-- **Backend OpenAPI Documentation:** `http://localhost:8000/docs`
-- **Zero Internet Requirement:** The platform bundles all JavaScript assets, CSS stylesheets, Python wheels, and scikit-learn model definitions locally. External DNS lookups and remote cloud APIs are completely disabled (`AI_PROVIDER=mock`).
-
-*For step-by-step air-gapped Linux setup on fresh Ubuntu/Debian machines, see [docs/OFFLINE_LINUX_GUIDE.md](docs/OFFLINE_LINUX_GUIDE.md).*
+| Role | Username | Email | Default Password | Permissions |
+|---|---|---|---|---|
+| **ADMINISTRATOR** | `admin` | `admin@btcshield.gov` | `admin123` *(dev)* | Full platform administration, system settings, model retraining |
+| **INVESTIGATOR** | `lead_investigator` | `investigator@btcshield.gov` | `Investigator@2026!` | Case management, dossier editing, note attachment, report export |
+| **ANALYST** | `aml_analyst` | `analyst@btcshield.gov` | `Analyst@2026!` | Alert triage, heuristic execution, graph exploration, data auditing |
+| **VIEWER** | `compliance_viewer` | `viewer@btcshield.gov` | `Viewer@2026!` | Read-only access to dashboards, graph views, and summary statistics |
 
 ---
 
-## 18. Cloud Deployment Architecture
+## 14. Environment Configuration
 
-BTC-SHIELD operates an active, continuous production deployment topology (**Mode B**):
+All settings are managed via environment variables and validated at runtime using Pydantic Settings (`backend/app/core/config.py`):
 
-- **Production Frontend:** [https://pramendra0001.github.io/BTC/](https://pramendra0001.github.io/BTC/)  
-  Hosted via GitHub Pages, compiled with Vite 8, featuring automated code-splitting and client-side routing.
-- **Production Backend API:** [https://btc-3jme.onrender.com](https://btc-3jme.onrender.com)  
-  Containerized FastAPI microservice running on Render with automatic HTTPS and CORS authorization.
-- **Interactive OpenAPI Documentation:** [https://btc-3jme.onrender.com/docs](https://btc-3jme.onrender.com/docs)
-- **Database Engine:** Managed Neon Serverless PostgreSQL with SSL encryption and automated Alembic schema migrations.
+| Variable | Default Value (Development) | Production Requirement | Description |
+|---|---|---|---|
+| `ENVIRONMENT` | `development` | Set to `production` | Enables production security guardrails and validation |
+| `DATABASE_URL` | `sqlite:///btcshield.db` | PostgreSQL URL required | Database connection string (SQLite rejected in production) |
+| `JWT_SECRET` | `dev-insecure-secret-key-32-chars-long-min` | Cryptographically random string ($\ge 32$ chars) | Secret key for signing HS256 JWT access tokens |
+| `JWT_ALGORITHM` | `HS256` | `HS256` | Cryptographic signature algorithm for access tokens |
+| `JWT_EXPIRATION_MINUTES` | `1440` (24 hours) | `480` (8 hours recommended) | Token validity duration |
+| `CORS_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Exact production URLs | Allowed origins (wildcard `*` rejected in production) |
+| `ADMIN_USERNAME` | `admin` | Custom admin handle | Username for initial root administrator account |
+| `ADMIN_PASSWORD` | `""` *(falls back to dev default)* | Complex string ($\ge 12$ chars) | Initial administrator password |
+| `ADMIN_EMAIL` | `admin@btcshield.gov` | Valid enterprise email | Administrator contact email |
+| `AI_PROVIDER` | `mock` | `mock` / `gemini` / `openai` | Analytical narrative provider |
+| `LOG_LEVEL` | `INFO` | `INFO` or `WARNING` | Logging verbosity |
+| `MAX_UPLOAD_SIZE_MB` | `250` | `250` | Maximum allowed payload size for dataset upload |
+| `INGESTION_BATCH_SIZE` | `1000` | `1000` | Batch chunk size for database inserts |
 
 ---
 
-## 19. Testing & Verification
+## 15. Verification & Test Suite Summary
 
-Every functional module and algorithmic subsystem is backed by rigorous automated test suites.
-
-### Canonical Test Execution Matrix
+The repository enforces end-to-end verification through automated tests covering backend API contracts, heuristics, graph math, machine learning pipelines, and frontend client states:
 
 ```text
-====================================================================================
-                        BTC-SHIELD CANONICAL TEST SUITE AUDIT
-====================================================================================
-Backend Pytest Suite:     57 passed, 3 skipped, 0 failed  (19.46s execution)
-Frontend Node/Unit Suite:  8 passed, 0 skipped, 0 failed  (159ms execution)
-Combined Repo Total:      65 passed, 3 skipped, 0 failed  (100% Pass Rate)
-Overall Status:           PASS
-====================================================================================
+===================================================================================================
+                                AUTOMATED TEST VERIFICATION SUMMARY
+===================================================================================================
+Platform: Windows (Python 3.13, Node.js v24)
+Test Suites:
+  - Backend (pytest 8.3.4):           57 passed, 3 skipped, 0 failed in 19.61s (100% pass rate)
+  - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 185ms  (100% pass rate)
+  - Combined Repository Tests:        65 passed, 3 skipped, 0 failed (100% pass rate)
+  - Frontend Production Build:        tsc -b && vite build clean in 1.01s (2,601 modules transformed)
+===================================================================================================
 ```
 
-### Backend Test Coverage Breakdown (`pytest tests/ -v`)
-- `tests/test_api.py` (19 tests): Authentication lifecycle, dashboard stats, timeline queries, cases, notes, reports, and heuristic API contracts.
-- `tests/test_graph.py` (5 tests): Directed multigraph construction, multi-hop traversal, PageRank and Degree centrality metrics.
-- `tests/test_heuristics.py` (4 tests): Peeling-chain cascade tracking and equal-denomination CoinJoin mixer detection.
-- `tests/test_final_release.py` (4 tests): Entity key normalization (`wallet:...`), alert schema compatibility, pre-seeded presentation cases, and RBAC user provisioning.
-- `tests/test_ml_pipeline.py` (4 tests): Isolation Forest scoring, dual-scale cohort clustering, score calibration, and artifact serialization.
-- `tests/test_alert_prioritizer.py` (4 tests): Compound risk calculation, data sufficiency confidence scoring, and priority classification.
-- `tests/test_evidence_engine.py` (4 tests): Evidence signal generation across 8 categories and cryptographic hash chain verification.
-- `tests/test_feature_engineering.py` (4 tests): 23-dimensional feature vector extraction and mathematical correctness.
-- `tests/test_ingestion.py` (6 tests): CSV, JSON, and XML streaming parsers, Base58/Bech32 address validators, and malformed record quarantine.
-- `tests/test_config.py` (2 tests): Security settings, CORS parser, and environment variable enforcement.
-- `tests/test_100k_dataset.py` (1 test): High-volume relational schema validation.
-- *(3 skipped tests: Optional live PostgreSQL connection tests when running in SQLite mode).*
+### Verified Test Suites
 
-### Frontend Test Coverage Breakdown (`npm test`)
-- `frontend/tests/auth.test.ts` (4 tests): JWT token persistence, invalid credential rejection, user registration, and 409 conflict handling.
-- `frontend/tests/theme.test.ts` (4 tests): Dark/light/system theme resolution, localStorage persistence, and canvas re-rendering.
+#### Backend Test Suites (`pytest tests/ -v`)
+- `tests/test_api.py`: Full API endpoint contracts, authentication flows, and privilege escalation prevention.
+- `tests/test_graph.py`: Directed graph construction, centrality scoring, and shortest path execution.
+- `tests/test_heuristics.py`: Recursive peeling cascade detection and CoinJoin Shannon entropy calculation.
+- `tests/test_final_release.py`: Prefix normalization, alert schemas, and case seeding integrity.
+- `tests/test_ml_pipeline.py`: Model training, parameter recording, and anomaly score scaling.
+- `tests/test_alert_prioritizer.py`: Dynamic priority rule assignment and evidence attachment.
+- `tests/test_evidence_engine.py`: Deterministic evidence card generation and threshold recording.
+- `tests/test_100k_dataset.py`: Large-dataset streaming ingestion and memory boundary verification.
+- `tests/test_feature_engineering.py`: 23-dimensional continuous feature calculation.
+- `tests/test_ingestion.py`: CSV/JSON/XML parsing and malformed record isolation.
 
----
+*(Note: The 3 skipped tests represent optional live PostgreSQL network integration tests that safely skip when operating against the local SQLite fallback).*
 
-## 20. Performance & Memory Engineering
-
-Performance claims in BTC-SHIELD are strictly categorized by verification level:
-
-### 1. [LOCAL BENCHMARK]
-- **Ingestion Throughput:** Ingests $10,000$ records in $1.42\text{ s}$ using streaming dictionary parsers on modern multi-core hardware.
-- **23-Dimensional Feature Extraction:** Extracts complete feature vectors for $45,000$ entities in $3.84\text{ s}$.
-- **Graph Visualization:** Renders 200 nodes and 350 directed edges on Cytoscape.js in $< 85\text{ ms}$.
-
-### 2. [PRODUCTION OBSERVATION]
-- **512 MB Container Memory Bound:** Resolved previous container OOM termination through zero-copy `float32` matrices, session expunging (`db.expunge_all()`), and replacing $O(N^2)$ DBSCAN with $O(N \cdot K)$ MiniBatchKMeans. Baseline production memory footprint is $\approx 140\text{ MB}$; peak ML execution footprint is $\approx 285\text{ MB}$ (comfortably within the 512 MB limit).
-- **Frontend Bundle Size:** Reduced entry JavaScript bundle from $1.5\text{ MB}$ to **$24.25\text{ kB}$** via aggressive route-level code-splitting (`React.lazy`). The initial application shell becomes interactive in $< 1\text{ second}$.
-
-### 3. [EXPECTED / ESTIMATED]
-- **Projected Throughput:** Architected to handle $1,000,000$ transactions in batches of $50,000$ using Polars out-of-core streaming on 4 GB RAM instances.
+#### Frontend Test Suites (`frontend/tests/`)
+- `frontend/tests/auth.test.ts`: Client authentication state, token persistence, duplicate registration handling, and 409 conflict notifications.
+- `frontend/tests/theme.test.ts`: Command center theme state, dark/light persistence, and system media query resolution.
 
 ---
 
-## 21. System Limitations
+## 16. Production Deployment & Cloud Architecture
 
-In adherence to scientific integrity, BTC-SHIELD explicitly documents its technical boundaries:
-1. **Free-Tier Cloud Constraints:** Production cloud deployment on free-tier containers restricts concurrent heavy ML training jobs to single-worker sequential queues.
-2. **Probabilistic Heuristics:** On-chain clustering heuristics (e.g., change-address identification) rely on standard Bitcoin wallet behaviors and can be partially degraded by non-standard scripting or coin-control techniques.
-3. **P2P Relay Ambiguity:** Off-chain relay observations reflect the first peer node broadcasting a transaction to the listening probe network. Relay telemetry may point to VPNs, Tor exit nodes, or relay gateways rather than the originating physical device.
-4. **Unsupervised Scope:** Machine learning models detect statistical anomalies and behavioral deviations; they do not generate definitive legal determinations of guilt or criminal intent.
+### Frontend Deployment (GitHub Pages)
+- Deployed as a static Single-Page Application (SPA) using GitHub Actions (`.github/workflows/deploy-frontend.yml`).
+- Configured with `404.html` SPA redirect fallback to support client-side routing on GitHub Pages.
+- Production URL: `https://pramendra0001.github.io/BTC/`
 
----
+### Backend Deployment (Render Cloud)
+- Deployed as a containerized web service running Python 3.13 and Uvicorn.
+- Connects to managed cloud PostgreSQL (Neon).
+- Production API Base URL: `https://btc-3jme.onrender.com`
 
-## 22. Future Integrations & Roadmap
-
-- **Live Bitcoin P2P Daemon Tap:** Direct ZeroMQ / RPC integration with Bitcoin Core nodes to capture live mempool broadcast telemetry in real time.
-- **Lightning Network (L2) Intelligence:** Routing node topology analysis, channel exhaustion detection, and HTLC fee anomaly monitoring.
-- **Graph Neural Networks (GNNs):** Semi-supervised node classification using PyTorch Geometric (RGCN / GraphSAGE) trained on academic benchmark sets.
-- **Commercial Attribution Feeds:** API connectors for verified VASP (Virtual Asset Service Provider) exchange wallet tags and sanctions lists.
-
----
-
-## 23. Presentation & Demonstration Flow
-
-### 10-Minute Master Jury Demonstration Script
-
-| Time | Phase | Target Screen | Core Narrative & Evaluator Talking Points |
-|---|---|---|---|
-| **0:00 - 1:30** | **Executive Overview** | `/` (Command Center) | Introduce Problem Statement 26146 (NTRO). Highlight real-time KPIs, anomaly score distribution, and the ranked triage queue. |
-| **1:30 - 3:00** | **Alert Triage & Explainability** | `/alerts` & `/alerts/:id` | Open a `CRITICAL` lead. Demonstrate the Explainable AI Assistant narrative, multi-signal evidence cards, and Data Sufficiency rating. |
-| **3:00 - 5:00** | **Interactive Link Analysis** | `/graph` | Explore the directed multigraph. Demonstrate 1-3 hop neighborhood expansion, PageRank centrality inspection, and PNG dossier export. |
-| **5:00 - 6:30** | **Structural Heuristics** | `/heuristics` | Inspect the peeling-chain cascade visualizer and CoinJoin mixer entropy analyzer ($H \ge 2.5$). |
-| **6:30 - 8:00** | **Case Dossier & Export** | `/cases` & `/cases/:id` | Open an active case dossier. Review pinned entities, immutable evidence records, investigator notes, and export the official forensic intelligence report. |
-| **8:00 - 9:00** | **Data Ingestion & Integrity** | `/datasets` & `/data-quality` | Review multi-format upload capability (CSV/JSON/XML) and show the malformed record quarantine table. |
-| **9:00 - 10:00** | **Verification & Technical Defense** | Terminal & `/system` | Display live system telemetry and run the automated test suite (**65 passed, 3 skipped**). Address jury questions on air-gapped readiness and ML memory bounds. |
+### Docker Multi-Container Topology
+The repository includes a ready-to-run `docker-compose.yml` for fully air-gapped or on-premises deployment:
+```bash
+# Launch entire stack locally (Postgres 16, FastAPI Backend, Nginx Frontend)
+docker-compose up -d --build
+```
 
 ---
 
-## 24. Compliance & Forensic Disclaimer
+## 17. Security Architecture & Threat Model
 
-> **IMPORTANT FORENSIC NOTICE:**  
-> BTC-SHIELD operates on synthetic benchmark datasets, academic graph evaluations, and simulated network telemetry for competitive, research, and evaluation purposes. All analytical outputs—including anomaly scores, clustering labels, heuristic classifications, and natural language briefs—represent **probabilistic investigative leads and statistical risk indicators requiring independent corroboration by qualified human investigators**. They do not constitute definitive legal conclusions of criminality, fraud, or illicit conduct.
+| Threat / Risk Vector | Mitigating Architectural Control | Enforcement Mechanism |
+|---|---|---|
+| **Privilege Escalation** | 4-tier Role-Based Access Control (`ADMINISTRATOR`, `INVESTIGATOR`, `ANALYST`, `VIEWER`) | FastAPI dependency injection (`require_role(...)`) on all sensitive routes |
+| **Insecure Production Secret** | Startup validation rejects default secrets and strings $< 32$ characters | `model_validator` in `backend/app/core/config.py` raises fatal error |
+| **CORS Wildcard Abuse** | Wildcard `*` disallowed when `allow_credentials=True` | Production configuration check enforces explicit domain allowlists |
+| **Bcrypt DoS via Long Passwords** | Byte truncation to 72 bytes prior to hashing | `backend/app/core/security.py` truncates UTF-8 bytes to prevent CPU exhaustion |
+| **XML Entity Attacks (Billion Laughs)** | Prohibit DTD entity expansions in XML uploads | Parsed via `defusedxml` package; execution aborts upon entity detection |
+| **SQL Injection** | Parameterized relational queries across all operations | SQLAlchemy 2.0 ORM query builder; zero string-concatenated SQL queries |
+| **Memory Exhaustion (DoS via Large Data)** | Streaming chunk parsing (`yield_per 1000`) and MiniBatch clustering | Zero-ORM raw tuple extraction with bounded $O(N \cdot K)$ memory complexity |
+| **Audit Non-Repudiation** | Immutable audit logs recorded for every status change and data export | `AuditLog` database table tracking user ID, IP address, action, and timestamp |
 
 ---
 
-## License
+## 18. Known Limitations & Edge Cases
 
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for full legal text.
+1. **Synthetic Telemetry Boundaries:** The 100k evaluation dataset utilizes documentation-only IP ranges (`TEST-NET`) and simulated ASN identifiers. Network telemetry reflects synthetic benchmark scenarios rather than live operational ISP logs.
+2. **Cold-Start Latency on Render Free Tier:** The live demonstration backend on Render enters sleep mode after periods of inactivity; initial API requests may experience a 30-50 second cold-start delay while the container spins up.
+3. **Sub-Sampled Silhouette Scoring:** Silhouette score evaluation on large cohorts ($> 1,000$ entities) is evaluated on a random representative subsample ($\le 300$ entities) to prevent quadratic computation delays during live ingestion.
+4. **Air-Gapped Offline Mode:** When deployed in completely air-gapped environments without external internet connectivity, GeoIP city-level resolution falls back to country/ASN metadata provided in the ingestion stream.
+
+---
+
+## 19. Frequently Asked Questions (FAQ)
+
+#### Q1: Does BTC-SHIELD determine legal guilt or illicit culpability?
+**No.** BTC-SHIELD is an investigatory decision-support system. It computes behavioral anomaly scores, surfaces structural heuristics, and identifies statistical outliers. All outputs represent analytical risk indicators that require human investigator validation.
+
+#### Q2: How does BTC-SHIELD avoid crashing on large 100,000-record datasets?
+BTC-SHIELD implements a dual-scale clustering architecture: cohorts exceeding 1,000 entities transition from standard DBSCAN (which requires a memory-prohibitive $O(N^2)$ pairwise distance matrix) to `MiniBatchKMeans` with Euclidean centroid distance outlier thresholding, maintaining a compact $O(N \cdot K)$ memory profile.
+
+#### Q3: Can the platform run without an internet connection?
+**Yes.** The system natively supports an offline/air-gapped deployment mode utilizing local SQLite persistence and local asset bundles with zero external cloud dependencies.
+
+#### Q4: What makes the AI summaries explainable and courtroom-ready?
+The analytical summary assistant uses deterministic rule-based synthesis derived directly from computed feature thresholds, heuristic hop sequences, and evidence records, eliminating generative model hallucinations.
+
+---
+
+## 20. Future Integration Possibilities
+
+- **Live Bitcoin Core Node Integration:** Direct RPC / ZeroMQ connection to Bitcoin Core full nodes for block-by-block streaming ingestion of live mempool and confirmed transactions.
+- **Hardware-Security-Module (HSM) Signing:** Cryptographic signing of exported forensic dossiers using PKCS#11 hardware security modules for tamper-evident chain of custody.
+- **Graph Neural Network (GNN) Embeddings:** Integration of inductive Graph Convolutional Networks (GCN) or Graph Attention Networks (GAT) for semi-supervised entity role classification.
+- **Decentralized VASP Directory Synchronization:** Automated synchronization with OpenVASP / TRISA directory protocols for verified Virtual Asset Service Provider address attribution.
+
+---
+
+### License & Governance
+BTC-SHIELD is released under the **MIT License**. See [LICENSE](LICENSE) for details. All investigative workflows must adhere to applicable financial compliance frameworks, data protection regulations, and legal due process standards.
