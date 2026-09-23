@@ -117,7 +117,7 @@ docker compose up -d
    cd /opt/btc-shield
    source backend/.venv/bin/activate
    python -m pytest tests -v -W ignore
-   # All 67 backend tests pass in < 25 seconds!
+   # All 70 backend tests pass in < 35 seconds!
    ```
 5. **Run Standalone Offline Validation Script:**
    ```bash

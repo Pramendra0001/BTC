@@ -71,3 +71,5 @@ data/samples/*.zip
 !data/samples/.gitkeep
 !data/samples/*.md
 !data/samples/*.json
+!data/samples/btc_shield_synthetic_transactions.csv
+!data/samples/btc_shield_synthetic_transactions.xml

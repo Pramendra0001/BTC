@@ -449,9 +449,9 @@ The repository enforces end-to-end verification through automated tests covering
 ===================================================================================================
 Platform: Windows & Linux (Python 3.13, Node.js v24)
 Test Suites:
-  - Backend (pytest 9.1.1):           67 passed, 3 skipped, 0 failed in 22.88s (100% pass rate)
+  - Backend (pytest 9.1.1):           70 passed, 0 skipped, 0 failed in 35.43s (100% pass rate)
   - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 172ms  (100% pass rate)
-  - Combined Repository Tests:        75 passed, 3 skipped, 0 failed (100% pass rate)
+  - Combined Repository Tests:        78 passed, 0 skipped, 0 failed (100% pass rate)
   - Frontend Production Build:        tsc -b && vite build clean in 637ms (2,601 modules transformed)
 ===================================================================================================
 ```
@@ -460,6 +460,7 @@ Test Suites:
 
 #### Backend Test Suites (`pytest tests/ -v`)
 - `tests/test_platform_compliance.py`: Comprehensive validation across 10 platform domains (syntax validation, multi-format ingestion, 23-dim features, unsupervised ML, heuristics, graph centrality, compound alerts, case dossiers, offline GeoIP, and RBAC).
+- `tests/test_canonical_files.py`: Full ingestion and entity creation across canonical 1,000-record CSV, JSON, and XML datasets.
 - `tests/test_api.py`: Full API endpoint contracts, authentication flows, and privilege escalation prevention.
 - `tests/test_graph.py`: Directed graph construction, centrality scoring, and shortest path execution.
 - `tests/test_heuristics.py`: Recursive peeling cascade detection and CoinJoin Shannon entropy calculation.
@@ -470,8 +471,6 @@ Test Suites:
 - `tests/test_100k_dataset.py`: Large-dataset streaming ingestion and memory boundary verification.
 - `tests/test_feature_engineering.py`: 23-dimensional continuous feature calculation.
 - `tests/test_ingestion.py`: CSV/JSON/XML parsing and malformed record isolation.
-
-*(Note: The 3 skipped tests represent optional live PostgreSQL network integration tests that safely skip when operating against the local SQLite fallback).*
 
 #### Frontend Test Suites (`frontend/tests/`)
 - `frontend/tests/auth.test.ts`: Client authentication state, token persistence, duplicate registration handling, and 409 conflict notifications.
