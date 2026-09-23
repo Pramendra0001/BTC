@@ -404,7 +404,37 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
             elif curr_type == "TRANSACTION":
                 curr_node_key = f"TRANSACTION:{curr_id}"
 
-                # Direct GraphEdges
+                # A. Query relational Transaction table + TransactionInput & TransactionOutput
+                tx = db.query(Transaction).filter(
+                    or_(
+                        Transaction.txid == curr_id,
+                        Transaction.txid == f"TX:{curr_id}",
+                        Transaction.txid == f"TRANSACTION:{curr_id}"
+                    )
+                ).first()
+                if tx:
+                    inps = db.query(TransactionInput).filter(TransactionInput.transaction_id == tx.id).limit(20).all()
+                    outs = db.query(TransactionOutput).filter(TransactionOutput.transaction_id == tx.id).limit(20).all()
+                    for inp in inps:
+                        if inp.wallet_address:
+                            w_key = f"WALLET:{inp.wallet_address}"
+                            if w_key not in G:
+                                G.add_node(w_key, type="WALLET", label=inp.wallet_address[:12] + "...", full_id=inp.wallet_address)
+                            G.add_edge(w_key, curr_node_key, type="INPUT_OF", amount=inp.amount or 0, provenance=f"pos={inp.position}")
+                            if w_key not in visited_entities and len(G.nodes) < node_limit:
+                                visited_entities.add(w_key)
+                                next_frontier.add(("WALLET", inp.wallet_address))
+                    for out in outs:
+                        if out.wallet_address:
+                            w_key = f"WALLET:{out.wallet_address}"
+                            if w_key not in G:
+                                G.add_node(w_key, type="WALLET", label=out.wallet_address[:12] + "...", full_id=out.wallet_address)
+                            G.add_edge(curr_node_key, w_key, type="OUTPUT_OF", amount=out.amount or 0, provenance=f"pos={out.position}")
+                            if w_key not in visited_entities and len(G.nodes) < node_limit:
+                                visited_entities.add(w_key)
+                                next_frontier.add(("WALLET", out.wallet_address))
+
+                # B. Direct GraphEdges
                 edges = db.query(GraphEdge).filter(
                     or_(
                         GraphEdge.source_id == curr_id,
@@ -443,8 +473,13 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
                         visited_entities.add(t_key)
                         next_frontier.add((t_type, t_id))
 
-                # Network observations for this transaction
-                obs = db.query(NetworkObservation).filter(NetworkObservation.transaction_id == curr_id).limit(10).all()
+                # C. Network observations for this transaction
+                obs = db.query(NetworkObservation).filter(
+                    or_(
+                        NetworkObservation.transaction_id == curr_id,
+                        NetworkObservation.transaction_id == f"TX:{curr_id}"
+                    )
+                ).limit(10).all()
                 for o in obs:
                     if o.src_ip:
                         ip_key = f"IP:{o.src_ip}"
@@ -457,7 +492,7 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
                                 G.add_node(asn_key, type="ASN", label=o.asn, full_id=o.asn)
                             G.add_edge(ip_key, asn_key, type="BELONGS_TO_ASN", provenance="NetworkObservation")
 
-                # If no edges, fallback to RawRecord
+                # D. If no edges, fallback to RawRecord
                 if G.degree(curr_node_key) == 0:
                     raw = db.query(RawRecord).filter(
                         cast(RawRecord.raw_data, String).like(f'%{curr_id}%')
@@ -475,6 +510,20 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
                             if out_key not in G:
                                 G.add_node(out_key, type="WALLET", label=out[:12] + "...", full_id=out)
                             G.add_edge(curr_node_key, out_key, type="OUTPUT_OF", provenance="RawRecord")
+
+                        # Network metadata in raw record
+                        src_ip = raw.raw_data.get("src_ip")
+                        if src_ip:
+                            ip_key = f"IP:{src_ip}"
+                            if ip_key not in G:
+                                G.add_node(ip_key, type="IP", label=src_ip, full_id=src_ip)
+                            G.add_edge(ip_key, curr_node_key, type="OBSERVED_FROM", provenance="RawRecord")
+                            asn = raw.raw_data.get("asn")
+                            if asn:
+                                asn_key = f"ASN:{asn}"
+                                if asn_key not in G:
+                                    G.add_node(asn_key, type="ASN", label=asn, full_id=asn)
+                                G.add_edge(ip_key, asn_key, type="BELONGS_TO_ASN", provenance="RawRecord")
 
             # ---------------------------------------------------------
             # 3. IP EXPANSION
@@ -524,7 +573,23 @@ def get_subgraph(db: Session, entity_type: str, entity_id: str, hops: int = 1, m
         if e_type_clean == "WALLET":
             exists = db.query(Wallet.id).filter(Wallet.address == e_id_clean).first() is not None
         elif e_type_clean == "TRANSACTION":
-            exists = db.query(Transaction.id).filter(Transaction.txid == e_id_clean).first() is not None
+            exists = (
+                db.query(Transaction.id).filter(
+                    or_(
+                        Transaction.txid == e_id_clean,
+                        Transaction.txid == f"TX:{e_id_clean}",
+                        Transaction.txid == f"TRANSACTION:{e_id_clean}"
+                    )
+                ).first() is not None or
+                db.query(GraphEdge.id).filter(
+                    or_(
+                        GraphEdge.source_id == e_id_clean,
+                        GraphEdge.source_id == f"TX:{e_id_clean}",
+                        GraphEdge.target_id == e_id_clean,
+                        GraphEdge.target_id == f"TX:{e_id_clean}"
+                    )
+                ).first() is not None
+            )
         elif e_type_clean == "IP":
             exists = db.query(IPEntity.id).filter(IPEntity.ip_address == e_id_clean).first() is not None
         if not exists:

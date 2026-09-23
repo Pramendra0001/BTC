@@ -383,3 +383,72 @@ def test_data_quality_quarantine_alias(client):
     assert res.status_code == 200
     assert "rejected_records" in res.json()
 
+def test_transaction_detail_and_search_flow(client, db_session):
+    from app.models.models import Transaction, TransactionInput, TransactionOutput
+    from datetime import datetime
+
+    auth_res = client.post("/api/auth/login", json={
+        "username": "testadmin",
+        "password": "testadmin123"
+    })
+    token = auth_res.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a test transaction
+    tx = Transaction(
+        txid="tx_flow_test_001",
+        timestamp=datetime.utcnow(),
+        fee=250.0,
+        script_type="p2wpkh",
+        total_input=50000.0,
+        total_output=49750.0
+    )
+    db_session.add(tx)
+    db_session.commit()
+    db_session.refresh(tx)
+
+    inp = TransactionInput(
+        transaction_id=tx.id,
+        wallet_address="bc1q_flow_input",
+        amount=50000.0,
+        position=0
+    )
+    out = TransactionOutput(
+        transaction_id=tx.id,
+        wallet_address="bc1q_flow_output",
+        amount=49750.0,
+        position=0
+    )
+    db_session.add_all([inp, out])
+    db_session.commit()
+
+    # 1. Direct lookup by clean txid
+    res = client.get(f"/api/transactions/{tx.txid}", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["txid"] == "tx_flow_test_001"
+    assert len(data["inputs"]) == 1
+    assert data["inputs"][0]["wallet_address"] == "bc1q_flow_input"
+    assert len(data["outputs"]) == 1
+    assert data["outputs"][0]["wallet_address"] == "bc1q_flow_output"
+
+    # 2. Lookup with TX: prefix
+    res_prefix = client.get(f"/api/transactions/TX:{tx.txid}", headers=headers)
+    assert res_prefix.status_code == 200
+    assert res_prefix.json()["txid"] == "tx_flow_test_001"
+
+    # 3. Lookup nonexistent tx returns 404
+    res_404 = client.get("/api/transactions/nonexistent_hash_999", headers=headers)
+    assert res_404.status_code == 404
+
+    # 4. Search endpoint finds transaction and returns TRANSACTION type
+    search_res = client.get(f"/api/search/?query={tx.txid[:10]}", headers=headers)
+    assert search_res.status_code == 200
+    search_data = search_res.json()
+    assert any(r["type"] == "TRANSACTION" and r["id"] == tx.txid for r in search_data["results"])
+
+    # 5. Search endpoint with TX: prefix
+    search_prefix = client.get(f"/api/search/?query=TX:{tx.txid[:8]}", headers=headers)
+    assert search_prefix.status_code == 200
+    assert any(r["type"] == "TRANSACTION" and r["id"] == tx.txid for r in search_prefix.json()["results"])
+

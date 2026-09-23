@@ -11,8 +11,9 @@ import { Link } from 'react-router-dom';
 
 export default function GraphPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const urlEntityType = searchParams.get('entityType') || 'WALLET';
-  const urlEntityId = searchParams.get('entityId') || '';
+  const rawType = (searchParams.get('entityType') || 'WALLET').trim().toUpperCase();
+  const urlEntityType = (rawType === 'TX' || rawType === 'TRANSACTIONS') ? 'TRANSACTION' : rawType;
+  const urlEntityId = (searchParams.get('entityId') || '').replace(/^(TX|TRANSACTION|WALLET|IP|ASN):/i, '').trim();
 
   const [entityType, setEntityType] = useState<string>(urlEntityType);
   const [entityId, setEntityId] = useState<string>(urlEntityId);
@@ -37,19 +38,103 @@ export default function GraphPage() {
   // If no entity is specified in URL, pick the curated default entity
   useEffect(() => {
     if (!urlEntityId && !entityId && defaultEntityData?.entity_id) {
-      setEntityType(defaultEntityData.entity_type);
+      const canonicalType = (defaultEntityData.entity_type === 'TX') ? 'TRANSACTION' : defaultEntityData.entity_type;
+      setEntityType(canonicalType);
       setEntityId(defaultEntityData.entity_id);
-      setSearchParams({ entityType: defaultEntityData.entity_type, entityId: defaultEntityData.entity_id });
+      setSearchParams({ entityType: canonicalType, entityId: defaultEntityData.entity_id });
     }
   }, [defaultEntityData, entityId, urlEntityId, setSearchParams]);
 
   const { data: graphData, isLoading, error, refetch } = useGraph(entityType, entityId, hops);
 
+  // Canonical entity detection helper for typed search queries
+  const detectEntityType = (query: string): { type: string; id: string } => {
+    const clean = query.trim();
+    if (!clean) return { type: 'WALLET', id: '' };
+
+    // Explicit prefix matches (e.g. "TX:...", "transaction:...", "wallet:...", "ip:...", "asn:...")
+    if (/^tx:/i.test(clean) || /^transaction:/i.test(clean)) {
+      return { type: 'TRANSACTION', id: clean.replace(/^(tx|transaction):/i, '').trim() };
+    }
+    if (/^wallet:/i.test(clean)) {
+      return { type: 'WALLET', id: clean.replace(/^wallet:/i, '').trim() };
+    }
+    if (/^ip:/i.test(clean)) {
+      return { type: 'IP', id: clean.replace(/^ip:/i, '').trim() };
+    }
+    if (/^asn:/i.test(clean)) {
+      return { type: 'ASN', id: clean.replace(/^asn:/i, '').trim() };
+    }
+
+    // Hex hash 64 chars (standard bitcoin txid) or starts with tx_
+    if (/^[a-fA-F0-9]{64}$/.test(clean) || /^tx_[a-zA-Z0-9_-]+$/i.test(clean)) {
+      return { type: 'TRANSACTION', id: clean };
+    }
+
+    // IP address format (e.g. 192.168.1.1)
+    if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(clean)) {
+      return { type: 'IP', id: clean };
+    }
+
+    // ASN format (e.g. AS15169 or AS1234)
+    if (/^AS\d+$/i.test(clean)) {
+      return { type: 'ASN', id: clean.toUpperCase() };
+    }
+
+    // Bitcoin address formats: 1..., 3..., bc1..., tb1...
+    if (/^(1|3|bc1|tb1)[a-zA-HJ-NP-Z0-9]{25,62}$/.test(clean)) {
+      return { type: 'WALLET', id: clean };
+    }
+
+    // Fallback: check if searchResults has an exact or prefix match
+    if (searchResults?.results && searchResults.results.length > 0) {
+      const topMatch = searchResults.results[0];
+      const topType = (topMatch.type === 'TX' || topMatch.type === 'TRANSACTIONS') ? 'TRANSACTION' : topMatch.type;
+      return { type: topType, id: topMatch.id };
+    }
+
+    // Default heuristic: if 64 chars or contains hex -> TRANSACTION, else WALLET
+    if (clean.length === 64 || /^[a-fA-F0-9]{32,}$/.test(clean)) {
+      return { type: 'TRANSACTION', id: clean };
+    }
+
+    return { type: 'WALLET', id: clean };
+  };
+
   const handleSelectSearchResult = (type: string, id: string) => {
-    setEntityType(type);
-    setEntityId(id);
+    const canonicalType = (type.toUpperCase() === 'TX' || type.toUpperCase() === 'TRANSACTIONS') ? 'TRANSACTION' : type.toUpperCase();
+    const cleanId = id.replace(/^(TX|TRANSACTION|WALLET|IP|ASN):/i, '').trim();
+    setEntityType(canonicalType);
+    setEntityId(cleanId);
     setSearchQuery('');
-    setSearchParams({ entityType: type, entityId: id });
+    setSearchParams({ entityType: canonicalType, entityId: cleanId });
+  };
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
+
+    // Check if dropdown results contain an exact or strong match
+    if (searchResults?.results && searchResults.results.length > 0) {
+      const exactMatch = searchResults.results.find(
+        (r: any) => r.id.toLowerCase() === query.toLowerCase() ||
+                    r.label.toLowerCase() === query.toLowerCase()
+      );
+      if (exactMatch) {
+        handleSelectSearchResult(exactMatch.type, exactMatch.id);
+        return;
+      }
+      const firstResult = searchResults.results[0];
+      if (firstResult.id.toLowerCase().startsWith(query.toLowerCase()) || query.length >= 4) {
+        handleSelectSearchResult(firstResult.type, firstResult.id);
+        return;
+      }
+    }
+
+    // Auto-detect entity type
+    const detected = detectEntityType(query);
+    handleSelectSearchResult(detected.type, detected.id);
   };
 
   return (
@@ -68,13 +153,19 @@ export default function GraphPage() {
 
         {/* Entity Selector & Hop Controls */}
         <div className="flex items-center gap-2">
-          {/* Quick Entity Search */}
-          <div className="relative">
+          {/* Quick Entity Search Form */}
+          <form onSubmit={handleSearchSubmit} className="relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearchSubmit();
+                }
+              }}
               placeholder="Center on wallet / IP / TX..."
               className="w-56 pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-blue-500"
             />
@@ -85,6 +176,7 @@ export default function GraphPage() {
                 {searchResults.results.map((r: any, idx: number) => (
                   <button
                     key={idx}
+                    type="button"
                     onClick={() => handleSelectSearchResult(r.type, r.id)}
                     className="w-full px-3 py-2 text-left hover:bg-slate-800 text-xs flex items-center justify-between"
                   >
@@ -96,7 +188,7 @@ export default function GraphPage() {
                 ))}
               </div>
             )}
-          </div>
+          </form>
 
           {/* Hop Selector */}
           <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs">

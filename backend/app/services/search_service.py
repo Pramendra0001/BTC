@@ -3,7 +3,8 @@ BTC-SHIELD Search Service
 Global search across wallets, transactions, IPs, ASNs, alerts, and cases.
 """
 from sqlalchemy.orm import Session
-from app.models.models import Wallet, Transaction, IPEntity, ASNEntity, Alert, Case
+from sqlalchemy import or_, cast, String
+from app.models.models import Wallet, Transaction, IPEntity, ASNEntity, Alert, Case, RawRecord, GraphEdge
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,25 +41,55 @@ def search(db: Session, query: str, limit: int = 5) -> dict:
             "url": f"/wallets/{w.address}",
         })
 
-    # 2. Search transactions using indexed prefix first
+    # 2. Search transactions using normalized prefix and substring
+    q_tx = q
+    for p in ["TX:", "tx:", "TRANSACTION:", "transaction:"]:
+        if q_tx.startswith(p):
+            q_tx = q_tx[len(p):].strip()
+
     txs = db.query(Transaction).filter(
-        Transaction.txid.ilike(f"{q}%")
+        or_(
+            Transaction.txid.ilike(f"{q_tx}%"),
+            Transaction.txid.ilike(f"TX:{q_tx}%")
+        )
     ).limit(cat_limit).all()
 
-    if len(txs) < cat_limit and len(q) >= 6:
+    if len(txs) < cat_limit and len(q_tx) >= 6:
         sub_txs = db.query(Transaction).filter(
-            Transaction.txid.ilike(f"%{q}%")
+            Transaction.txid.ilike(f"%{q_tx}%")
         ).limit(cat_limit - len(txs)).all()
         txs = list({t.txid: t for t in (txs + sub_txs)}.values())
 
+    seen_txids = set()
     for tx in txs:
-        results.append({
-            "type": "TRANSACTION",
-            "id": tx.txid,
-            "label": tx.txid,
-            "subtitle": f"Amount: {tx.total_input or 0:.0f} sat | Fee: {tx.fee or 0:.0f} sat",
-            "url": f"/transactions/{tx.txid}",
-        })
+        clean_id = tx.txid.replace("TX:", "").replace("TRANSACTION:", "")
+        if clean_id not in seen_txids:
+            seen_txids.add(clean_id)
+            results.append({
+                "type": "TRANSACTION",
+                "id": clean_id,
+                "label": clean_id,
+                "subtitle": f"Amount: {tx.total_input or 0:.0f} sat | Fee: {tx.fee or 0:.0f} sat",
+                "url": f"/transactions/{clean_id}",
+            })
+
+    # If no transactions found yet, check RawRecord (audit logs)
+    if len(seen_txids) < cat_limit and len(q_tx) >= 4:
+        raw_txs = db.query(RawRecord).filter(
+            cast(RawRecord.raw_data, String).like(f'%{q_tx}%')
+        ).limit(cat_limit - len(seen_txids)).all()
+        for r in raw_txs:
+            if isinstance(r.raw_data, dict) and r.raw_data.get("txid"):
+                raw_txid = str(r.raw_data["txid"]).replace("TX:", "").replace("TRANSACTION:", "")
+                if raw_txid not in seen_txids:
+                    seen_txids.add(raw_txid)
+                    results.append({
+                        "type": "TRANSACTION",
+                        "id": raw_txid,
+                        "label": raw_txid,
+                        "subtitle": f"Fee: {r.raw_data.get('fee', 0)} | Script: {r.raw_data.get('script_type', 'p2pkh')}",
+                        "url": f"/transactions/{raw_txid}",
+                    })
 
     # Search IPs
     ips = db.query(IPEntity).filter(

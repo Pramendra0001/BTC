@@ -13,7 +13,9 @@ export default function TransactionDetailPage() {
   const { txid } = useParams<{ txid: string }>();
   const [copied, setCopied] = useState(false);
 
-  const { data: tx, isLoading, error, refetch } = useTransaction(txid || '');
+  // Normalize txid to strip accidental prefixes like TX: or whitespace
+  const cleanTxid = (txid || '').replace(/^(TX|TRANSACTION):/i, '').trim();
+  const { data: tx, isLoading, error, refetch } = useTransaction(cleanTxid);
 
   if (isLoading) {
     return (
@@ -31,17 +33,38 @@ export default function TransactionDetailPage() {
   }
 
   if (error || !tx) {
-    return <ErrorState message="Failed to load transaction details." onRetry={() => refetch()} />;
+    const isNotFound = (error as any)?.response?.status === 404;
+    const errorMessage = isNotFound
+      ? `Transaction "${cleanTxid}" was not found in the transaction registry, relational graph, or audit records.`
+      : ((error as any)?.message || 'Failed to load transaction detail.');
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+          <Link to="/transactions" className="hover:text-slate-300">TRANSACTIONS</Link>
+          <span>/</span>
+          <span className="text-slate-200 truncate max-w-sm">{cleanTxid || 'UNKNOWN'}</span>
+        </div>
+        <ErrorState
+          message={errorMessage}
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
   }
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(tx.txid);
+    navigator.clipboard.writeText(tx.txid || cleanTxid);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const inputs = tx.inputs || [];
   const outputs = tx.outputs || [];
+  const totalInput = Number(tx.total_input) || 0;
+  const totalOutput = Number(tx.total_output) || 0;
+  const fee = Number(tx.fee) || 0;
+  const feeRate = totalInput > 0 ? ((fee / totalInput) * 100).toFixed(4) : '0.0000';
 
   return (
     <div className="space-y-6">
@@ -101,24 +124,24 @@ export default function TransactionDetailPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="text-xs text-slate-400">Total Input Amount</div>
           <div className="text-lg font-bold font-mono text-white mt-1">
-            {formatSatoshis(tx.total_input)}
+            {formatSatoshis(totalInput)}
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">{inputs.length} input addresses</div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="text-xs text-slate-400">Total Output Amount</div>
           <div className="text-lg font-bold font-mono text-white mt-1">
-            {formatSatoshis(tx.total_output)}
+            {formatSatoshis(totalOutput)}
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">{outputs.length} output addresses</div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="text-xs text-slate-400">Miner Transaction Fee</div>
           <div className="text-lg font-bold font-mono text-amber-400 mt-1">
-            {formatSatoshis(tx.fee)}
+            {formatSatoshis(fee)}
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">
-            Fee Rate: {tx.total_input > 0 ? ((tx.fee / tx.total_input) * 100).toFixed(4) : 0}%
+            Fee Rate: {feeRate}%
           </div>
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">

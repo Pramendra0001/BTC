@@ -32,11 +32,25 @@ def test_graph_construction_and_centrality(db_session):
     assert "WALLET:node_wallet_2" in centrality
     assert centrality["WALLET:node_wallet_2"]["degree"] > 0
 
-    # Subgraph extraction
+    # Subgraph extraction - WALLET
     sub = get_subgraph(db_session, "WALLET", "node_wallet_1", hops=1)
     assert len(sub["nodes"]) > 0
     assert len(sub["edges"]) > 0
     assert sub["stats"]["center_node"] == "WALLET:node_wallet_1"
+
+    # Subgraph extraction - TRANSACTION
+    sub_tx = get_subgraph(db_session, "TRANSACTION", "tx_g1", hops=1)
+    assert len(sub_tx["nodes"]) >= 3
+    assert len(sub_tx["edges"]) >= 2
+    assert sub_tx["stats"]["center_node"] == "TRANSACTION:tx_g1"
+    node_ids = {n["data"]["id"] for n in sub_tx["nodes"]}
+    assert "TRANSACTION:tx_g1" in node_ids
+    assert "WALLET:node_wallet_1" in node_ids
+    assert "WALLET:node_wallet_2" in node_ids
+
+    # Subgraph extraction - with 'TX' type and 'TX:' prefix
+    sub_tx_prefix = get_subgraph(db_session, "TX", "TX:tx_g1", hops=1)
+    assert sub_tx_prefix["stats"]["center_node"] == "TRANSACTION:tx_g1"
 
     # Persistence
     persist_graph(db_session)

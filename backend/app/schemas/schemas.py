@@ -65,33 +65,33 @@ class DatasetListResponse(BaseModel):
     datasets: List[DatasetResponse]
 
 class TransactionResponse(BaseModel):
-    id: int
+    id: Optional[int] = 0
     txid: str
-    timestamp: datetime
-    fee: float
-    script_type: str
-    total_input: float
-    total_output: float
+    timestamp: Optional[datetime] = None
+    fee: Optional[float] = 0.0
+    script_type: Optional[str] = "p2pkh"
+    total_input: Optional[float] = 0.0
+    total_output: Optional[float] = 0.0
     class Config:
         from_attributes = True
 
 class TransactionInputResponse(BaseModel):
     wallet_address: str
-    amount: float
-    position: int
+    amount: Optional[float] = 0.0
+    position: Optional[int] = 0
     class Config:
         from_attributes = True
 
 class TransactionOutputResponse(BaseModel):
     wallet_address: str
-    amount: float
-    position: int
+    amount: Optional[float] = 0.0
+    position: Optional[int] = 0
     class Config:
         from_attributes = True
 
 class TransactionDetailResponse(TransactionResponse):
-    inputs: List[TransactionInputResponse]
-    outputs: List[TransactionOutputResponse]
+    inputs: List[TransactionInputResponse] = []
+    outputs: List[TransactionOutputResponse] = []
 
 class WalletResponse(BaseModel):
     address: str
@@ -232,15 +232,22 @@ class TimelineResponse(BaseModel):
     events: List[TimelineEventResponse]
 
 class SearchResultResponse(BaseModel):
-    entity_type: str
-    entity_id: str
-    label: str
-    match_score: float
-    details: Dict[str, Any]
+    type: Optional[str] = "WALLET"
+    id: Optional[str] = ""
+    label: Optional[str] = ""
+    subtitle: Optional[str] = ""
+    url: Optional[str] = ""
+    entity_type: Optional[str] = None
+    entity_id: Optional[str] = None
+    match_score: Optional[float] = 1.0
+    details: Optional[Dict[str, Any]] = None
+    class Config:
+        from_attributes = True
 
 class SearchResponse(BaseModel):
     query: str
-    results: List[SearchResultResponse]
+    total: Optional[int] = 0
+    results: List[SearchResultResponse] = []
 
 class DashboardStats(BaseModel):
     totalTx: int = 0
