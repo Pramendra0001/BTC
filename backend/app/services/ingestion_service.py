@@ -23,17 +23,15 @@ import hashlib
 
 logger = logging.getLogger(__name__)
 
-# --- Validation Helpers ---
+import ipaddress
 
 def validate_ip(ip: str) -> bool:
-    """Validate IPv4 address format."""
-    if not ip:
-        return False
-    parts = ip.split(".")
-    if len(parts) != 4:
+    """Validate IPv4 or IPv6 address format."""
+    if not ip or not isinstance(ip, str):
         return False
     try:
-        return all(0 <= int(p) <= 255 for p in parts)
+        ipaddress.ip_address(ip.strip())
+        return True
     except ValueError:
         return False
 
@@ -47,6 +45,15 @@ def validate_bitcoin_address(addr: str) -> bool:
     if addr.startswith("bc1"):
         return len(addr) >= 14 and len(addr) <= 74
     return True  # Allow other formats for flexibility
+
+def validate_txid(txid: str) -> bool:
+    """Validate 64-character hexadecimal Bitcoin transaction ID."""
+    if not txid or not isinstance(txid, str):
+        return False
+    clean = txid.strip()
+    if len(clean) != 64:
+        return False
+    return bool(re.fullmatch(r"^[0-9a-fA-F]{64}$", clean))
 
 def normalize_timestamp(ts) -> Optional[datetime]:
     """Normalize various timestamp formats to datetime."""

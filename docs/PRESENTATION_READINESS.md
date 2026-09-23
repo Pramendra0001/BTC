@@ -1,7 +1,5 @@
-# BTC-SHIELD — Presentation Readiness & Pre-SIH Final Verification Dossier
+# BTC-SHIELD — Platform Verification & Operational Readiness Dossier
 
-**Smart India Hackathon 2026 — Problem Statement ID: 26146**  
-**Track:** National Technical Research Organisation (NTRO)  
 **System Version:** Release Candidate v1.0.0 (Production Hardened)  
 **Target Environment:** Air-gapped forensic deployment ready • Cloud validated  
 **Production URLs:**
@@ -13,10 +11,10 @@
 
 ## 1. Executive Summary & Forensic Alignment
 
-BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link analysis platform engineered specifically for law enforcement, intelligence analysts (NTRO), and AML investigators.
+BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link analysis platform engineered specifically for law enforcement, cryptographic intelligence analysts, and AML investigators.
 
-### Key Capabilities Aligned with SIH 26146:
-1. **Multi-Signal Anomaly Detection:** Ensemble unsupervised ML engine combining Isolation Forest, Local Outlier Factor (LOF), and DBSCAN with heuristic rules (velocity bursts, structural fan-in/fan-out, geo-hopping, fee anomalies).
+### Key Capabilities:
+1. **Multi-Signal Anomaly Detection:** Ensemble unsupervised ML engine combining Isolation Forest, Local Outlier Factor (LOF), and clustering with heuristic rules (velocity bursts, structural fan-in/fan-out, geo-hopping, fee anomalies).
 2. **Prioritized Leads Queue:** Automatic triaging and risk-scoring of on-chain anomalies, routing critical alerts (scores $\ge 80$) to senior investigators with full explainability.
 3. **Investigation Link Analysis Graph:** Multi-hop relational graph engine linking Bitcoin wallets, transactions, counterparties, network IP addresses, autonomous systems (ASNs), and sovereign countries.
 4. **Structural Heuristics Engine:** Algorithmic identification of peeling chains, CoinJoin equal-denomination rounds, and tumbler topologies across arbitrary dataset formats.
@@ -25,16 +23,16 @@ BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link a
 
 ---
 
-## 2. Proven Production Bug Fixes & Root Cause Audits
+## 2. Proven Production Hardening & Root Cause Audits
 
-| Module | Observed Bug | Proven Root Cause | Implemented Resolution | Verification Status |
+| Module | Observed Issue | Proven Root Cause | Implemented Resolution | Verification Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **Investigation Graph** | `Nodes: 1, Edges: 0` (1-dot bug) | 1. Double prefixing (`WALLET:WALLET:addr`).<br>2. Dataset 6 stored wallets in `GraphEdge.properties` rather than `source_id`.<br>3. Relational transactions were not connected to wallet nodes. | Added `normalize_entity_key` to strip redundant prefixes. Implemented dual-schema resolution querying direct edges, relational `properties`, and raw audit logs. Default entity query selects top-degree wallet. | **VERIFIED** (7 nodes, 6 edges on default entity, multi-hop cascades active) |
+| **Investigation Graph** | `Nodes: 1, Edges: 0` (1-dot display) | 1. Double prefixing (`WALLET:WALLET:addr`).<br>2. Dataset stored wallets in `GraphEdge.properties` rather than `source_id`.<br>3. Relational transactions were not connected to wallet nodes. | Added `normalize_entity_key` to strip redundant prefixes. Implemented dual-schema resolution querying direct edges, relational `properties`, and raw audit logs. Default entity query selects top-degree wallet. | **VERIFIED** (7 nodes, 6 edges on default entity, multi-hop cascades active) |
 | **Structural Heuristics** | All metric cards displayed `0` | `detect_peeling_chains` and `detect_mixing_patterns` queried `TransactionInput`/`Output` tables, which are empty in relational 100k mode. | Implemented `get_tx_io_map` abstraction that seamlessly parses `RawRecord.raw_data` inputs/outputs when dedicated tables are unpopulated. | **VERIFIED** (100 peeling chains, 75 mixing transactions detected in <50ms) |
 | **Alert Detail View** | `500 Internal Server Error` on click | `contributing_signals` was stored as `list[dict]`, but Pydantic `AlertDetailResponse` declared `Dict[str, Any]` (type mismatch). | Updated schema to `Optional[Union[Dict[str, Any], List[Any]]] = None` with default fallbacks for optional timestamps. | **VERIFIED** (200 OK, full alert detail and evidence cards render) |
 | **Cases & Dossiers** | Empty state / 0 cases | Case service existed but had no presentation seeding routine. | Added idempotent `seed_presentation_cases()` generating 3 evidence-backed cases linked to top database alerts and wallets. | **VERIFIED** (3 cases seeded: Behavioral Anomaly, Peeling Chain, Geo-Hopping) |
 | **Settings & RBAC** | Only 1 user account visible | Only admin user was bootstrapped on startup. | Added `bootstrap_system_users()` to seed all 4 roles (`admin`, `lead_investigator`, `aml_analyst`, `compliance_viewer`). | **VERIFIED** (All 4 roles active and visible in Settings table) |
-| **Frontend Speed** | Sluggish initial page load (multiple seconds) | Monolithic synchronous bundling of all 25 page components and heavy libraries (Recharts, Cytoscape) into a single 1.5MB JS bundle. | Configured `React.lazy()` dynamic imports with `<Suspense>` skeletons and Vite Rollup `manualChunks` code splitting. | **VERIFIED** (Entry bundle reduced to 24 kB; built in 799ms) |
+| **Frontend Speed** | Sluggish initial page load (multiple seconds) | Monolithic synchronous bundling of all 25 page components and heavy libraries (Recharts, Cytoscape) into a single 1.5MB JS bundle. | Configured `React.lazy()` dynamic imports with `<Suspense>` skeletons and Vite Rollup `manualChunks` code splitting. | **VERIFIED** (Entry bundle reduced to 24 kB; built in <800ms) |
 
 ---
 
@@ -55,7 +53,7 @@ BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link a
 
 ---
 
-## 4. Live Demonstration Script for Judges & Evaluators
+## 4. Operational Demonstration Walkthrough
 
 ### Flow 1: Command Center & Prioritized Leads (2 minutes)
 1. Open [https://pramendra0001.github.io/BTC/](https://pramendra0001.github.io/BTC/).
@@ -103,15 +101,17 @@ BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link a
 
 ```text
 ============================== Test Execution Summary ==============================
-Platform: Windows (Python 3.13.14, Node.js v24.13.3)
+Platform: Windows & Linux (Python 3.13.14, Node.js v24.13.3)
 Test Suites:
-  - Backend (pytest): 57 passed, 3 skipped, 0 failed (100% pass rate)
+  - Backend (pytest): 67 passed, 3 skipped, 0 failed (100% pass rate)
   - Frontend (node test): 8 passed, 0 failed (100% pass rate)
-  - Build Validation: npm run build completed cleanly in 799ms
+  - Total Platform Tests: 75 passing tests (100% pass rate)
+  - Build Validation: npm run build completed cleanly in <800ms
 ====================================================================================
 ```
 
 ### Verified Passing Suites:
+- `tests/test_platform_compliance.py` (10 core enterprise compliance requirements)
 - `tests/test_api.py` (Full API endpoint and auth contracts)
 - `tests/test_graph.py` (Graph construction, centrality, and persistence)
 - `tests/test_heuristics.py` (Peeling and mixing detection)

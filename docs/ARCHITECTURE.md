@@ -1,8 +1,8 @@
 # BTC-SHIELD System Architecture
 
 **Platform:** Bitcoin Transaction & Network Intelligence Platform  
-**Target Competition:** Smart India Hackathon 2026 (Problem Statement 26146)  
-**Organization:** National Technical Research Organisation (NTRO)  
+**System Specification:** Enterprise Forensic Architecture  
+**Domain:** Blockchain Forensics & Network Telemetry Correlation  
 **Category:** Software | Blockchain & Cybersecurity  
 
 ---
@@ -132,7 +132,7 @@ Every output displayed to an investigator—from anomaly scores and cluster labe
 
 BTC-SHIELD is architecturally designed to support two distinct operating environments without requiring code modifications:
 
-### Mode A: Smart India Hackathon (SIH) Offline Linux Mode
+### Mode A: Air-Gapped Offline Linux Mode
 - Deployed on a single air-gapped Linux machine (Ubuntu 22.04 / 24.04 LTS or Debian 12).
 - Zero external internet connectivity required.
 - SQLite or local Docker PostgreSQL instance.

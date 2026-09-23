@@ -1,14 +1,14 @@
-# BTC-SHIELD Air-Gapped Offline Linux Demonstration Guide
+# BTC-SHIELD Air-Gapped Offline Linux Deployment Guide
 
-**Target Environment:** Smart India Hackathon 2026 Grand Finale (Offline Evaluation)  
+**Target Environment:** Air-Gapped Linux Host / Offline Forensic Workstation  
 **Host Operating System:** Ubuntu 22.04 / 24.04 LTS, Debian 12, or RHEL 9  
 **Air-Gap Guarantee:** Zero internet connectivity required. No external DNS, CDN, or cloud AI API dependencies.  
 
 ---
 
-## 1. Pre-Competition Preparation (Before Arriving at Finale Venue)
+## 1. Pre-Deployment Preparation (Offline Staging)
 
-To guarantee flawless offline execution without internet access at the competition venue, prepare a USB flash drive or offline directory:
+To guarantee flawless offline execution without internet access, prepare a USB flash drive or offline staging directory:
 
 ### Step 1.1: Cache Python Wheels
 Run on an internet-connected build machine:
@@ -37,12 +37,12 @@ docker save btc-backend btc-frontend postgres:16-alpine -o offline_assets/btc_sh
 
 ---
 
-## 2. On-Site Offline Setup (On Air-Gapped Evaluator Laptop)
+## 2. Air-Gapped Offline Setup
 
 ### Step 2.1: Clone/Copy Repository
 ```bash
-cp -r /media/usb/BTC /home/evaluator/BTC
-cd /home/evaluator/BTC
+cp -r /media/usb/BTC /opt/btc-shield
+cd /opt/btc-shield
 ```
 
 ### Step 2.2: Disable External Network Connections (Proof of Air-Gap)
@@ -100,7 +100,7 @@ docker compose up -d
 
 ---
 
-## 4. Verification & Defense Checklist for Evaluators
+## 4. Air-Gapped Verification & Audit Checklist
 
 1. **Verify No Internet Egress:**
    ```bash
@@ -110,16 +110,21 @@ docker compose up -d
 2. **Access the Web Interface:**
    Open browser to: `http://localhost:5173`
 3. **Investigator Authentication & Self-Registration:**
-   - Evaluators may register a new investigator account directly via the UI registration tab (`/login` -> Register).
+   - Investigators may register a new account directly via the UI registration tab (`/login` -> Register).
    - Alternatively, configure `ADMIN_PASSWORD` in the local environment to seed an initial administrator account.
 4. **Execute Automated Verification Suite:**
    ```bash
-   cd /home/evaluator/BTC
+   cd /opt/btc-shield
    source backend/.venv/bin/activate
-   python -m pytest tests -v
-   # All 39 backend tests pass in < 15 seconds!
+   python -m pytest tests -v -W ignore
+   # All 67 backend tests pass in < 25 seconds!
    ```
-5. **Ingest Pre-Generated Sample Scenarios:**
+5. **Run Standalone Offline Validation Script:**
+   ```bash
+   bash scripts/offline-validation.sh
+   # 6/6 checks verified: STATUS: AIR-GAPPED & OFFLINE READY
+   ```
+6. **Ingest Pre-Generated Sample Scenarios:**
    Go to `/datasets` -> Select `data/samples/btc_shield_synthetic_transactions.csv` -> Click **Upload** -> Click **Run ML Pipeline**.
 
 ---

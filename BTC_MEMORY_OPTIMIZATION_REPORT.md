@@ -12,7 +12,7 @@
 
 During the initial deployment of the 100,000-record canonical dataset to Render, the backend service experienced immediate process termination:
 * `Web Service BTC exceeded its memory limit` (Instance automatically restarted by cgroup OOM killer)
-* `Nigrani-AI: Server failure detected / Exited with status 3`
+* `BTC-SHIELD: Server failure detected / Exited with status 3`
 
 This investigation comprehensively diagnosed, modeled, and eliminated the memory vulnerabilities across the entire stack. Through exact mathematical memory budgeting, database-centric offloading, vectorized NumPy/Polars feature calculation, streamed disk-based archive ingestion, and bounded ego-subgraphs, the platform's resident memory footprint has been reduced from **789.68 MB (guaranteed crash)** to **422.05 MB peak (100% stable with ~90 MB headroom)** while processing the complete 100,000-record dataset.
 
@@ -107,8 +107,8 @@ Empirical profiling utilizing the Windows 64-bit Kernel API (`K32GetProcessMemor
 ## 7. Deliverables Index
 
 The following five comprehensive engineering documents provide the complete record of this stabilization:
-1. [`MEMORY_AUDIT.md`](file:///c:/Users/PRAMENDRA%20KUSHWAHA/Desktop/CODING/SIH%202026/BTC/MEMORY_AUDIT.md): Complete byte-level measurement of runtime, libraries, models, and failure points.
-2. [`DATASET_MEMORY_BUDGET.md`](file:///c:/Users/PRAMENDRA%20KUSHWAHA/Desktop/CODING/SIH%202026/BTC/DATASET_MEMORY_BUDGET.md): Mathematical proof of the 512 MB memory boundary and dynamic headroom budgets.
-3. [`RENDER_MEMORY_GUIDE.md`](file:///c:/Users/PRAMENDRA%20KUSHWAHA/Desktop/CODING/SIH%202026/BTC/RENDER_MEMORY_GUIDE.md): Operational deployment runbook, worker sizing, and OOM diagnostics.
-4. [`DATASET_SCALING_REPORT.md`](file:///c:/Users/PRAMENDRA%20KUSHWAHA/Desktop/CODING/SIH%202026/BTC/DATASET_SCALING_REPORT.md): Empirical 6-tier scaling benchmarks (1k to 100k) with execution latencies and peak RAM.
-5. [`BTC_MEMORY_OPTIMIZATION_REPORT.md`](file:///c:/Users/PRAMENDRA%20KUSHWAHA/Desktop/CODING/SIH%202026/BTC/BTC_MEMORY_OPTIMIZATION_REPORT.md): This master engineering synthesis.
+1. [`MEMORY_AUDIT.md`](MEMORY_AUDIT.md): Complete byte-level measurement of runtime, libraries, models, and failure points.
+2. [`DATASET_MEMORY_BUDGET.md`](DATASET_MEMORY_BUDGET.md): Mathematical proof of the 512 MB memory boundary and dynamic headroom budgets.
+3. [`RENDER_MEMORY_GUIDE.md`](RENDER_MEMORY_GUIDE.md): Operational deployment runbook, worker sizing, and OOM diagnostics.
+4. [`DATASET_SCALING_REPORT.md`](DATASET_SCALING_REPORT.md): Empirical 6-tier scaling benchmarks (1k to 100k) with execution latencies and peak RAM.
+5. [`BTC_MEMORY_OPTIMIZATION_REPORT.md`](BTC_MEMORY_OPTIMIZATION_REPORT.md): This master engineering synthesis.

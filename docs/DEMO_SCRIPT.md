@@ -1,8 +1,8 @@
-# BTC-SHIELD 10-Minute Jury Demonstration Script
+# BTC-SHIELD 10-Minute Technical Demonstration Script
 
-**Competition:** Smart India Hackathon 2026  
-**Problem Statement:** 26146 — AI-Powered Monitoring & Analysis of Bitcoin Transaction Traffic  
-**Target Organization:** National Technical Research Organisation (NTRO)  
+**Platform:** BTC-SHIELD (Bitcoin Transaction & Network Intelligence Platform)  
+**Domain:** AI-Powered Monitoring & Analysis of Bitcoin Transaction Traffic  
+**Audience:** Security Architects, Forensic Investigators, and Intelligence Analysts  
 **Demonstration Mode:** Air-Gapped Offline Linux Demonstration / Live Cloud Dual-Stack  
 
 ---
@@ -16,13 +16,12 @@
 
 ---
 
-## Minute 0:00 - 1:00 | Problem Framing & Technical Mandate
+## Minute 0:00 - 1:00 | Architecture & Technical Mandate
 **Screen:** Command Center Dashboard (`http://localhost:5173/`)  
 **Talking Points:**
-> "Respected Evaluators and Technical Experts from NTRO:  
-> Problem Statement 26146 challenges us to monitor and analyze Bitcoin transaction traffic by synthesizing two traditionally siloed domains: on-chain ledger transfers and off-chain peer-to-peer network telemetry.
+> "BTC-SHIELD monitors and analyzes Bitcoin transaction traffic by synthesizing two traditionally siloed domains: on-chain ledger transfers and off-chain peer-to-peer network telemetry.
 >
-> Many hackathon projects rely on fake synthetic labels, rule-based if-else scripts pretending to be AI, or random node graphs.  
+> Many analytics tools rely on unverified heuristic rules or arbitrary graph drawings without evidentiary backing.  
 > **BTC-SHIELD is fundamentally different.** It is built on strict evidentiary provenance:  
 > `RAW TELEMETRY -> NORMALIZED ENTITIES -> 23 BEHAVIORAL FEATURES -> UNSUPERVISED ML -> VERIFIED EVIDENCE -> FORENSIC CASE DOSSIER`.  
 > Every anomaly score, graph edge, and AI explanation displayed today is mathematically derived and traceable back to verified transactions."
@@ -51,7 +50,7 @@
 > "With a single click, our backend executes the complete six-stage intelligence pipeline:  
 > 1. **Entity Resolution:** Maps inputs and outputs across all transactions into unified wallet actors and monitored IP entities.  
 > 2. **Feature Extraction:** Computes 23 multi-dimensional behavioral features per entity in under 1 second using bulk in-memory hash indexing.  
-> 3. **Unsupervised ML:** Trains Isolation Forest and DBSCAN clustering models.  
+> 3. **Unsupervised ML:** Trains Isolation Forest and clustering models.  
 > 4. **Graph Persistence:** Constructs the NetworkX directed multigraph and computes PageRank centrality.  
 > 5. **Evidence Generation:** Generates discrete evidence records.  
 > 6. **Alert Prioritization:** Scores and ranks investigative leads."
@@ -61,13 +60,13 @@
 ## Minute 3:00 - 4:00 | Feature Engineering & Model Lab
 **Screen:** Model Lab (`/models`)  
 **Action:**
-1. Point to the **Isolation Forest** and **DBSCAN** registry cards.
+1. Point to the **Isolation Forest** and **Clustering** registry cards.
 2. Review the feature dimensions tag cloud (23 features).
 3. Show the evaluation metrics: trained sample count, detected anomalies, anomaly ratio, and silhouette score.
 **Talking Points:**
 > "Here in the Model Lab, we inspect the trained unsupervised models.  
 > Rather than arbitrary thresholds, our Isolation Forest isolates anomalous vectors across 23 dimensions: transaction velocity, fan-out peeling ratios, Shannon entropy across counterparties and ASNs, and inter-arrival burstiness.  
-> DBSCAN automatically computes an adaptive epsilon based on the 90th percentile $k$-nearest neighbor distance to partition behavioral noise points. Every model run is serialized to disk and versioned with full parameters."
+> Behavioral clustering automatically computes cluster partitions and isolates behavioral noise points. Every model run is serialized to disk and versioned with full parameters."
 
 ---
 
@@ -95,7 +94,7 @@
 > "Our Link Analysis Graph is a fully interactive Cytoscape.js directed multigraph.  
 > It visualizes five distinct entity types: Wallets (blue), Transactions (purple), IPs (emerald), ASNs (amber), and Countries (cyan).  
 > Anomalous entities are visually highlighted with red pulsing borders.  
-> Investigators can switch layout algorithms, expand 1 to 3 hops, inspect centrality metrics, and export high-resolution forensic diagrams for courtroom or intelligence briefings."
+> Investigators can switch layout algorithms, expand 1 to 3 hops, inspect centrality metrics, and export high-resolution forensic diagrams for briefings."
 
 ---
 
@@ -129,17 +128,17 @@
 **Screen:** System Status (`/system`) & Terminal  
 **Action:**
 1. Show the System Status telemetry: FastAPI, Database, ML Engine, GeoIP, and NetworkX.
-2. In terminal, show test results: `pytest tests -v` (57 passed, 3 skipped) and frontend tests (8 passed).
+2. In terminal, show test results: `pytest tests -v` (67 passed, 3 skipped) and frontend tests (8 passed).
 **Talking Points:**
 > "BTC-SHIELD operates in two production topologies:  
 > - **Mode A:** Fully air-gapped offline Linux demonstration inside Docker Compose with zero network egress.  
 > - **Mode B:** Cloud deployment with GitHub Actions CI/CD, GitHub Pages frontend, and Neon PostgreSQL.  
-> Our automated test suite features 65 passing automated tests (57 backend pytest across 14 modules, 3 skipped, plus 8 frontend unit tests) verifying ingestion, feature extraction, ML pipelines, graph topology, evidence logic, and REST endpoints."
+> Our automated test suite features 75 passing automated tests (67 backend pytest across 15 modules, 3 skipped, plus 8 frontend unit tests) verifying ingestion, feature extraction, ML pipelines, graph topology, evidence logic, and REST endpoints."
 
 ---
 
 ## Minute 9:00 - 10:00 | Questions & Technical Defense
-**Key Answers for Jury Questions:**
+**Key Answers for Technical Questions:**
 1. **How do you prevent false positives?**  
    *Answer:* "We combine Isolation Forest anomaly scores with multi-category evidence confirmation and a distinct Data Sufficiency Confidence rating. Single isolated spikes do not trigger critical alerts without corroborating temporal or structural signals."
 2. **Does this system require an internet connection?**  

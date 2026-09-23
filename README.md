@@ -447,18 +447,19 @@ The repository enforces end-to-end verification through automated tests covering
 ===================================================================================================
                                 AUTOMATED TEST VERIFICATION SUMMARY
 ===================================================================================================
-Platform: Windows (Python 3.13, Node.js v24)
+Platform: Windows & Linux (Python 3.13, Node.js v24)
 Test Suites:
-  - Backend (pytest 8.3.4):           57 passed, 3 skipped, 0 failed in 19.61s (100% pass rate)
-  - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 185ms  (100% pass rate)
-  - Combined Repository Tests:        65 passed, 3 skipped, 0 failed (100% pass rate)
-  - Frontend Production Build:        tsc -b && vite build clean in 1.01s (2,601 modules transformed)
+  - Backend (pytest 9.1.1):           67 passed, 3 skipped, 0 failed in 22.88s (100% pass rate)
+  - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 172ms  (100% pass rate)
+  - Combined Repository Tests:        75 passed, 3 skipped, 0 failed (100% pass rate)
+  - Frontend Production Build:        tsc -b && vite build clean in 637ms (2,601 modules transformed)
 ===================================================================================================
 ```
 
 ### Verified Test Suites
 
 #### Backend Test Suites (`pytest tests/ -v`)
+- `tests/test_platform_compliance.py`: Comprehensive validation across 10 platform domains (syntax validation, multi-format ingestion, 23-dim features, unsupervised ML, heuristics, graph centrality, compound alerts, case dossiers, offline GeoIP, and RBAC).
 - `tests/test_api.py`: Full API endpoint contracts, authentication flows, and privilege escalation prevention.
 - `tests/test_graph.py`: Directed graph construction, centrality scoring, and shortest path execution.
 - `tests/test_heuristics.py`: Recursive peeling cascade detection and CoinJoin Shannon entropy calculation.

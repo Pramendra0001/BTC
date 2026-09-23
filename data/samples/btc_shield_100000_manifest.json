@@ -44,7 +44,7 @@
   },
   "integration_rule": "Primary transactions file matches BTC-SHIELD's transaction ingestion fields; enrichment/edges/wallets are keyed by txid/address for graph and dashboard joins.",
   "ml_rule": "Do not train on scenario_label, ground_truth, risk_score, risk_level or signal columns; they are evaluation/demo ground truth and derived metadata.",
-  "provenance": "Synthetic data. Designed to emulate transaction/network structure for an SIH/academic prototype; it is not real NTRO telemetry, real intercepted traffic, or evidence of real-world illicit activity.",
+  "provenance": "Synthetic data. Designed to emulate transaction/network structure for an academic and forensic evaluation prototype; it is not real agency telemetry, real intercepted traffic, or evidence of real-world illicit activity.",
   "network_safety": "IPs are documentation-only TEST-NET ranges; ASNs are identifiers for synthetic network observations and should not be interpreted as real attribution.",
   "amount_unit": "satoshis"
 }

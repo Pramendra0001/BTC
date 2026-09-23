@@ -1,7 +1,7 @@
 # BTC-SHIELD — Security Architecture & Threat Model
 
 **Platform:** BTC-SHIELD (Bitcoin Transaction & Network Intelligence Platform)  
-**Target:** Smart India Hackathon 2026 — Problem Statement 26146 (NTRO)  
+**Target:** Enterprise Forensic & Intelligence Software Specification  
 **Classification:** Forensics & Intelligence Software Architecture  
 
 ---
@@ -91,7 +91,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 - **JSON:** Strict Pydantic v2 validation enforcing schema integrity.
 
 ### 5.2 Network Egress Restriction (Air-Gapped Mode)
-- In Mode A (SIH Competition Linux):
+- In Mode A (Air-Gapped Linux):
   - Local SQLite database `btcshield.db`.
   - Built-in `MockAIProvider` for deterministic, offline evidence explanation.
   - Zero outgoing connections to third-party endpoints.

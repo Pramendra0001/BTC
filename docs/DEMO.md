@@ -1,6 +1,6 @@
 # Demonstration Script
 
-## Step-by-Step SIH Demo (16 Steps)
+## Step-by-Step Platform Demonstration (16 Steps)
 
 1. **Introduction:** Introduce BTC-SHIELD and the objective of detecting illicit crypto activity.
 2. **Data Generation:** Show the `generate_dataset.py` script running, highlighting the deterministic behavior.

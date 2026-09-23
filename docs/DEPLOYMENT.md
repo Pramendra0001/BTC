@@ -1,7 +1,7 @@
 # BTC-SHIELD — Deployment & Operational Guide
 
 **Platform:** BTC-SHIELD (Bitcoin Transaction & Network Intelligence Platform)  
-**Target:** Smart India Hackathon 2026 — Problem Statement 26146 (NTRO)  
+**Target:** Enterprise Forensic & Cryptographic Intelligence Platform  
 **Supported Environments:** Air-Gapped Linux (Mode A) & Cloud Production (Mode B)  
 
 ---
@@ -20,7 +20,7 @@ BTC-SHIELD supports dual-mode operation out of the box:
                        ▼                                               ▼
           ┌───────────────────────────┐                   ┌───────────────────────────┐
           │   MODE A: AIR-GAPPED      │                   │   MODE B: CLOUD PROD      │
-          │   (SIH Competition)       │                   │   (Enterprise / SaaS)     │
+          │   (Offline Forensic Mode) │                   │   (Enterprise / SaaS)     │
           ├───────────────────────────┤                   ├───────────────────────────┤
           │ • Offline Linux / Docker  │                   │ • GitHub Pages Frontend   │
           │ • SQLite Engine (Local)   │                   │ • HTTPS FastAPI Backend   │
@@ -31,7 +31,7 @@ BTC-SHIELD supports dual-mode operation out of the box:
 
 ---
 
-## 2. Mode A: Air-Gapped Linux (SIH Competition Evaluation)
+## 2. Mode A: Air-Gapped Linux (Standalone Forensic Evaluation)
 
 Mode A is optimized for evaluations where the evaluation machine has no internet connectivity.
 

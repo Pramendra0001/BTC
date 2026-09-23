@@ -100,7 +100,7 @@ To support both small unit test fixtures and large production cohorts ($45,000+$
 - **Noise Classification:** Un-clusterable points in low-density regions are assigned Cluster ID `-1` (behavioral noise points).
 
 #### B. Large Cohort Mode ($N > 1,000$ Entities — Production Benchmark)
-- **Problem Statement:** Standard DBSCAN on $45,000$ 23-dimensional vectors triggers an $O(N^2)$ memory allocation explosion ($>15\text{ GB}$ RSS), crashing containers with exit code 137.
+- **Operational Bottleneck:** Standard DBSCAN on $45,000$ 23-dimensional vectors triggers an $O(N^2)$ memory allocation explosion ($>15\text{ GB}$ RSS), crashing containers with exit code 137.
 - **Engineered Operational Substitute:** `MiniBatchKMeans(n_clusters=12, batch_size=2048, random_state=42, n_init="auto")`.
 - **Distance-to-Centroid Outlier Thresholding:**
   1. Computes Euclidean distance $d(x_i)$ from each standard-scaled entity vector to its assigned cluster centroid $\mu_{c(i)}$:

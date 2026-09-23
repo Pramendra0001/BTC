@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 250
     INGESTION_BATCH_SIZE: int = 1000
 
+    GEOIP_DB_PATH: str = "data/geoip/GeoLite2-City.mmdb"
+    GEOIP_ASN_DB_PATH: str = "data/geoip/GeoLite2-ASN.mmdb"
+
     @field_validator("CORS_ORIGINS", mode="after")
     @classmethod
     def parse_cors_origins(cls, v):

@@ -281,6 +281,7 @@ class SystemStatusResponse(BaseModel):
     ml_service: str
     ai_provider: str
     uptime_seconds: int
+    geoip_service: Optional[Dict[str, Any]] = None
 
 class HealthResponse(BaseModel):
     status: str

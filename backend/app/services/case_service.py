@@ -320,7 +320,7 @@ def seed_presentation_cases(db: Session):
             db=db,
             case_id=c3.id,
             user_id=user_id,
-            content="Correlated network observations across autonomous systems. Flagged for review under SIH 26146 forensic timeline analysis."
+            content="Correlated network observations across autonomous systems. Flagged for review under platform forensic timeline analysis."
         )
 
     logger.info("Successfully seeded 3 evidence-backed presentation cases.")

@@ -33,4 +33,4 @@ timestamp, src_ip, dst_ip, src_port, dst_port, txid, input_addresses, output_add
 - Documentation-only IP ranges avoid accidental real-world attribution.
 
 ## Important
-All data is synthetic. Do not present it as real NTRO/intercepted Bitcoin activity or real criminal evidence.
+All data is synthetic. Do not present it as real intelligence agency / intercepted Bitcoin activity or real criminal evidence.

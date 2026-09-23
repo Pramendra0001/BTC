@@ -11,6 +11,8 @@ def get_health():
 
 from sqlalchemy import text
 
+from app.services.geoip_service import geoip_service
+
 @router.get("/system/status", response_model=SystemStatusResponse)
 def get_system_status(db: Session = Depends(get_db)):
     db_status = "OPERATIONAL"
@@ -23,5 +25,6 @@ def get_system_status(db: Session = Depends(get_db)):
         "database": db_status,
         "ml_service": "ok",
         "ai_provider": "mock",
-        "uptime_seconds": 3600
+        "uptime_seconds": 3600,
+        "geoip_service": geoip_service.validate_status()
     }

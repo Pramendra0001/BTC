@@ -1,7 +1,7 @@
 # BTC-SHIELD System Design & Data Model Specification
 
 **Platform:** BTC-SHIELD — Bitcoin Transaction & Network Intelligence Platform  
-**Target:** NTRO / Smart India Hackathon 2026 (Problem Statement 26146)  
+**Target:** Enterprise Forensic & Cryptographic Intelligence Specification  
 
 ---
 

@@ -4,8 +4,7 @@
 
 ## 1. Project Identity
 
-- **Project Name:** BTC-SHIELD — Bitcoin Transaction & Network Intelligence Platform
-- **Competition & Track:** Smart India Hackathon (SIH) 2026 — Problem Statement ID **26146** (NTRO / Law Enforcement & National Security Track).
+- **Operational Domain:** Blockchain Forensics & Cryptographic Intelligence (Law Enforcement & National Security Track).
 - **Project Purpose & Target Users:** An enterprise-grade blockchain analytics and anti-money laundering (AML) forensic platform built for financial crime investigators, law enforcement analysts, and compliance officers. It automates multi-input heuristic entity resolution, 23-dimension behavioral feature extraction, unsupervised machine learning anomaly detection (Isolation Forest and behavioral cohort clustering), graph relationship mapping, verifiable forensic evidence synthesis (peeling chains, CoinJoin/mixing, rapid fan-in/fan-out, burst velocity), and prioritized investigation lead queues.
 - **Current Production Architecture:**
   - **Frontend:** Single Page Application (SPA) built with React 19, TypeScript, Vite, Tailwind CSS, Lucide icons, and `@tanstack/react-query` v5. Hosted on **GitHub Pages**.
@@ -113,7 +112,7 @@
    - `data/samples/btc_shield_synthetic_transactions_10000.csv` (10,000 records). Used for initial multi-tier memory benchmarks.
 3. **Elliptic & External Public Datasets:**
    - Evaluated during architecture planning. The Elliptic dataset contains Kaggle-format illicit/licit labels on subgraphs but lacks raw input/output transaction scripts and fees required for heuristic peeling/mixing analysis.
-   - Decision was made to use synthetic relational datasets structured specifically for SIH 26146 requirements (providing full txid, inputs, outputs, amounts, fees, timestamps, and network observations).
+   - Decision was made to use synthetic relational datasets structured specifically for enterprise forensic requirements (providing full txid, inputs, outputs, amounts, fees, timestamps, and network observations).
 4. **Current Production 100K Dataset (Dataset ID: 6):**
    - **Filename:** `btc_shield_100000_ground_ready.zip` [VERIFIED]
    - **Format:** `ZIP_RELATIONAL` containing 4 relational CSV tables:
