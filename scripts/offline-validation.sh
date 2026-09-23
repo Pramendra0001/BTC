@@ -57,7 +57,7 @@ test_step "Canonical Forensic Datasets & Manifests" "test -f data/samples/btc_sh
 test_step "Scikit-Learn & NetworkX Algorithmic Runtime" "$PYTHON_CMD -c \"import sklearn; import networkx as nx; import numpy as np; G = nx.DiGraph(); G.add_edge('A', 'B', weight=1.0); assert nx.is_directed(G)\""
 
 # 6. Platform Compliance Test Suite
-test_step "Platform Compliance Test Suite (10 Core Requirements)" "$PYTEST_CMD tests/test_platform_compliance.py -W ignore --quiet"
+test_step "Platform Compliance Test Suite (12 Core Requirements)" "$PYTEST_CMD tests/test_platform_compliance.py -W ignore --quiet"
 
 echo "=========================================================="
 if [ "$FAIL_COUNT" -eq 0 ]; then

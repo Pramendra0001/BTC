@@ -2,7 +2,7 @@
 
 **Product:** BTC-SHIELD (Bitcoin Transaction & Network Intelligence Platform)  
 **System Audit Standard:** Enterprise Forensic & Cryptographic Intelligence Specification  
-**Audit Status:** **100% COMPLIANT (22 / 22 Core Requirements Verified)**  
+**Audit Status:** **100% COMPLIANT (23 / 23 Core Requirements Verified)**  
 **Verification Date:** September 2026  
 
 ---
@@ -12,10 +12,10 @@
 BTC-SHIELD has undergone an end-to-end audit against all technical, functional, algorithmic, and operational specifications mandated for Bitcoin transaction analysis, UTXO flow reconstruction, network peer correlation, and investigative intelligence workflows. Every capability is verified via automated regression suites, cryptographic validation checks, reproducible algorithmic benchmarks, and dual-mode runtime validation (air-gapped offline operation and cloud-native deployment).
 
 ### Test Suite Execution Verification
-- **Backend Automated Test Suite:** **70 passed, 0 skipped, 0 failed** in $35.43\text{s}$ across 15 test modules.
-- **Frontend Unit & State Test Suite:** **8 passed, 0 skipped, 0 failed** in $172\text{ms}$ across authentication and theme state tests.
-- **Total Platform Automated Tests:** **78 passing tests, 0 skipped, 0 failed** (**100% pass rate**).
-- **Frontend Production Build:** Clean build via Vite 8 and TypeScript ($0$ errors, $0$ warnings, $637\text{ms}$, route-level code splitting).
+- **Backend Automated Test Suite:** **72 passed, 0 skipped, 0 failed** in pytest across 15 test modules.
+- **Frontend Unit & State Test Suite:** **8 passed, 0 skipped, 0 failed** in $143\text{ms}$ across authentication and theme state tests.
+- **Total Platform Automated Tests:** **80 passing tests, 0 skipped, 0 failed** (**100% pass rate**).
+- **Frontend Production Build:** Clean build via Vite 8 and TypeScript ($0$ errors, $0$ warnings, route-level code splitting).
 - **Air-Gapped Offline Validation:** Verified via `scripts/offline-validation.ps1` and `scripts/offline-validation.sh` (6/6 checks passed, zero internet access required).
 
 ---
@@ -44,7 +44,8 @@ BTC-SHIELD has undergone an end-to-end audit against all technical, functional, 
 | **Model Lab & Experiment Registry** | Machine learning registry tracking hyperparameters, training timestamps, silhouette scores, and model artifacts. | `backend/app/services/ml_service.py`<br>`frontend/src/pages/ModelsPage.tsx` | `tests/test_api.py::test_model_registry` | **PASS** | Queryable model registry storing versioned runs, contamination, and evaluation metrics. |
 | **Tactical Command Center** | Real-time operations dashboard summarizing posture, risk distributions, active cases, and urgent alerts. | `backend/app/services/dashboard_service.py`<br>`frontend/src/pages/DashboardPage.tsx` | `tests/test_api.py::test_dashboard_stats` | **PASS** | Real-time database aggregations; zero hardcoded statistics or mock counters. |
 | **Adaptive Theme System** | High-contrast command center UI with 3-way toggle (`Light`, `Dark`, `System`) and SVG chart canvas synchronization. | `frontend/src/context/ThemeContext.tsx`<br>`frontend/src/components/ThemeToggle.tsx` | `frontend/tests/theme.test.ts` (4 tests) | **PASS** | Persistent theme state in `localStorage`, clean CSS variable bindings, zero flash. |
-| **Air-Gapped Offline Operation** | Autonomous execution mode verified with local SQLite, pre-trained models, offline GeoIP, and local UI bundles. | `backend/app/services/geoip_service.py`<br>`scripts/offline-validation.ps1` | `tests/test_platform_compliance.py::test_compliance_09`<br>`scripts/offline-validation.ps1` | **PASS** | 6/6 offline checks passed; zero external outbound requests required for full system operation. |
+| **Local GeoIP & Offline Resolution** | Dual-tier GeoIP subsystem: real local `.mmdb` database reader loading path and deterministic offline fallback tables (RFC 5737 & private subnets). | `backend/app/services/geoip_service.py` | `tests/test_platform_compliance.py::test_compliance_09`<br>`tests/test_platform_compliance.py::test_compliance_09b` | **PASS** | Real MMDB reader path verified via mock database fixture; offline fallback verified via RFC 5737 ranges. |
+| **Air-Gapped Zero-Egress Operation** | Completely isolated execution mode verified with local SQLite, in-process ML, local assets, and socket egress lock. | `scripts/offline-validation.ps1`<br>`backend/app/main.py` | `tests/test_platform_compliance.py::test_compliance_11`<br>`scripts/offline-validation.ps1` | **PASS** | Socket-level egress guard confirms zero external network calls during full ingestion, ML, graph, and API lifecycle. |
 | **Role-Based Access Control & Security** | JWT-authenticated role enforcement (`ADMINISTRATOR`, `INVESTIGATOR`, `ANALYST`, `VIEWER`) and password hashing. | `backend/app/core/security.py`<br>`backend/app/api/endpoints/auth.py` | `tests/test_platform_compliance.py::test_compliance_10` | **PASS** | Bearer token authorization, bcrypt hashing, safe public registration defaulting to VIEWER. |
 
 ---

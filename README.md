@@ -229,13 +229,16 @@ Every score modification is accompanied by a discrete `Evidence` record detailin
 
 ## 8. Data Provenance & Canonical Datasets
 
-BTC-SHIELD maintains strict separation between official benchmark data, synthetic evaluation data, and demonstration fixtures:
+BTC-SHIELD maintains strict separation between synthetic evaluation data, external reference academic benchmarks, and demonstration fixtures:
 
 | Dataset Category | Dataset Name / Source | Size / Dimensions | Provenance & Usage Characterization |
 |---|---|---|---|
-| **Synthetic Evaluation Benchmark** | **Dataset 6 (BTC-SHIELD Ground-Ready)** | 100,000 transactions<br>45,000 wallets<br>350,131 edges (42.5 MB CSV) | **Synthetic Data.** Generated to simulate high-volume transaction flow, peeling chains, mixing patterns, and P2P routing telemetry. Used for empirical load and memory testing. |
-| **Public Academic Benchmark** | **Elliptic Graph Benchmark** | 203,769 transactions<br>234,355 directed edges | **Public Reference Dataset.** Academic Bitcoin transaction graph used as a structural topology benchmark for node degree distributions and temporal clustering. |
+| **Synthetic Evaluation Benchmark** | **Dataset 6 (BTC-SHIELD Ground-Ready)** | 100,000 transactions<br>45,000 wallets<br>350,131 edges (42.5 MB CSV) | **Synthetic Data.** Generated algorithmically to simulate high-volume transaction flow, peeling chains, mixing patterns, and P2P routing telemetry. Used for empirical load and memory testing. |
+| **Public Academic Reference** | **Elliptic Graph Benchmark** | 203,769 transactions<br>234,355 directed edges | **Public Reference Benchmark (External).** Academic Bitcoin transaction graph evaluated during architectural research as a topological baseline for degree distributions. Not bundled in repository due to absence of UTXO fees and raw script structures in Kaggle releases. |
 | **Pre-Seeded Demonstration Fixtures** | **Forensic Demonstration Scenarios** | 3 cases<br>4 demo accounts | **Deterministic Demo Fixtures.** Pre-configured case dossiers (`Alpha-Peel Cascade`, `CoinJoin Syndicate`, `Darknet Gateway`) used for offline product demonstrations and evaluation walks. |
+
+> [!NOTE]
+> All bundled transaction sets located in `data/samples/` (`btc_shield_synthetic_transactions.*` and `btc_shield_100000_*`) are synthetic research scenarios engineered to model specific financial crime topologies (peeling cascades, CoinJoin mixing, high fan-out disbursements) and evaluate system throughput. They do not contain live surveillance or classified records.
 
 ---
 
@@ -436,6 +439,8 @@ All settings are managed via environment variables and validated at runtime usin
 | `LOG_LEVEL` | `INFO` | `INFO` or `WARNING` | Logging verbosity |
 | `MAX_UPLOAD_SIZE_MB` | `250` | `250` | Maximum allowed payload size for dataset upload |
 | `INGESTION_BATCH_SIZE` | `1000` | `1000` | Batch chunk size for database inserts |
+| `GEOIP_DB_PATH` | `data/geoip/GeoLite2-City.mmdb` | Absolute path to local MMDB | Local MaxMind City database (optional; falls back to static RFC 5737 tables when missing) |
+| `GEOIP_ASN_DB_PATH` | `data/geoip/GeoLite2-ASN.mmdb` | Absolute path to local MMDB | Local MaxMind ASN database (optional; falls back to static ASN mapping when missing) |
 
 ---
 
@@ -449,17 +454,17 @@ The repository enforces end-to-end verification through automated tests covering
 ===================================================================================================
 Platform: Windows & Linux (Python 3.13, Node.js v24)
 Test Suites:
-  - Backend (pytest 9.1.1):           70 passed, 0 skipped, 0 failed in 35.43s (100% pass rate)
-  - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 172ms  (100% pass rate)
-  - Combined Repository Tests:        78 passed, 0 skipped, 0 failed (100% pass rate)
-  - Frontend Production Build:        tsc -b && vite build clean in 637ms (2,601 modules transformed)
+  - Backend (pytest 9.1.1):           72 passed, 0 skipped, 0 failed in 113.24s (100% pass rate)
+  - Frontend (node --test):            8 passed, 0 skipped, 0 failed in 143ms   (100% pass rate)
+  - Combined Repository Tests:        80 passed, 0 skipped, 0 failed (100% pass rate)
+  - Frontend Production Build:        tsc -b && vite build clean (2,601 modules transformed)
 ===================================================================================================
 ```
 
 ### Verified Test Suites
 
 #### Backend Test Suites (`pytest tests/ -v`)
-- `tests/test_platform_compliance.py`: Comprehensive validation across 10 platform domains (syntax validation, multi-format ingestion, 23-dim features, unsupervised ML, heuristics, graph centrality, compound alerts, case dossiers, offline GeoIP, and RBAC).
+- `tests/test_platform_compliance.py`: Comprehensive validation across 12 platform compliance checks (syntax integrity, multi-format ingestion, 23-dim feature vectors, unsupervised Isolation Forest & clustering, peeling cascade heuristics, multigraph centrality, compound alerts, case dossiers, offline deterministic fallback GeoIP, real MMDB reader integration path, RBAC authorization, and air-gapped zero external network call guarantee).
 - `tests/test_canonical_files.py`: Full ingestion and entity creation across canonical 1,000-record CSV, JSON, and XML datasets.
 - `tests/test_api.py`: Full API endpoint contracts, authentication flows, and privilege escalation prevention.
 - `tests/test_graph.py`: Directed graph construction, centrality scoring, and shortest path execution.

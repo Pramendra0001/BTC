@@ -103,15 +103,15 @@ BTC-SHIELD is an end-to-end Bitcoin transaction intelligence and forensic link a
 ============================== Test Execution Summary ==============================
 Platform: Windows & Linux (Python 3.13.14, Node.js v24.13.3)
 Test Suites:
-  - Backend (pytest): 70 passed, 0 skipped, 0 failed (100% pass rate)
+  - Backend (pytest): 72 passed, 0 skipped, 0 failed (100% pass rate)
   - Frontend (node test): 8 passed, 0 failed (100% pass rate)
-  - Total Platform Tests: 78 passing tests (100% pass rate)
-  - Build Validation: npm run build completed cleanly in <800ms
+  - Total Platform Tests: 80 passing tests (100% pass rate)
+  - Build Validation: npm run build completed cleanly
 ====================================================================================
 ```
 
 ### Verified Passing Suites:
-- `tests/test_platform_compliance.py` (10 core enterprise compliance requirements)
+- `tests/test_platform_compliance.py` (12 core enterprise compliance requirements)
 - `tests/test_api.py` (Full API endpoint and auth contracts)
 - `tests/test_graph.py` (Graph construction, centrality, and persistence)
 - `tests/test_heuristics.py` (Peeling and mixing detection)

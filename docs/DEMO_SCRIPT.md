@@ -128,12 +128,12 @@
 **Screen:** System Status (`/system`) & Terminal  
 **Action:**
 1. Show the System Status telemetry: FastAPI, Database, ML Engine, GeoIP, and NetworkX.
-2. In terminal, show test results: `pytest tests -v` (70 passed, 0 skipped) and frontend tests (8 passed).
+2. In terminal, show test results: `pytest tests -v` (72 passed, 0 skipped) and frontend tests (8 passed).
 **Talking Points:**
 > "BTC-SHIELD operates in two production topologies:  
 > - **Mode A:** Fully air-gapped offline Linux demonstration inside Docker Compose with zero network egress.  
 > - **Mode B:** Cloud deployment with GitHub Actions CI/CD, GitHub Pages frontend, and Neon PostgreSQL.  
-> Our automated test suite features 78 passing automated tests (70 backend pytest across 15 modules, 0 skipped, plus 8 frontend unit tests) verifying ingestion, feature extraction, ML pipelines, graph topology, evidence logic, and REST endpoints."
+> Our automated test suite features 80 passing automated tests (72 backend pytest across 15 modules, 0 skipped, plus 8 frontend unit tests) verifying ingestion, feature extraction, ML pipelines, graph topology, evidence logic, and REST endpoints."
 
 ---
 

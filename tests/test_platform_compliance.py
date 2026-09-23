@@ -1,7 +1,7 @@
 """
 BTC-SHIELD Platform Compliance Test Suite
 Validates all core operational, algorithmic, architectural, and security requirements.
-All tests are independent, verifiable, and strictly free of external competition identifiers.
+All tests are independent, verifiable, and strictly focused on enterprise cryptographic intelligence.
 """
 import pytest
 from datetime import datetime
@@ -190,7 +190,7 @@ def test_compliance_08_case_management_and_dossier_export(db_session: Session):
 
 
 def test_compliance_09_offline_geoip_resolution():
-    """Verify local and offline GeoIP resolution with graceful fallback."""
+    """Verify deterministic offline fallback GeoIP resolution with RFC 5737 and private network mapping."""
     # Test-Net documentation range (RFC 5737)
     res_testnet = geoip_service.lookup("198.51.100.14")
     assert res_testnet["valid"] is True
@@ -211,6 +211,69 @@ def test_compliance_09_offline_geoip_resolution():
     diag = geoip_service.validate_status()
     assert "active_mode" in diag
     assert "offline_ranges_loaded" in diag
+
+
+def test_compliance_09b_real_mmdb_reader_loading_and_lookup_code_path(tmp_path, monkeypatch):
+    """
+    Verify the code path for real MaxMind MMDB database loading and resolution.
+    Mocks maxminddb reader interface to test the MMDB ingestion and lookup flow
+    without requiring or committing proprietary binary GeoIP databases.
+    """
+    import sys
+    from unittest.mock import MagicMock
+    from app.services.geoip_service import GeoIPService
+
+    dummy_city_file = tmp_path / "GeoLite2-City.mmdb"
+    dummy_city_file.write_bytes(b"mock_city_data")
+    dummy_asn_file = tmp_path / "GeoLite2-ASN.mmdb"
+    dummy_asn_file.write_bytes(b"mock_asn_data")
+
+    # Mock reader instances returning MaxMind dictionary structure
+    mock_city_reader = MagicMock()
+    mock_city_reader.get.return_value = {
+        "country": {"iso_code": "CH"},
+        "city": {"names": {"en": "Zurich"}},
+    }
+
+    mock_asn_reader = MagicMock()
+    mock_asn_reader.get.return_value = {
+        "autonomous_system_number": 13335,
+        "autonomous_system_organization": "Cloudflare, Inc.",
+    }
+
+    mock_maxminddb = MagicMock()
+    def mock_open_db(path):
+        if str(path) == str(dummy_city_file):
+            return mock_city_reader
+        if str(path) == str(dummy_asn_file):
+            return mock_asn_reader
+        return MagicMock()
+
+    mock_maxminddb.open_database.side_effect = mock_open_db
+    monkeypatch.setitem(sys.modules, "maxminddb", mock_maxminddb)
+
+    monkeypatch.setattr("app.core.config.settings.GEOIP_DB_PATH", str(dummy_city_file))
+    monkeypatch.setattr("app.core.config.settings.GEOIP_ASN_DB_PATH", str(dummy_asn_file))
+
+    # Initialize a new GeoIPService instance to trigger _initialize_readers
+    service = GeoIPService()
+    assert service.city_reader is not None
+    assert service.asn_reader is not None
+
+    status = service.validate_status()
+    assert status["active_mode"] == "MMDB"
+    assert status["city_db_exists"] is True
+    assert status["asn_db_exists"] is True
+
+    # Test lookup using MMDB code path
+    result = service.lookup("104.16.132.229")
+    assert result["valid"] is True
+    assert result["country"] == "CH"
+    assert result["city"] == "Zurich"
+    assert result["asn"] == "AS13335"
+    assert result["asn_org"] == "Cloudflare, Inc."
+    assert result["is_fallback"] is False
+    assert result["status"] == "RESOLVED"
 
 
 def test_compliance_10_rbac_and_security(client: TestClient):
@@ -246,3 +309,62 @@ def test_compliance_10_rbac_and_security(client: TestClient):
     # Protected endpoint rejected without token
     r_unauth = client.get("/api/auth/me")
     assert r_unauth.status_code in [401, 403]
+
+
+def test_compliance_11_airgapped_zero_external_network_call_guarantee(db_session: Session, client: TestClient, monkeypatch):
+    """
+    Verify complete offline execution with zero external egress.
+    Installs a socket-level network guard blocking all non-loopback connections,
+    then executes ingestion, ML training, graph analysis, case dossier generation,
+    and API health/status requests.
+    """
+    import socket
+
+    external_attempts = []
+    real_connect = socket.socket.connect
+
+    def guarded_connect(self, address):
+        host = address[0] if isinstance(address, tuple) and len(address) > 0 else str(address)
+        if host not in ("127.0.0.1", "localhost", "::1"):
+            external_attempts.append(address)
+            raise RuntimeError(f"Prohibited external network call detected: {address}")
+        return real_connect(self, address)
+
+    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
+
+    # 1. Ingest synthetic forensic dataset
+    ds = Dataset(name="airgapped_eval.csv", filename="airgapped_eval.csv", format="csv")
+    db_session.add(ds)
+    db_session.commit()
+
+    csv_data = (
+        "txid,timestamp,fee,script_type,input_addresses,output_addresses,input_amounts,output_amounts,src_ip,dst_ip,src_port,dst_port,geo_country,asn\n"
+        "tx_ag1,2026-03-01T10:00:00Z,500,p2pkh,addr_ag1,addr_ag2,50000,49500,10.0.0.1,10.0.0.2,8333,8333,US,AS15169\n"
+        "tx_ag2,2026-03-01T10:01:00Z,600,p2pkh,addr_ag2,addr_ag3,49500,48900,10.0.0.2,10.0.0.3,8333,8333,DE,AS24940\n"
+    ).encode("utf-8")
+    process_dataset(db_session, ds.id, csv_data)
+
+    # 2. Compute behavioral features
+    compute_all_features(db_session)
+
+    # 3. Execute ML & graph algorithms
+    train_isolation_forest(db_session, ds.id)
+    train_dbscan(db_session, ds.id)
+    G = build_graph(db_session)
+    compute_centrality(G)
+
+    # 4. Generate forensic case dossier
+    case = create_case(db=db_session, title="Airgapped Validation Case", description="Isolated testing", priority="LOW", investigator_id=1)
+    dossier = generate_report(db=db_session, case_id=case.id)
+    assert dossier is not None
+
+    # 5. In-process API requests
+    r = client.get("/health")
+    assert r.status_code == 200
+
+    r_status = client.get("/api/system/status")
+    assert r_status.status_code == 200
+
+    # Ensure zero external network calls occurred
+    assert len(external_attempts) == 0, f"External network calls detected: {external_attempts}"
+

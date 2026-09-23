@@ -93,7 +93,7 @@ assert nx.is_directed(G)
 }
 
 # 6. Platform Compliance Test Suite
-Test-Step "Platform Compliance Test Suite (10 Core Requirements)" {
+Test-Step "Platform Compliance Test Suite (12 Core Requirements)" {
     $out = & $pytestCmd tests/test_platform_compliance.py -W ignore --quiet 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "One or more platform compliance tests failed: `n$out"

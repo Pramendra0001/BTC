@@ -1,8 +1,15 @@
 """
 BTC-SHIELD GeoIP and Network Resolution Service.
-Provides offline and local IP-to-Country and IP-to-ASN resolution.
-Supports MaxMind MMDB databases via optional reader, with deterministic offline fallback tables
-and graceful degradation when database files are not present.
+Provides offline and local IP-to-Country and IP-to-ASN resolution with strict dual-mode architecture:
+
+1. REAL MMDB RESOLUTION:
+   When local MaxMind database files (GeoLite2-City.mmdb, GeoLite2-ASN.mmdb) are present
+   and the `maxminddb` reader library is installed, real binary database lookups are executed.
+
+2. DETERMINISTIC OFFLINE FALLBACK:
+   When database files or the library are unavailable (e.g. air-gapped environments without
+   downloaded proprietary datasets), the service resolves RFC 5737 documentation testnets
+   and RFC 1918 private subnets deterministically with zero external egress.
 """
 import os
 import ipaddress
