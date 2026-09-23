@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
+from sqlalchemy import or_
 from app.models.models import (
     User, Wallet, Transaction, TransactionInput, TransactionOutput,
-    NetworkObservation, Alert, Evidence, BehavioralFeature, AnomalyResult
+    NetworkObservation, Alert, Evidence, BehavioralFeature, AnomalyResult, GraphEdge
 )
 
 router = APIRouter()
@@ -86,6 +87,68 @@ def get_wallet(
                 "fee": tx.fee,
                 "script_type": tx.script_type,
             })
+    else:
+        # Check GraphEdge (relational mode / Dataset 6)
+        wallet_keys = [address, f"WALLET:{address}"]
+        direct_edges = db.query(GraphEdge).filter(
+            or_(
+                GraphEdge.source_id.in_(wallet_keys),
+                GraphEdge.target_id.in_(wallet_keys)
+            )
+        ).limit(100).all()
+
+        connected_txids_dir = {}
+        for ge in direct_edges:
+            s_id = ge.source_id or ""
+            t_id = ge.target_id or ""
+            if ge.edge_type == "COUNTERPARTY":
+                for cid in [s_id, t_id]:
+                    clean_cp = cid.replace("WALLET:", "").strip()
+                    if clean_cp and clean_cp != address:
+                        counterparty_addrs.add(clean_cp)
+            if s_id in wallet_keys:
+                clean_t = t_id.replace("TX:", "").replace("TRANSACTION:", "").strip()
+                if clean_t and clean_t not in wallet_keys:
+                    connected_txids_dir[clean_t] = "SENT"
+            elif t_id in wallet_keys:
+                clean_s = s_id.replace("TX:", "").replace("TRANSACTION:", "").strip()
+                if clean_s and clean_s not in wallet_keys:
+                    connected_txids_dir[clean_s] = "RECEIVED"
+
+        if connected_txids_dir:
+            c_txids = list(connected_txids_dir.keys())[:50]
+            txs = db.query(Transaction).filter(
+                Transaction.txid.in_(c_txids)
+            ).order_by(Transaction.timestamp.desc().nullslast()).limit(50).all()
+
+            found_txids = set()
+            for tx in txs:
+                if tx.txid:
+                    txids_list.append(tx.txid)
+                    found_txids.add(tx.txid)
+                direction = connected_txids_dir.get(tx.txid, "SENT")
+                transactions.append({
+                    "txid": tx.txid,
+                    "timestamp": tx.timestamp.isoformat() if tx.timestamp else None,
+                    "direction": direction,
+                    "total_input": tx.total_input,
+                    "total_output": tx.total_output,
+                    "fee": tx.fee,
+                    "script_type": tx.script_type or "p2wpkh",
+                })
+
+            for ctxid, cdir in connected_txids_dir.items():
+                if ctxid not in found_txids and len(transactions) < 50:
+                    txids_list.append(ctxid)
+                    transactions.append({
+                        "txid": ctxid,
+                        "timestamp": wallet.last_seen.isoformat() if wallet.last_seen else None,
+                        "direction": cdir,
+                        "total_input": 0.0,
+                        "total_output": 0.0,
+                        "fee": 0.0,
+                        "script_type": "p2wpkh",
+                    })
 
     # Network observations (uses already-collected txids, avoiding repeated Transaction query)
     observations = []

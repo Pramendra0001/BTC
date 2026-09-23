@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useWallet } from '../api/hooks';
+import { useWallet, useGraph } from '../api/hooks';
 import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
+import { EmptyState } from '../components/ui/EmptyState';
+import { GraphVisualization } from '../features/graph/GraphVisualization';
 import { 
   Wallet, Network, ArrowRightLeft, Clock, AlertTriangle, 
   ExternalLink, Copy, Check, ArrowUpRight, ArrowDownLeft, ShieldAlert
@@ -14,9 +16,10 @@ import {
 export default function WalletDetailPage() {
   const { address } = useParams<{ address: string }>();
   const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState<'transactions' | 'network' | 'counterparties' | 'evidence'>('transactions');
+  const [activeTab, setActiveTab] = useState<'graph' | 'transactions' | 'network' | 'counterparties' | 'evidence'>('graph');
 
   const { data: wallet, isLoading, error, refetch } = useWallet(address || '');
+  const { data: graphData, isLoading: isGraphLoading, error: graphError, refetch: refetchGraph } = useGraph('WALLET', address || '', 1);
 
   if (isLoading) {
     return (
@@ -86,11 +89,22 @@ export default function WalletDetailPage() {
 
         {/* Action buttons */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActiveTab('graph')}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition cursor-pointer ${
+              activeTab === 'graph'
+                ? 'bg-blue-600 text-white border-blue-500'
+                : 'bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border-blue-500/30'
+            }`}
+          >
+            <Network size={14} /> Interactive Graph
+          </button>
           <Link
             to={`/graph?entityType=WALLET&entityId=${encodeURIComponent(wallet.address)}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-xs font-medium rounded-lg border border-blue-500/30 transition"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition"
+            title="Open Full Analysis Canvas"
           >
-            <Network size={14} /> Open in Graph
+            <ExternalLink size={13} /> Full Canvas
           </Link>
           <Link
             to={`/timeline?entityType=WALLET&entityId=${encodeURIComponent(wallet.address)}`}
@@ -131,8 +145,9 @@ export default function WalletDetailPage() {
 
       {/* Tabs */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="flex border-b border-slate-800 px-4 bg-slate-950/40">
+        <div className="flex border-b border-slate-800 px-4 bg-slate-950/40 overflow-x-auto">
           {[
+            { id: 'graph', label: `Network Graph (${graphData?.stats?.node_count || graphData?.nodes?.length || 0})` },
             { id: 'transactions', label: `Transactions (${wallet.transactions?.length || 0})` },
             { id: 'network', label: `Network Observations (${wallet.network_observations?.length || 0})` },
             { id: 'counterparties', label: `Counterparties (${wallet.counterparties?.length || 0})` },
@@ -141,7 +156,7 @@ export default function WalletDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`py-3 px-4 text-xs font-medium border-b-2 transition ${
+              className={`py-3 px-4 text-xs font-medium border-b-2 whitespace-nowrap transition cursor-pointer ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-400'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
@@ -153,6 +168,33 @@ export default function WalletDetailPage() {
         </div>
 
         <div className="p-4">
+          {/* Tab 0: Network Graph */}
+          {activeTab === 'graph' && (
+            <div className="h-[550px] w-full relative">
+              {isGraphLoading ? (
+                <div className="w-full h-full bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center p-6">
+                  <div className="text-center space-y-3 max-w-sm">
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <div className="text-xs font-medium text-slate-200">Generating relational link graph for wallet...</div>
+                    <div className="text-[11px] font-mono text-slate-400 truncate max-w-xs">{wallet.address}</div>
+                  </div>
+                </div>
+              ) : graphError ? (
+                <ErrorState message="Failed to load graph topology." onRetry={() => refetchGraph()} />
+              ) : !graphData?.nodes || graphData.nodes.length === 0 ? (
+                <EmptyState
+                  icon={<Network size={32} />}
+                  title="No Graph Connections"
+                  description="No counterparty link analysis edges recorded for this wallet address."
+                />
+              ) : (
+                <GraphVisualization
+                  elements={graphData}
+                  centerEntityId={wallet.address}
+                />
+              )}
+            </div>
+          )}
           {/* Tab 1: Transactions */}
           {activeTab === 'transactions' && (
             <div className="overflow-x-auto">

@@ -28,11 +28,14 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
 
     // Transform backend elements into Cytoscape format
     const cyElements: cytoscape.ElementDefinition[] = [];
+    const validNodeIds = new Set<string>();
 
     // Process nodes
-    elements.nodes.forEach((n) => {
+    (elements.nodes || []).forEach((n) => {
+      if (!n?.data?.id) return;
       const isCenter = n.data.is_center || n.data.id === centerEntityId || n.data.full_id === centerEntityId;
       const isAnomalous = (n.data.anomaly_score || 0) > 60;
+      validNodeIds.add(n.data.id);
       
       cyElements.push({
         group: 'nodes',
@@ -49,24 +52,34 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
       });
     });
 
-    // Process edges
-    elements.edges.forEach((e) => {
-      cyElements.push({
-        group: 'edges',
-        data: {
-          id: e.data.id,
-          source: e.data.source,
-          target: e.data.target,
-          type: e.data.type,
-          amount: e.data.amount,
-          provenance: e.data.provenance,
-          ...e.data,
-        }
-      });
+    // Process edges - strictly enforce source and target exist
+    (elements.edges || []).forEach((e) => {
+      if (!e?.data?.source || !e?.data?.target) return;
+      if (validNodeIds.has(e.data.source) && validNodeIds.has(e.data.target)) {
+        cyElements.push({
+          group: 'edges',
+          data: {
+            id: e.data.id || `${e.data.source}->${e.data.target}`,
+            source: e.data.source,
+            target: e.data.target,
+            type: e.data.type,
+            amount: e.data.amount,
+            provenance: e.data.provenance,
+            ...e.data,
+          }
+        });
+      }
     });
 
-    // Initialize Cytoscape
-    const cy = cytoscape({
+    let cy: cytoscape.Core | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+
+    try {
+      const isSingleNode = cyElements.filter(e => e.group === 'nodes').length <= 1;
+      const effectiveLayout = isSingleNode ? 'grid' : layoutName;
+
+      // Initialize Cytoscape
+      cy = cytoscape({
       container: containerRef.current,
       elements: cyElements,
       style: [
@@ -194,9 +207,10 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
         }
       ] as any,
       layout: {
-        name: layoutName,
-        animate: true,
-        animationDuration: 500,
+        name: effectiveLayout,
+        animate: !isSingleNode,
+        animationDuration: 400,
+        padding: 30,
       } as any,
     });
 
@@ -214,10 +228,45 @@ export function GraphVisualization({ elements, centerEntityId, onNodeSelect }: G
       }
     });
 
+    // Ensure Cytoscape automatically adjusts to flexbox/container layout
+    if (window.ResizeObserver && containerRef.current) {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+            try {
+              cy?.resize();
+              cy?.fit(undefined, 35);
+            } catch (_) {}
+          }
+        }
+      });
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Initial resize trigger after DOM paint
+    requestAnimationFrame(() => {
+      try {
+        cy?.resize();
+        cy?.fit(undefined, 35);
+      } catch (_) {}
+    });
+
     cyRef.current = cy;
+    } catch (err) {
+      console.error('[GraphVisualization] Error initializing graph layout:', err);
+    }
 
     return () => {
-      cy.destroy();
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      if (cy) {
+        try {
+          cy.stop();
+          cy.destroy();
+        } catch (_) {}
+      }
+      cyRef.current = null;
     };
   }, [elements, layoutName, centerEntityId, resolvedTheme, isLight, onNodeSelect]);
 

@@ -24,14 +24,24 @@ export default function GraphPage() {
   const { data: defaultEntityData } = useDefaultGraphEntity();
   const { data: searchResults } = useSearch(searchQuery);
 
+  // Sync state whenever URL search params change (e.g. from navigation or links)
+  useEffect(() => {
+    if (urlEntityId && urlEntityId !== entityId) {
+      setEntityId(urlEntityId);
+    }
+    if (urlEntityType && urlEntityType !== entityType) {
+      setEntityType(urlEntityType);
+    }
+  }, [urlEntityId, urlEntityType]);
+
   // If no entity is specified in URL, pick the curated default entity
   useEffect(() => {
-    if (!entityId && defaultEntityData?.entity_id) {
+    if (!urlEntityId && !entityId && defaultEntityData?.entity_id) {
       setEntityType(defaultEntityData.entity_type);
       setEntityId(defaultEntityData.entity_id);
       setSearchParams({ entityType: defaultEntityData.entity_type, entityId: defaultEntityData.entity_id });
     }
-  }, [defaultEntityData, entityId, setSearchParams]);
+  }, [defaultEntityData, entityId, urlEntityId, setSearchParams]);
 
   const { data: graphData, isLoading, error, refetch } = useGraph(entityType, entityId, hops);
 
@@ -130,10 +140,15 @@ export default function GraphPage() {
       {/* Main Canvas */}
       <div className="flex-1 relative min-h-0">
         {isLoading ? (
-          <div className="w-full h-full bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center">
-            <div className="text-center space-y-2">
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-              <div className="text-xs text-slate-400">Computing graph topology and centrality metrics...</div>
+          <div className="w-full h-full bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center p-6">
+            <div className="text-center space-y-3 max-w-sm">
+              <div className="w-9 h-9 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="text-xs font-medium text-slate-200">
+                Computing graph topology and centrality metrics...
+              </div>
+              <div className="text-[11px] font-mono text-slate-400">
+                Resolving multi-hop relational edges for {entityType}: {entityId ? entityId.slice(0, 16) + '...' : ''}
+              </div>
             </div>
           </div>
         ) : error ? (
@@ -142,13 +157,17 @@ export default function GraphPage() {
           <EmptyState
             icon={<Network size={32} />}
             title="No Graph Nodes Available"
-            description="Select an entity or ensure a dataset has been ingested and the intelligence pipeline executed."
+            description={
+              entityId
+                ? `No link analysis connections found for ${entityType} ${entityId}.`
+                : "Select an entity or ensure a dataset has been ingested and the intelligence pipeline executed."
+            }
             action={
               <Link
-                to="/datasets"
+                to="/wallets"
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg transition"
               >
-                <Database size={14} className="inline mr-1" /> Go to Datasets
+                <Network size={14} className="inline mr-1" /> Browse Wallets
               </Link>
             }
           />

@@ -45,7 +45,7 @@ export const useWallets = (params?: { skip?: number; limit?: number }) =>
 export const useWallet = (address: string) => 
   useQuery({ 
     queryKey: ['wallet', address], 
-    queryFn: async () => (await apiClient.get(`/api/wallets/${address}`)).data,
+    queryFn: async () => (await apiClient.get(`/api/wallets/${encodeURIComponent(address)}`)).data,
     enabled: !!address
   })
 
@@ -59,7 +59,7 @@ export const useTransactions = (params?: { skip?: number; limit?: number }) =>
 export const useTransaction = (txid: string) => 
   useQuery({ 
     queryKey: ['transaction', txid], 
-    queryFn: async () => (await apiClient.get(`/api/transactions/${txid}`)).data,
+    queryFn: async () => (await apiClient.get(`/api/transactions/${encodeURIComponent(txid)}`)).data,
     enabled: !!txid
   })
 
@@ -73,7 +73,7 @@ export const useIPs = (params?: { skip?: number; limit?: number }) =>
 export const useIP = (ip: string) => 
   useQuery({ 
     queryKey: ['ip', ip], 
-    queryFn: async () => (await apiClient.get(`/api/ips/${ip}`)).data,
+    queryFn: async () => (await apiClient.get(`/api/ips/${encodeURIComponent(ip)}`)).data,
     enabled: !!ip
   })
 
@@ -86,7 +86,7 @@ export const useASNs = (params?: { skip?: number; limit?: number }) =>
 export const useASN = (asn: string) => 
   useQuery({ 
     queryKey: ['asn', asn], 
-    queryFn: async () => (await apiClient.get(`/api/asns/${asn}`)).data,
+    queryFn: async () => (await apiClient.get(`/api/asns/${encodeURIComponent(asn)}`)).data,
     enabled: !!asn
   })
 
@@ -94,7 +94,7 @@ export const useASN = (asn: string) =>
 export const useGraph = (entityType: string, entityId: string, hops: number = 1) => 
   useQuery({ 
     queryKey: ['graph', entityType, entityId, hops], 
-    queryFn: async () => (await apiClient.get(`/api/graph/${entityType}/${entityId}`, { params: { hops } })).data,
+    queryFn: async () => (await apiClient.get(`/api/graph/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`, { params: { hops } })).data,
     enabled: !!entityType && !!entityId
   })
 
@@ -108,7 +108,7 @@ export const useDefaultGraphEntity = () =>
 export const useTimeline = (entityType: string, entityId: string) => 
   useQuery({ 
     queryKey: ['timeline', entityType, entityId], 
-    queryFn: async () => (await apiClient.get(`/api/timeline/${entityType}/${entityId}`)).data,
+    queryFn: async () => (await apiClient.get(`/api/timeline/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`)).data,
     enabled: !!entityType && !!entityId
   })
 

@@ -30,11 +30,13 @@ def search(db: Session, query: str, limit: int = 5) -> dict:
         wallets = list({w.address: w for w in (wallets + sub_wallets)}.values())
 
     for w in wallets:
+        total_sent = w.total_sent or 0.0
+        total_recv = w.total_received or 0.0
         results.append({
             "type": "WALLET",
             "id": w.address,
             "label": w.address,
-            "subtitle": f"TX: {w.tx_count} | Sent: {w.total_sent:.0f} | Received: {w.total_received:.0f}",
+            "subtitle": f"TX: {w.tx_count or 0} | Sent: {total_sent:.0f} | Received: {total_recv:.0f}",
             "url": f"/wallets/{w.address}",
         })
 
