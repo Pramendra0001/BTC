@@ -281,7 +281,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 - **Analytics & Charting:** Recharts (`3.10.1`)
 - **State Management & Caching:** TanStack React Query (`5.103.1`)
 - **Icons:** Lucide React (`1.47.0`)
-- **Routing:** React Router DOM (`7.13.0`)
+- **Routing:** React Router DOM (`^7.18.4`)
 
 ### Backend Architecture
 - **Framework:** FastAPI (`>=0.115.0`)
@@ -289,7 +289,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 - **Language:** Python 3.13+
 - **Database ORM:** SQLAlchemy 2.0 (`>=2.0.30`) with SQLite (local) and PostgreSQL / Neon (cloud)
 - **Data Validation:** Pydantic v2 (`>=2.7.0`) & Pydantic Settings (`>=2.3.0`)
-- **Authentication & Cryptography:** PyJWT (`>=2.8.0`), Passlib (`>=1.7.4`), Bcrypt (`>=4.0.0`)
+- **Authentication & Cryptography:** Python-Jose (`>=3.3.0`), Passlib with Bcrypt (`>=1.7.4`)
 - **XML Parsing Defense:** DefusedXML (`>=0.7.1`)
 
 ### Scientific, Graph & Machine Learning
