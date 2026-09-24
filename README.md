@@ -2,35 +2,69 @@
 
 ## AI-Powered Bitcoin Transaction Intelligence, Anomaly Detection & Risk Decision-Support Platform
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-0284c7?style=flat-square&logo=github)](https://pramendra0001.github.io/BTC/)
+[![Backend API](https://img.shields.io/badge/Backend-FastAPI%20%7C%20Render-10b981?style=flat-square&logo=fastapi)](https://btc-3jme.onrender.com)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Swagger%20UI-38bdf8?style=flat-square&logo=swagger)](https://btc-3jme.onrender.com/docs)
+[![API Health](https://img.shields.io/badge/API%20Health-Live-22c55e?style=flat-square&logo=fastapi)](https://btc-3jme.onrender.com/health)
 [![CI Pipeline](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml/badge.svg)](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml)
 [![Deploy Frontend](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml/badge.svg)](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
 [![Vite 8](https://img.shields.io/badge/Vite-8-646CFF.svg)](https://vitejs.dev)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://www.docker.com/)
 
-**BTC-SHIELD** is an enterprise-grade blockchain analytics, forensic graph intelligence, and risk decision-support platform. It correlates pseudo-anonymous on-chain Bitcoin transaction ledgers with peer-to-peer (P2P) network observation metadata (source/destination IP addresses, autonomous system numbers, geographic routing telemetry, and script semantics) to surface obfuscated flow topologies, behavioral anomalies, and money laundering syndicates.
+BTC-SHIELD is an AI-powered Bitcoin intelligence and decision-support platform for transaction risk analysis, anomaly detection, forensic graph investigation, structural heuristic analysis, and explainable blockchain intelligence.
 
-> **DECISION-SUPPORT SYSTEM DISCLAIMER**  
-> BTC-SHIELD is an investigatory intelligence and decision-support system. It computes behavioral anomaly scores, surfaces structural heuristics, correlates network telemetry, and generates structured evidentiary records. All algorithmic outputs, risk classifications, and AI-assisted summaries represent analytical risk indicators—not definitive legal proof or determinations of guilt. Every surfaced lead requires human investigator review, corroborating evidence, and formal legal due process before taking compliance or prosecutorial action.
+The platform combines on-chain transaction behavior with P2P network telemetry, machine-learning anomaly detection, graph analytics, deterministic structural heuristics, evidence generation, and case-management workflows. It is designed to help investigators and analysts move from raw blockchain data to prioritized, explainable leads without treating algorithmic risk indicators as legal conclusions.
 
----
-
-### Live Project & Access
-
-| Resource | URL | Description |
-|---|---|---|
-| **Production Web Application** | [https://pramendra0001.github.io/BTC/](https://pramendra0001.github.io/BTC/) | Single-Page Application deployed on GitHub Pages with dark command center UI |
-| **Backend REST API** | [https://btc-3jme.onrender.com](https://btc-3jme.onrender.com) | FastAPI backend deployed on Render with Python 3.13 |
-| **Interactive OpenAPI Documentation** | [https://btc-3jme.onrender.com/docs](https://btc-3jme.onrender.com/docs) | Swagger UI for interactive exploration of all 20 REST API routers |
-| **API Health Telemetry** | [https://btc-3jme.onrender.com/health](https://btc-3jme.onrender.com/health) | Live system health and operational readiness endpoint |
-| **Source Code Repository** | [https://github.com/Pramendra0001/BTC](https://github.com/Pramendra0001/BTC) | Canonical Git repository containing full-stack code, test suites, and documentation |
+> **Decision-Support Disclaimer:**  
+> BTC-SHIELD is an investigatory intelligence and decision-support system. It computes behavioral anomaly scores, surfaces structural heuristics, correlates network telemetry, and generates structured evidentiary records. Algorithmic outputs and risk classifications are analytical indicators, not definitive legal proof or determinations of guilt. Every surfaced lead requires human review, corroborating evidence, and applicable legal due process.
 
 ---
 
-## 1. Executive Summary & Problem Addressed
+## 🌐 Live Project & Access
+
+| Service | Access |
+|---|---|
+| 🚀 Live Application | [Open BTC-SHIELD](https://pramendra0001.github.io/BTC/) |
+| 💻 BTC-SHIELD Project Repository | [View Project on GitHub](https://github.com/Pramendra0001/BTC) |
+| ⚙️ Backend API | [FastAPI on Render](https://btc-3jme.onrender.com) |
+| 📚 API Documentation | [Interactive Swagger / OpenAPI Docs](https://btc-3jme.onrender.com/docs) |
+| ❤️ API Health Check | [Check API Status](https://btc-3jme.onrender.com/health) |
+| 🔄 Frontend Deployment | [GitHub Actions Deployment](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml) |
+| 🧪 CI & Verification | [GitHub Actions CI](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml) |
+
+---
+
+## 📖 Project Documentation
+
+Use the sections below as the primary navigation map for the BTC-SHIELD documentation.
+
+- 📌 [Project Overview](#1-executive-summary--problem-addressed)
+- 🎯 [Problem Addressed](#1-executive-summary--problem-addressed)
+- 🧠 [Core Capabilities](#2-core-platform-capabilities)
+- 🏗️ [System Architecture](#3-end-to-end-system-architecture)
+- ⚙️ [Core Intelligence Engines](#4-core-intelligence--analytical-engines)
+- 🔬 [Risk Scoring Methodology](#5-multi-signal-risk-scoring-methodology)
+- 🔄 [End-to-End Workflow](#6-investigation-workflow-ingestion-to-case-dossier)
+- 🧩 [Key Modules & User Workflows](#7-key-application-modules--user-workflows)
+- 📥 [Data Ingestion & Data Quality](#9-data-quality-framework--integrity-controls)
+- 🧾 [Data Sources & Provenance](#8-data-provenance--canonical-datasets)
+- 🗂️ [Official vs. Derived vs. Demo / Synthetic Data](#8-data-provenance--canonical-datasets)
+- 📊 [Data-Dependent Capabilities](#10-data-dependent-system-capabilities-matrix)
+- 💻 [Technology Stack](#11-technology-stack)
+- 🛠️ [Installation & Setup](#13-installation--local-development-guide)
+- 🔐 [Environment Configuration](#14-environment-configuration)
+- ▶️ [Running the Application](#13-installation--local-development-guide)
+- 🧪 [Testing & Verification](#15-verification--test-suite-summary)
+- 🚀 [Deployment](#16-production-deployment--cloud-architecture)
+- 🛡️ [Security & Data Handling Limitations](#17-security-architecture--threat-model)
+- 🔭 [Future Integration Possibilities](#20-future-integration-possibilities)
+
+---
+
+## 1. Project Overview & Problem Addressed
 
 Bitcoin’s public ledger provides cryptographic immutability of value transfers, yet its pseudo-anonymous architecture presents acute forensic challenges for compliance analysts, financial intelligence units, and blockchain investigators:
 
@@ -227,7 +261,7 @@ Every score modification is accompanied by a discrete `Evidence` record detailin
 
 ---
 
-## 8. Data Provenance & Canonical Datasets
+## 8. Data Sources & Provenance
 
 BTC-SHIELD maintains strict separation between synthetic evaluation data, external reference academic benchmarks, and demonstration fixtures:
 
@@ -240,9 +274,23 @@ BTC-SHIELD maintains strict separation between synthetic evaluation data, extern
 > [!NOTE]
 > All bundled transaction sets located in `data/samples/` (`btc_shield_synthetic_transactions.*` and `btc_shield_100000_*`) are synthetic research scenarios engineered to model specific financial crime topologies (peeling cascades, CoinJoin mixing, high fan-out disbursements) and evaluate system throughput. They do not contain live surveillance or classified records.
 
+
+### Official vs. Derived vs. Demo / Synthetic Data
+
+BTC-SHIELD distinguishes between source records, platform-derived intelligence, and demonstration or synthetic benchmark data:
+
+| Data Classification | Meaning |
+|---|---|
+| 🏛️ **Official / Source Data** | Records or metadata obtained from documented source datasets and public blockchain/network references where available. |
+| 🧮 **Derived Data** | Metrics calculated by BTC-SHIELD, including behavioral features, anomaly scores, cluster assignments, graph measures, heuristic matches, and evidence attributes. |
+| 🧪 **Demo Data** | Bundled records used to demonstrate application workflows and UI behavior without requiring a live external feed. |
+| 🧬 **Synthetic Benchmark Data** | Generated evaluation data used for scale, resilience, anomaly-detection, clustering, and ingestion testing; it is not presented as live network telemetry. |
+
+All data-dependent capabilities should be interpreted according to the source tier and operating mode shown by the application.
+
 ---
 
-## 9. Data Quality Framework & Integrity Controls
+## 9. Data Ingestion & Data Quality Framework
 
 All ingested data is evaluated against an 8-point automated integrity verification matrix:
 
@@ -259,7 +307,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 
 ---
 
-## 10. Data-Dependent System Capabilities Matrix
+## 10. Data-Dependent Capabilities
 
 | System Capability | Baseline / Offline Fixtures | Synthetic 100k Benchmark | Real-World Network Feeds (Future) |
 |---|:---:|:---:|:---:|
@@ -366,7 +414,7 @@ BTC/
 
 ---
 
-## 13. Installation & Local Development Guide
+## 13. Installation, Setup & Running the Application
 
 ### Prerequisites
 - Python 3.13+
@@ -504,7 +552,7 @@ docker-compose up -d --build
 
 ---
 
-## 17. Security Architecture & Threat Model
+## 17. Security Architecture & Data Handling Limitations
 
 | Threat / Risk Vector | Mitigating Architectural Control | Enforcement Mechanism |
 |---|---|---|
