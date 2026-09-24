@@ -1,12 +1,23 @@
 import axios from 'axios'
 
+const getBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:8000';
+  }
+  return import.meta.env.PROD ? 'https://btc-3jme.onrender.com' : 'http://localhost:8000';
+};
+
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://btc-3jme.onrender.com' : 'http://localhost:8000'),
+  baseURL: getBaseUrl(),
   timeout: 25000, // 25s bounded timeout to prevent infinite hanging
   headers: {
     'Content-Type': 'application/json',
   },
 })
+
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')

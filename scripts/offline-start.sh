@@ -42,9 +42,15 @@ mkdir -p offline/datasets offline/geoip offline/models offline/data
 
 echo "[✓] Offline directories verified."
 
+BUILD_FLAG=""
+if [ "${1:-}" = "--build" ] || [ "${1:-}" = "-b" ]; then
+    BUILD_FLAG="--build"
+    echo "[i] Build flag specified: building images before launch..."
+fi
+
 # 4. Start Containers
 echo "[+] Step 3: Launching offline container stack..."
-${DOCKER_COMPOSE_CMD} -f docker-compose.offline.yml up -d --build
+${DOCKER_COMPOSE_CMD} -f docker-compose.offline.yml up -d ${BUILD_FLAG}
 
 echo "[+] Step 4: Awaiting backend API health probe..."
 HEALTH_URL="http://localhost:8000/health"
@@ -71,6 +77,16 @@ if [ "${READY}" = "false" ]; then
 else
     echo "[✓] Backend API is healthy!"
 fi
+
+echo "[+] Step 5: Verifying frontend application server..."
+FRONTEND_URL="http://localhost:3000"
+if command -v curl >/dev/null 2>&1; then
+    FRONTEND_CODE=$(curl -s -o /dev/null -w "%{http_code}" "${FRONTEND_URL}" || echo "000")
+    if [ "${FRONTEND_CODE}" = "200" ]; then
+        echo "[✓] Frontend application server is healthy (HTTP 200)!"
+    fi
+fi
+
 
 echo ""
 echo "================================================================================"
