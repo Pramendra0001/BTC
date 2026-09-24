@@ -64,20 +64,25 @@ Use the sections below as the primary navigation map for the BTC-SHIELD document
 
 ---
 
-## 1. Project Overview & Problem Addressed
+## 1. Project Overview
 
-Bitcoin’s public ledger provides cryptographic immutability of value transfers, yet its pseudo-anonymous architecture presents acute forensic challenges for compliance analysts, financial intelligence units, and blockchain investigators:
+BTC-SHIELD is an AI-powered Bitcoin intelligence and decision-support platform for transaction risk analysis, anomaly detection, forensic graph investigation, structural heuristic analysis, and explainable blockchain intelligence.
 
-1. **Transaction Obfuscation:** Illicit operators systematically disperse funds through recursive peeling chains, high-entropy CoinJoin mixing syndicates, and rapid multi-hop fan-out/fan-in consolidation patterns designed to defeat naive address clustering.
-2. **Network/Ledger Disconnection:** On-chain ledger analysis typically operates in total isolation from off-chain P2P network telemetry, leaving investigators blind to geographic hopping, autonomous system concentration, and IP-to-wallet correlations.
-3. **Quadratic Scaling Bottlenecks:** Naive distance-matrix clustering algorithms (such as unconstrained DBSCAN) suffer $O(N^2)$ memory amplification, triggering out-of-memory crashes on realistic forensic cohorts exceeding 10,000 entities.
-4. **Evidentiary Opacity:** Traditional blockchain risk tools often report opaque, unexplainable "black-box" risk percentages that fail courtroom and regulatory standards for auditability, chain of custody, and explainability.
+The platform combines on-chain transaction behavior with P2P network telemetry, machine-learning anomaly detection, graph analytics, deterministic structural heuristics, evidence generation, and case-management workflows. It is designed to help investigators and analysts move from raw blockchain data to prioritized, explainable leads without treating algorithmic risk indicators as legal conclusions.
 
-BTC-SHIELD solves these systemic challenges by unifying **on-chain behavioral graph extraction** with **off-chain P2P network telemetry**, applying **calibrated unsupervised anomaly detection**, enforcing **memory-bounded cohort clustering**, and generating **deterministic, tamper-evident case dossiers** with reproducible mathematical reasoning.
+## 2. Problem Addressed
 
----
+Bitcoin's public ledger provides transparent and immutable transaction records, but its pseudo-anonymous structure creates significant challenges for forensic analysis and financial-risk investigation:
 
-## 2. Core Platform Capabilities
+1. **Transaction Obfuscation:** Recursive peeling chains, mixing activity, rapid fan-out/fan-in flows, and multi-hop transfers can make suspicious movement difficult to trace.
+2. **Network/Ledger Disconnection:** On-chain analysis can lack complementary P2P network context such as source IPs, ASNs, and geographic routing metadata.
+3. **Scaling Constraints:** Naive graph and clustering approaches can create excessive memory requirements as transaction and entity cohorts grow.
+4. **Evidentiary Opacity:** Black-box risk scores can be difficult to audit, reproduce, and explain to investigators or compliance reviewers.
+5. **Investigation Workflow Fragmentation:** Analysts need connected workflows that move from ingestion and data-quality checks through detection, evidence review, alert prioritization, and case documentation.
+
+BTC-SHIELD addresses these challenges through streaming ingestion, behavioral feature engineering, unsupervised anomaly detection, memory-bounded clustering, graph intelligence, deterministic structural heuristics, explainable evidence generation, and structured investigation workflows.
+
+## 3. Core Platform Capabilities
 
 - **Streaming Multi-Format Ingestion:** High-throughput streaming parser for CSV, JSON, and XML ledger/telemetry files with defensive Pydantic validation, schema isolation of malformed records, and duplicate transaction handling.
 - **23-Dimensional Behavioral Feature Engineering:** Continuous mathematical profiling covering transaction velocity, burstiness, inter-arrival intervals, value concentration, Shannon entropy of counterparty addresses, and network ASN distribution.
@@ -91,7 +96,7 @@ BTC-SHIELD solves these systemic challenges by unifying **on-chain behavioral gr
 
 ---
 
-## 3. End-to-End System Architecture
+## 4. End-to-End System Architecture
 
 ```text
 ===================================================================================================
@@ -158,7 +163,7 @@ BTC-SHIELD solves these systemic challenges by unifying **on-chain behavioral gr
 
 ---
 
-## 4. Core Intelligence & Analytical Engines
+## 5. Core Intelligence & Analytical Engines
 
 | # | Intelligence Engine | Implementation Module | Core Algorithm / Methodology | Primary Output / Artifact |
 |---|---|---|---|---|
@@ -170,7 +175,7 @@ BTC-SHIELD solves these systemic challenges by unifying **on-chain behavioral gr
 
 ---
 
-## 5. Multi-Signal Risk Scoring Methodology
+## 6. Multi-Signal Risk Scoring Methodology
 
 BTC-SHIELD computes composite risk through a deterministic, explainable multi-signal fusion pipeline:
 
@@ -201,7 +206,7 @@ Every score modification is accompanied by a discrete `Evidence` record detailin
 
 ---
 
-## 6. Investigation Workflow: Ingestion to Case Dossier
+## 7. Investigation Workflow: Ingestion to Case Dossier
 
 ```text
   [ Step 1: Ingestion ]       User uploads raw CSV, JSON, or XML transaction and telemetry files.
@@ -230,7 +235,7 @@ Every score modification is accompanied by a discrete `Evidence` record detailin
 
 ---
 
-## 7. Key Application Modules & User Workflows
+## 8. Key Application Modules & User Workflows
 
 ### 7.1 Command Center Dashboard (`/`)
 - Real-time aggregate statistics: Total Monitored Wallets, Ingested Transactions, Active Alerts, System Risk State, and Data Quality Index.
@@ -261,7 +266,7 @@ Every score modification is accompanied by a discrete `Evidence` record detailin
 
 ---
 
-## 8. Data Sources & Provenance
+## 9. Data Sources & Provenance
 
 BTC-SHIELD maintains strict separation between synthetic evaluation data, external reference academic benchmarks, and demonstration fixtures:
 
@@ -290,7 +295,7 @@ All data-dependent capabilities should be interpreted according to the source ti
 
 ---
 
-## 9. Data Ingestion & Data Quality Framework
+## 10. Data Ingestion & Data Quality Framework
 
 All ingested data is evaluated against an 8-point automated integrity verification matrix:
 
@@ -307,7 +312,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 
 ---
 
-## 10. Data-Dependent Capabilities
+## 11. Data-Dependent Capabilities
 
 | System Capability | Baseline / Offline Fixtures | Synthetic 100k Benchmark | Real-World Network Feeds (Future) |
 |---|:---:|:---:|:---:|
@@ -321,7 +326,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 
 ---
 
-## 11. Technology Stack
+## 12. Technology Stack
 
 ### Frontend Architecture
 - **Framework:** React 19 (`19.2.8`)
@@ -351,7 +356,7 @@ All ingested data is evaluated against an 8-point automated integrity verificati
 
 ---
 
-## 12. Repository Structure
+## 13. Repository Structure
 
 ```text
 BTC/
@@ -414,7 +419,7 @@ BTC/
 
 ---
 
-## 13. Installation, Setup & Running the Application
+## 14. Installation, Setup & Running the Application
 
 ### Prerequisites
 - Python 3.13+
@@ -468,7 +473,7 @@ The frontend is now accessible at `http://localhost:5173`.
 
 ---
 
-## 14. Environment Configuration
+## 15. Environment Configuration
 
 All settings are managed via environment variables and validated at runtime using Pydantic Settings (`backend/app/core/config.py`):
 
@@ -492,7 +497,7 @@ All settings are managed via environment variables and validated at runtime usin
 
 ---
 
-## 15. Verification & Test Suite Summary
+## 16. Verification & Test Suite Summary
 
 The repository enforces end-to-end verification through automated tests covering backend API contracts, heuristics, graph math, machine learning pipelines, and frontend client states:
 
@@ -531,7 +536,7 @@ Test Suites:
 
 ---
 
-## 16. Production Deployment & Cloud Architecture
+## 17. Production Deployment & Cloud Architecture
 
 ### Frontend Deployment (GitHub Pages)
 - Deployed as a static Single-Page Application (SPA) using GitHub Actions (`.github/workflows/deploy-frontend.yml`).
@@ -552,7 +557,7 @@ docker-compose up -d --build
 
 ---
 
-## 17. Security Architecture & Data Handling Limitations
+## 18. Security Architecture & Data Handling Limitations
 
 | Threat / Risk Vector | Mitigating Architectural Control | Enforcement Mechanism |
 |---|---|---|
@@ -567,7 +572,7 @@ docker-compose up -d --build
 
 ---
 
-## 18. Known Limitations & Edge Cases
+## 19. Known Limitations & Edge Cases
 
 1. **Synthetic Telemetry Boundaries:** The 100k evaluation dataset utilizes documentation-only IP ranges (`TEST-NET`) and simulated ASN identifiers. Network telemetry reflects synthetic benchmark scenarios rather than live operational ISP logs.
 2. **Cold-Start Latency on Render Free Tier:** The live demonstration backend on Render enters sleep mode after periods of inactivity; initial API requests may experience a 30-50 second cold-start delay while the container spins up.
@@ -576,7 +581,7 @@ docker-compose up -d --build
 
 ---
 
-## 19. Frequently Asked Questions (FAQ)
+## 20. Frequently Asked Questions (FAQ)
 
 #### Q1: Does BTC-SHIELD determine legal guilt or illicit culpability?
 **No.** BTC-SHIELD is an investigatory decision-support system. It computes behavioral anomaly scores, surfaces structural heuristics, and identifies statistical outliers. All outputs represent analytical risk indicators that require human investigator validation.
@@ -592,7 +597,7 @@ The analytical summary assistant uses deterministic rule-based synthesis derived
 
 ---
 
-## 20. Future Integration Possibilities
+## 21. Future Integration Possibilities
 
 - **Live Bitcoin Core Node Integration:** Direct RPC / ZeroMQ connection to Bitcoin Core full nodes for block-by-block streaming ingestion of live mempool and confirmed transactions.
 - **Hardware-Security-Module (HSM) Signing:** Cryptographic signing of exported forensic dossiers using PKCS#11 hardware security modules for tamper-evident chain of custody.
