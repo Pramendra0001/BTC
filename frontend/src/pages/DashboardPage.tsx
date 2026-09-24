@@ -229,12 +229,15 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {data.recentAlerts.map((alert: any) => {
+                    {(data.recentAlerts || []).map((alert: any) => {
                       const pColor = getPriorityColor(alert.priority);
                       const sColor = getStatusColor(alert.status);
+                      const aScore = typeof alert.anomaly_score === 'number' 
+                        ? alert.anomaly_score 
+                        : parseFloat(String(alert.anomaly_score || 0)) || 0;
                       const scoreBarColor = 
-                        alert.anomaly_score >= 75 ? 'bg-rose-500' :
-                        alert.anomaly_score >= 50 ? 'bg-amber-500' : 'bg-blue-500';
+                        aScore >= 75 ? 'bg-rose-500' :
+                        aScore >= 50 ? 'bg-amber-500' : 'bg-blue-500';
 
                       return (
                         <tr key={alert.id} className="hover:bg-slate-850/50 transition-colors">
@@ -254,11 +257,11 @@ export default function DashboardPage() {
                               <div className="w-16 bg-slate-800 h-1.5 rounded overflow-hidden">
                                 <div 
                                   className={`h-full ${scoreBarColor}`} 
-                                  style={{ width: `${Math.min(alert.anomaly_score, 100)}%` }}
+                                  style={{ width: `${Math.min(aScore, 100)}%` }}
                                 />
                               </div>
                               <span className="font-mono text-[11px] text-slate-300">
-                                {alert.anomaly_score.toFixed(1)}
+                                {aScore.toFixed(1)}
                               </span>
                             </div>
                           </td>
@@ -268,12 +271,22 @@ export default function DashboardPage() {
                             </span>
                           </td>
                           <td className="py-2.5 px-3.5 text-right">
-                            <Link
-                              to={`/alerts/${alert.id}`}
-                              className="inline-flex items-center gap-1 text-[11px] font-mono text-blue-500 hover:text-blue-400 transition-colors"
-                            >
-                              Investigate <ChevronRight size={12} />
-                            </Link>
+                            <div className="flex items-center justify-end gap-2.5">
+                              <Link
+                                to={`/graph?entityType=${alert.entity_type || 'WALLET'}&entityId=${encodeURIComponent(alert.entity_id || '')}`}
+                                className="inline-flex items-center gap-1 text-[11px] font-mono text-cyan-400 hover:text-cyan-300 transition-colors"
+                                title="Investigate in Graph"
+                              >
+                                <Network size={12} /> Investigate
+                              </Link>
+                              <Link
+                                to={`/alerts/${alert.id}`}
+                                className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-400 hover:text-slate-200 transition-colors"
+                                title="View Alert Details"
+                              >
+                                Details <ChevronRight size={12} />
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );

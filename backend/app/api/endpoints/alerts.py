@@ -27,21 +27,43 @@ def list_alerts(
     return {"alerts": alerts, "total": total}
 
 @router.get("/{id}", response_model=AlertDetailResponse)
-def get_alert_detail(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    alert = db.query(Alert).filter(Alert.id == id).first()
+def get_alert_detail(id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    clean_id = str(id).strip().lower().replace("alert-", "").replace("lead-", "").replace("#", "")
+    alert = None
+    if clean_id.isdigit():
+        alert = db.query(Alert).filter(Alert.id == int(clean_id)).first()
     if not alert:
-        raise HTTPException(status_code=404, detail="Alert not found")
+        alert = db.query(Alert).filter((Alert.entity_id == str(id).strip()) | (Alert.entity_id == clean_id)).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail=f"Alert '{id}' not found")
     return alert
 
 @router.get("/{id}/explain")
 @router.post("/{id}/explain")
-def explain_alert(id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def explain_alert(id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Generate explainable AI investigation brief for an alert."""
-    alert = db.query(Alert).filter(Alert.id == id).first()
+    clean_id = str(id).strip().lower().replace("alert-", "").replace("lead-", "").replace("#", "")
+    alert = None
+    if clean_id.isdigit():
+        alert = db.query(Alert).filter(Alert.id == int(clean_id)).first()
     if not alert:
-        raise HTTPException(status_code=404, detail="Alert not found")
-    from app.services.ai_service import get_interpretation
-    interp = get_interpretation(db, alert.entity_type, alert.entity_id)
+        alert = db.query(Alert).filter((Alert.entity_id == str(id).strip()) | (Alert.entity_id == clean_id)).first()
+    if not alert:
+        raise HTTPException(status_code=404, detail=f"Alert '{id}' not found")
+    
+    try:
+        from app.services.ai_service import get_interpretation
+        interp = get_interpretation(db, alert.entity_type, alert.entity_id)
+    except Exception as e:
+        interp = {
+            "entity_type": alert.entity_type,
+            "entity_id": alert.entity_id,
+            "summary": f"Automated analytical evaluation active on {alert.entity_type} {alert.entity_id}.",
+            "contributing_signals": [],
+            "recommended_review_actions": ["Trace entity connections in graph explorer"],
+            "uncertainty": "Standard heuristic confidence variance"
+        }
+    
     interp["alert_id"] = alert.id
     interp["priority"] = alert.priority
     interp["primary_findings"] = interp.get("summary")

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AppLayout from './layouts/AppLayout'
 import { ThemeProvider } from './context/ThemeContext'
@@ -30,6 +30,7 @@ const AuditLogsPage = lazy(() => import('./pages/AuditLogsPage'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,8 @@ function App() {
               <Route path="ips/:ip" element={<IPDetailPage />} />
               <Route path="asns/:asn" element={<ASNDetailPage />} />
               <Route path="graph" element={<GraphPage />} />
+              <Route path="investigate" element={<Navigate to="/graph" replace />} />
+              <Route path="investigations" element={<Navigate to="/cases" replace />} />
               <Route path="timeline" element={<TimelinePage />} />
               <Route path="evidence" element={<EvidencePage />} />
               <Route path="cases" element={<CasesPage />} />
@@ -81,6 +84,7 @@ function App() {
               <Route path="search" element={<SearchResultsPage />} />
               <Route path="terms" element={<TermsPage />} />
               <Route path="privacy" element={<PrivacyPage />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>
         </BrowserRouter>

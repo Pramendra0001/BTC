@@ -126,21 +126,22 @@ class ASNEntityResponse(BaseModel):
 
 class AlertResponse(BaseModel):
     id: int
-    entity_type: str
-    entity_id: str
-    priority: str
-    anomaly_score: float
+    entity_type: Optional[str] = "WALLET"
+    entity_id: Optional[str] = ""
+    priority: Optional[str] = "MEDIUM"
+    anomaly_score: Optional[float] = 0.0
     confidence: Optional[float] = 0.0
-    status: str
-    review_state: str
+    status: Optional[str] = "NEW"
+    review_state: Optional[str] = "UNREVIEWED"
+    model_version: Optional[str] = "IF-2.0"
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     class Config:
         from_attributes = True
 
 class AlertDetailResponse(AlertResponse):
-    contributing_signals: Optional[Union[Dict[str, Any], List[Any]]] = None
-    evidence_ids: Optional[List[int]] = None
+    contributing_signals: Optional[Union[Dict[str, Any], List[Any], str]] = None
+    evidence_ids: Optional[Union[List[Any], Dict[str, Any], str]] = None
 
 class AlertListResponse(BaseModel):
     alerts: List[AlertResponse]

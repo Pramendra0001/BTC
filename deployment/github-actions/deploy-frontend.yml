@@ -38,8 +38,13 @@ jobs:
       - name: Build
         working-directory: ./frontend
         env:
-          VITE_API_BASE_URL: https://api.btc-shield.example.com
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'https://btc-3jme.onrender.com' }}
+          VITE_BASE_PATH: '/BTC/'
         run: npm run build
+      
+      - name: Setup SPA 404 Fallback for GitHub Pages
+        run: |
+          cp ./frontend/dist/index.html ./frontend/dist/404.html
       
       - name: Setup Pages
         uses: actions/configure-pages@v4

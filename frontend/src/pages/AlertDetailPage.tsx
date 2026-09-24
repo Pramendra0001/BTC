@@ -5,26 +5,33 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { 
   Network, ExternalLink, CheckCircle2, 
-  HelpCircle, ArrowLeft, ArrowUpRight, Copy, Check, Briefcase
+  HelpCircle, ArrowLeft, ArrowUpRight, Copy, Check, Briefcase, AlertCircle
 } from 'lucide-react';
 import { getPriorityColor, getStatusColor, truncateAddress, formatDate } from '../utils/format';
 
 export default function AlertDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const { id: rawId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [caseModalOpen, setCaseModalOpen] = useState(false);
   const [caseTitle, setCaseTitle] = useState('');
   const [caseDescription, setCaseDescription] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const { data: alert, isLoading, error, refetch } = useAlert(id || '');
-  const { data: explainData, isLoading: isExplainLoading } = useAlertExplain(id || '');
+  // Clean identifier to handle raw IDs, prefixed IDs (#1, alert-1, lead-1)
+  const cleanId = (rawId || '')
+    .trim()
+    .replace(/^alert[-_]/i, '')
+    .replace(/^lead[-_]/i, '')
+    .replace(/^#/, '');
+
+  const { data: alert, isLoading, error, refetch } = useAlert(cleanId);
+  const { data: explainData, isLoading: isExplainLoading } = useAlertExplain(cleanId);
   const { data: evidenceData } = useEvidenceList();
   const createCaseMutation = useCreateCase();
 
   if (isLoading) {
     return (
-      <div className="space-y-5 max-w-6xl mx-auto">
+      <div className="space-y-5 max-w-6xl mx-auto p-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-10 w-96" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -38,24 +45,106 @@ export default function AlertDetailPage() {
   }
 
   if (error || !alert) {
-    return <ErrorState message="Failed to load alert details from intelligence backend." onRetry={() => refetch()} />;
+    return (
+      <div className="space-y-6 max-w-4xl mx-auto p-4">
+        <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+          <Link to="/alerts" className="hover:text-slate-200 flex items-center gap-1 transition-colors">
+            <ArrowLeft size={12} /> ALERTS QUEUE
+          </Link>
+          <span>/</span>
+          <span className="text-slate-400">LEAD #{cleanId || 'UNKNOWN'}</span>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-8 flex flex-col items-center justify-center text-center">
+          <div className="p-3 rounded-full bg-amber-500/10 text-amber-400 mb-3 border border-amber-500/20">
+            <AlertCircle size={24} />
+          </div>
+          <h2 className="text-base font-mono font-bold text-white mb-1">
+            Alert Record Not Located
+          </h2>
+          <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+            Alert lead #{cleanId || rawId} does not match an existing alert in the platform database. It may have been resolved, archived, or purged.
+          </p>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-xs font-mono text-slate-200 rounded transition cursor-pointer"
+            >
+              Retry Lookup
+            </button>
+            <Link
+              to="/alerts"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-medium rounded transition"
+            >
+              <ArrowLeft size={13} /> Return to Alerts Queue
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const pColor = getPriorityColor(alert.priority);
-  const sColor = getStatusColor(alert.status);
+  // Safe normalized fields to guard against null/undefined values
+  const priority = alert.priority || 'MEDIUM';
+  const status = alert.status || 'NEW';
+  const entityType = alert.entity_type || 'WALLET';
+  const entityId = alert.entity_id || '';
+  const anomalyScore = typeof alert.anomaly_score === 'number' 
+    ? alert.anomaly_score 
+    : parseFloat(String(alert.anomaly_score || 0)) || 0;
+  const confidence = typeof alert.confidence === 'number' 
+    ? alert.confidence 
+    : parseFloat(String(alert.confidence || 0)) || 0;
+  const modelVersion = alert.model_version || 'IF-2.0';
 
-  const entityUrl = alert.entity_type === 'WALLET'
-    ? `/wallets/${alert.entity_id}`
-    : alert.entity_type === 'IP'
-    ? `/ips/${alert.entity_id}`
-    : `/transactions/${alert.entity_id}`;
+  const pColor = getPriorityColor(priority);
+  const sColor = getStatusColor(status);
 
-  const relatedEvidence = (evidenceData?.items || evidenceData || []).filter(
-    (e: any) => e.alert_id === alert.id || e.entity_id === alert.entity_id
+  const entityUrl = entityType === 'WALLET'
+    ? `/wallets/${encodeURIComponent(entityId)}`
+    : entityType === 'IP'
+    ? `/ips/${encodeURIComponent(entityId)}`
+    : `/transactions/${encodeURIComponent(entityId)}`;
+
+  // Safe array extraction for evidence
+  const rawEvidenceList: any[] = Array.isArray(evidenceData)
+    ? evidenceData
+    : Array.isArray(evidenceData?.items)
+    ? evidenceData.items
+    : [];
+
+  const relatedEvidence = rawEvidenceList.filter(
+    (e: any) => e && (
+      (e.alert_id && String(e.alert_id) === String(alert.id)) || 
+      (e.entity_id && String(e.entity_id) === String(entityId))
+    )
   );
 
+  // Safe normalized arrays for Explainability
+  const contributingSignals: any[] = Array.isArray(explainData?.contributing_signals)
+    ? explainData.contributing_signals
+    : Array.isArray(explainData?.contributing_factors)
+    ? explainData.contributing_factors
+    : Array.isArray(alert.contributing_signals)
+    ? alert.contributing_signals
+    : typeof alert.contributing_signals === 'object' && alert.contributing_signals !== null
+    ? Object.entries(alert.contributing_signals).map(([k, v]) => `${k}: ${v}`)
+    : [];
+
+  const recommendedActions: any[] = Array.isArray(explainData?.recommended_actions)
+    ? explainData.recommended_actions
+    : Array.isArray(explainData?.recommended_review_actions)
+    ? explainData.recommended_review_actions
+    : [
+        `Trace counterparty interaction flows for ${entityType} ${truncateAddress(entityId)}`,
+        'Correlate timestamp patterns with known suspicious temporal clusters',
+        'Verify behavioral entropy against cluster baselines'
+      ];
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(alert.entity_id);
+    if (!entityId) return;
+    navigator.clipboard.writeText(entityId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -65,8 +154,8 @@ export default function AlertDetailPage() {
     try {
       const res = await createCaseMutation.mutateAsync({
         title: caseTitle,
-        description: caseDescription || `Investigation promoted from Alert #${alert.id} (${alert.priority} priority on ${alert.entity_type} ${alert.entity_id})`,
-        priority: alert.priority,
+        description: caseDescription || `Investigation promoted from Alert #${alert.id} (${priority} priority on ${entityType} ${entityId})`,
+        priority: priority,
         alert_id: alert.id,
       });
       setCaseModalOpen(false);
@@ -77,8 +166,8 @@ export default function AlertDetailPage() {
   };
 
   const scoreBarColor = 
-    alert.anomaly_score >= 75 ? 'bg-rose-500' :
-    alert.anomaly_score >= 50 ? 'bg-amber-500' : 'bg-blue-500';
+    anomalyScore >= 75 ? 'bg-rose-500' :
+    anomalyScore >= 50 ? 'bg-amber-500' : 'bg-blue-500';
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -92,51 +181,53 @@ export default function AlertDetailPage() {
       </div>
 
       {/* Main Alert Banner */}
-      <div className="bg-slate-900 border border-slate-800 rounded p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 rounded p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
             <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Alert Lead #{alert.id}</span>
             <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-mono font-bold ${pColor.bg} ${pColor.text} border ${pColor.border}`}>
-              {alert.priority}
+              {priority}
             </span>
             <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-mono ${sColor.bg} ${sColor.text} border ${sColor.border}`}>
-              {alert.status}
+              {status}
             </span>
             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-850 text-slate-400 border border-slate-750">
-              {alert.entity_type}
+              {entityType}
             </span>
           </div>
 
           <div className="flex items-center gap-2 mt-1">
             <h1 className="text-base sm:text-lg font-mono font-bold text-white break-all">
-              {alert.entity_id}
+              {entityId || 'Unspecified Entity'}
             </h1>
-            <button
-              onClick={handleCopy}
-              className="p-1 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800 transition-colors"
-              title="Copy identifier"
-              aria-label="Copy identifier"
-            >
-              {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            </button>
+            {entityId && (
+              <button
+                onClick={handleCopy}
+                className="p-1 text-slate-400 hover:text-slate-200 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Copy identifier"
+                aria-label="Copy identifier"
+              >
+                {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+              </button>
+            )}
           </div>
 
           <div className="text-[11px] text-slate-400 mt-1 font-mono">
-            Triggered {formatDate(alert.created_at)} • Model: <span className="text-slate-300">{alert.model_version || 'IF-2.0'}</span>
+            Triggered {formatDate(alert.created_at)} • Model: <span className="text-slate-300">{modelVersion}</span>
           </div>
         </div>
 
         {/* Primary Action Buttons */}
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            to={`/graph?entityType=${alert.entity_type}&entityId=${encodeURIComponent(alert.entity_id)}`}
+            to={`/graph?entityType=${entityType}&entityId=${encodeURIComponent(entityId)}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-200 text-xs font-mono font-medium rounded border border-slate-750 transition-colors"
           >
-            <Network size={13} className="text-blue-400" /> Graph Traversal
+            <Network size={13} className="text-cyan-400" /> Graph Traversal
           </Link>
           <button
             onClick={() => {
-              setCaseTitle(`Investigate ${alert.entity_type} ${truncateAddress(alert.entity_id)}`);
+              setCaseTitle(`Investigate ${entityType} ${truncateAddress(entityId)}`);
               setCaseModalOpen(true);
             }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded transition shadow-xs cursor-pointer"
@@ -152,14 +243,14 @@ export default function AlertDetailPage() {
           <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Anomaly Dispersion Score</div>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-bold font-mono text-white">
-              {alert.anomaly_score.toFixed(1)}
+              {anomalyScore.toFixed(1)}
             </span>
             <span className="text-xs font-mono text-slate-500">/ 100</span>
           </div>
           <div className="w-full bg-slate-800 h-1.5 rounded overflow-hidden mt-3">
             <div 
               className={`h-full ${scoreBarColor}`} 
-              style={{ width: `${Math.min(alert.anomaly_score, 100)}%` }}
+              style={{ width: `${Math.min(anomalyScore, 100)}%` }}
             />
           </div>
           <div className="text-[10px] text-slate-500 font-mono mt-2">
@@ -171,16 +262,16 @@ export default function AlertDetailPage() {
           <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Evidence Sufficiency</div>
           <div className="flex items-baseline gap-2 mt-1">
             <span className="text-2xl font-bold font-mono text-white">
-              {Math.round((alert.confidence || 0) * 100)}%
+              {Math.round(confidence * 100)}%
             </span>
             <span className="text-xs font-mono text-emerald-400">
-              {alert.confidence > 0.7 ? 'High Sufficiency' : 'Moderate'}
+              {confidence > 0.7 ? 'High Sufficiency' : 'Moderate'}
             </span>
           </div>
           <div className="w-full bg-slate-800 h-1.5 rounded overflow-hidden mt-3">
             <div 
               className="h-full bg-emerald-500" 
-              style={{ width: `${Math.min((alert.confidence || 0) * 100, 100)}%` }}
+              style={{ width: `${Math.min(confidence * 100, 100)}%` }}
             />
           </div>
           <div className="text-[10px] text-slate-500 font-mono mt-2">
@@ -192,11 +283,11 @@ export default function AlertDetailPage() {
           <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400">Entity Dossier Target</div>
           <div className="mt-1.5">
             <Link to={entityUrl} className="text-xs font-mono text-blue-400 hover:underline inline-flex items-center gap-1">
-              {truncateAddress(alert.entity_id, 12, 10)}
+              {truncateAddress(entityId, 12, 10)}
               <ArrowUpRight size={12} />
             </Link>
             <div className="text-[11px] text-slate-400 mt-1">
-              Category: <span className="font-mono text-slate-300">{alert.entity_type}</span>
+              Category: <span className="font-mono text-slate-300">{entityType}</span>
             </div>
           </div>
         </div>
@@ -225,20 +316,22 @@ export default function AlertDetailPage() {
           <div className="space-y-4 text-xs">
             {/* Primary Finding Summary */}
             <div className="bg-slate-850 p-3.5 rounded border border-slate-800 text-slate-200 leading-relaxed font-mono text-[11px]">
-              {explainData?.primary_findings || explainData?.summary || "Behavioral anomaly evaluation active on entity telemetry vector."}
+              {explainData?.primary_findings || explainData?.summary || `Behavioral anomaly evaluation active on ${entityType} ${truncateAddress(entityId)}.`}
             </div>
 
             {/* Contributing Signals & Features */}
-            {explainData?.contributing_signals && explainData.contributing_signals.length > 0 && (
+            {contributingSignals.length > 0 && (
               <div className="space-y-2">
                 <h3 className="text-[11px] font-mono uppercase tracking-wider text-slate-300">
                   Primary Contributing Features & Signals
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {explainData.contributing_signals.map((sig: string, idx: number) => (
+                  {contributingSignals.map((sig: any, idx: number) => (
                     <div key={idx} className="p-2.5 bg-slate-850 rounded border border-slate-800 text-slate-300 flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
-                      <span className="text-[11px] font-mono leading-relaxed">{sig}</span>
+                      <span className="text-[11px] font-mono leading-relaxed">
+                        {typeof sig === 'string' ? sig : JSON.stringify(sig)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -246,16 +339,18 @@ export default function AlertDetailPage() {
             )}
 
             {/* Recommended Review Actions */}
-            {explainData?.recommended_actions && explainData.recommended_actions.length > 0 && (
+            {recommendedActions.length > 0 && (
               <div className="space-y-2 pt-2">
                 <h3 className="text-[11px] font-mono uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
                   <CheckCircle2 size={13} className="text-emerald-500" /> Recommended Verification Actions
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {explainData.recommended_actions.map((act: string, idx: number) => (
+                  {recommendedActions.map((act: any, idx: number) => (
                     <div key={idx} className="p-2.5 bg-slate-850 rounded border border-slate-800 text-slate-300 flex items-start gap-2">
                       <span className="text-slate-500 font-mono text-[10px] mt-0.5">{idx + 1}.</span>
-                      <span className="text-[11px] leading-relaxed">{act}</span>
+                      <span className="text-[11px] leading-relaxed">
+                        {typeof act === 'string' ? act : JSON.stringify(act)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -266,7 +361,7 @@ export default function AlertDetailPage() {
             {explainData?.uncertainty_caveats && (
               <div className="p-2.5 bg-slate-850/60 rounded border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
                 <HelpCircle size={13} className="text-slate-500 shrink-0" />
-                <span>Assessment Caveat: {explainData.uncertainty_caveats}</span>
+                <span>Assessment Caveat: {String(explainData.uncertainty_caveats)}</span>
               </div>
             )}
           </div>
@@ -289,7 +384,9 @@ export default function AlertDetailPage() {
             {relatedEvidence.slice(0, 5).map((ev: any) => (
               <div key={ev.id} className="py-2.5 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-mono text-slate-300 text-[11px]">{ev.description}</div>
+                  <div className="font-mono text-slate-300 text-[11px]">
+                    {ev.observation || ev.description || 'Forensic signal observation'}
+                  </div>
                   <div className="text-[10px] font-mono text-slate-500 mt-0.5">
                     Hash: {ev.evidence_hash ? truncateAddress(ev.evidence_hash, 16, 12) : 'Unchained'}
                   </div>
@@ -347,7 +444,7 @@ export default function AlertDetailPage() {
               <button
                 type="button"
                 onClick={() => setCaseModalOpen(false)}
-                className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-300 text-xs font-mono rounded border border-slate-750 transition"
+                className="px-3 py-1.5 bg-slate-850 hover:bg-slate-800 text-slate-300 text-xs font-mono rounded border border-slate-750 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -355,7 +452,7 @@ export default function AlertDetailPage() {
                 type="button"
                 onClick={handleCreateCase}
                 disabled={!caseTitle || createCaseMutation.isPending}
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded transition"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-medium rounded transition cursor-pointer"
               >
                 {createCaseMutation.isPending ? 'Creating...' : 'Confirm Case Promotion'}
               </button>

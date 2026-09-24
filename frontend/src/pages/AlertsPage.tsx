@@ -5,7 +5,7 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { ErrorState } from '../components/ui/ErrorState';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Link } from 'react-router-dom';
-import { AlertCircle, Filter, ChevronRight, ShieldAlert, Search, ExternalLink } from 'lucide-react';
+import { AlertCircle, Filter, ChevronRight, ShieldAlert, Search, ExternalLink, Network } from 'lucide-react';
 import { getPriorityColor, getStatusColor, truncateAddress, formatDate } from '../utils/format';
 
 export default function AlertsPage() {
@@ -157,6 +157,9 @@ export default function AlertsPage() {
                     : alert.entity_type === 'IP'
                     ? `/ips/${alert.entity_id}`
                     : `/transactions/${alert.entity_id}`;
+                  const aScore = typeof alert.anomaly_score === 'number'
+                    ? alert.anomaly_score
+                    : parseFloat(String(alert.anomaly_score || 0)) || 0;
 
                   return (
                     <tr key={alert.id} className="hover:bg-slate-800/40 transition-colors">
@@ -182,23 +185,29 @@ export default function AlertsPage() {
                           <div className="w-16 bg-slate-800 h-2 rounded-full overflow-hidden">
                             <div 
                               className={`h-full ${
-                                alert.anomaly_score >= 80 ? 'bg-rose-500' : 
-                                alert.anomaly_score >= 60 ? 'bg-amber-500' : 'bg-blue-500'
+                                aScore >= 80 ? 'bg-rose-500' : 
+                                aScore >= 60 ? 'bg-amber-500' : 'bg-blue-500'
                               }`} 
-                              style={{ width: `${Math.min(alert.anomaly_score, 100)}%` }}
+                              style={{ width: `${Math.min(aScore, 100)}%` }}
                             />
                           </div>
                           <span className="font-mono text-[11px] text-slate-200">
-                            {alert.anomaly_score.toFixed(1)}
+                            {aScore.toFixed(1)}
                           </span>
                         </div>
                       </td>
                       <td className="py-3 px-4 font-mono text-slate-300">
-                        {Math.round((alert.confidence || 0) * 100)}%
+                        {Math.round((Number(alert.confidence) || 0) * 100)}%
                       </td>
                       <td className="py-3 px-4">
                         <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-mono">
-                          {alert.contributing_signals?.length || alert.evidence_ids?.length || 0} signals
+                          {Array.isArray(alert.contributing_signals)
+                            ? alert.contributing_signals.length
+                            : alert.contributing_signals && typeof alert.contributing_signals === 'object'
+                            ? Object.keys(alert.contributing_signals).length
+                            : Array.isArray(alert.evidence_ids)
+                            ? alert.evidence_ids.length
+                            : 0} signals
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -210,12 +219,21 @@ export default function AlertsPage() {
                         {formatDate(alert.created_at)}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <Link
-                          to={`/alerts/${alert.id}`}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-xs font-medium border border-blue-500/20 transition"
-                        >
-                          Details <ChevronRight size={12} />
-                        </Link>
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            to={`/graph?entityType=${alert.entity_type || 'WALLET'}&entityId=${encodeURIComponent(alert.entity_id || '')}`}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-850 hover:bg-slate-800 text-slate-300 text-xs font-mono border border-slate-750 transition"
+                            title="Investigate in Graph"
+                          >
+                            <Network size={12} className="text-cyan-400" /> Graph
+                          </Link>
+                          <Link
+                            to={`/alerts/${alert.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 text-xs font-medium border border-blue-500/20 transition"
+                          >
+                            Details <ChevronRight size={12} />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
