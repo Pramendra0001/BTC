@@ -23,17 +23,30 @@ The platform combines on-chain transaction behavior with P2P network telemetry, 
 
 ---
 
-## 🌐 Live Project & Access
+## 🌐 Deployment Modes & Access
 
-| Service | Access |
-|---|---|
-| 🚀 Live Application | [Open BTC-SHIELD](https://pramendra0001.github.io/BTC/) |
-| 💻 BTC-SHIELD Project Repository | [View Project on GitHub](https://github.com/Pramendra0001/BTC) |
-| ⚙️ Backend API | [FastAPI on Render](https://btc-3jme.onrender.com) |
-| 📚 API Documentation | [Interactive Swagger / OpenAPI Docs](https://btc-3jme.onrender.com/docs) |
-| ❤️ API Health Check | [Check API Status](https://btc-3jme.onrender.com/health) |
-| 🔄 Frontend Deployment | [GitHub Actions Deployment](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml) |
-| 🧪 CI & Verification | [GitHub Actions CI](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml) |
+### Mode A: Live Online Cloud Deployment (Demo & Evaluation)
+
+| Service | Access | Description |
+|---|---|---|
+| 🚀 **Live Web Application** | [Open BTC-SHIELD](https://pramendra0001.github.io/BTC/) | Single-Page Application deployed on GitHub Pages with dark command center UI |
+| 💻 **Project Repository** | [View Project on GitHub](https://github.com/Pramendra0001/BTC) | Canonical Git repository containing full-stack code, test suites, and documentation |
+| ⚙️ **Backend REST API** | [FastAPI on Render](https://btc-3jme.onrender.com) | FastAPI backend deployed on Render with Python 3.13 |
+| 📚 **API Documentation** | [Interactive Swagger / OpenAPI Docs](https://btc-3jme.onrender.com/docs) | Swagger UI for interactive exploration of all 20 REST API routers |
+| ❤️ **API Health Check** | [Check API Status](https://btc-3jme.onrender.com/health) | Live system health and operational readiness endpoint |
+| 🔄 **Frontend Deployment** | [GitHub Actions Deployment](https://github.com/Pramendra0001/BTC/actions/workflows/deploy-frontend.yml) | Continuous deployment workflow to GitHub Pages |
+| 🧪 **CI & Verification** | [GitHub Actions CI](https://github.com/Pramendra0001/BTC/actions/workflows/ci.yml) | Automated test pipeline across backend and frontend |
+
+
+#### Mode B: SIH-Compliant Air-Gapped Offline Linux Deployment (Problem Statement 26146)
+| Local Service | Endpoint | Characterization |
+|---|---|---|
+| **Local Offline Frontend** | `http://localhost:3000` | Nginx-served React SPA with local `/api/` reverse proxy and zero external assets |
+| **Local Offline Backend API** | `http://localhost:8000` | FastAPI Python 3.13 engine running local ML, NetworkX graph, and evidence generators |
+| **Local Swagger Documentation** | `http://localhost:8000/docs` | Offline OpenAPI specification UI |
+| **Local PostgreSQL Database** | `localhost:5432` | Containerized PostgreSQL 16 persisted to local Docker volume |
+| **External Egress Status** | **NONE (Air-Gapped)** | Zero calls to external LLMs, cloud APIs, external CDNs, or remote telemetry feeds |
+
 
 ---
 
@@ -548,12 +561,52 @@ Test Suites:
 - Connects to managed cloud PostgreSQL (Neon).
 - Production API Base URL: `https://btc-3jme.onrender.com`
 
-### Docker Multi-Container Topology
-The repository includes a ready-to-run `docker-compose.yml` for fully air-gapped or on-premises deployment:
+---
+
+### 16.1 SIH Problem Statement 26146 — Air-Gapped Offline Linux Deployment
+
+BTC-SHIELD provides an air-gapped, zero-egress offline deployment architecture specifically designed for **Smart India Hackathon (SIH) Problem Statement 26146: “AI-Powered Monitoring & Analysis of Bitcoin Transaction Traffic”**.
+
+#### 1. Core Offline Guarantees
+- **Zero Internet Requirement:** No external network access, cloud APIs, remote LLMs, or external CDNs. All UI fonts, icons, charts, and graph engines are bundled into local static assets.
+- **Local Machine Learning:** Unsupervised Isolation Forest and DBSCAN clustering run strictly on-device via local `scikit-learn` and `joblib`.
+- **Local Relational Database:** PostgreSQL 16 containerized with local persistent Docker volume (`pgdata_offline`).
+- **Dual-Mode Local GeoIP:** Automatic resolution using local MaxMind databases (`offline/geoip/GeoLite2-*.mmdb`) or deterministic RFC 5737 / RFC 1918 fallback when files are absent.
+- **Multi-Format Ingestion:** Ingestion of local CSV, JSON, XML, and ZIP metadata from `offline/datasets/`.
+
+#### 2. Quick Start on Linux
 ```bash
-# Launch entire stack locally (Postgres 16, FastAPI Backend, Nginx Frontend)
-docker-compose up -d --build
+# 1. Grant execution permissions to operational management scripts
+chmod +x scripts/*.sh
+
+# 2. Launch the self-contained offline stack
+./scripts/offline-start.sh
 ```
+
+Upon startup, the services become accessible locally:
+- **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
+- **Backend API:** [http://localhost:8000](http://localhost:8000)
+- **Interactive OpenAPI Documentation:** [http://localhost:8000/docs](http://localhost:8000/docs)
+- **System Telemetry:** [http://localhost:8000/api/system/status](http://localhost:8000/api/system/status)
+
+#### 3. Operational Management Scripts
+| Script | Command | Purpose |
+|---|---|---|
+| **Start Stack** | `./scripts/offline-start.sh` | Verifies Docker prerequisites, launches containers, awaits health checks, and outputs service endpoints |
+| **Stop Stack** | `./scripts/offline-stop.sh` | Gracefully shuts down offline containers while preserving persistent database volumes |
+| **Reset Stack** | `./scripts/offline-reset.sh` | Resets containers; pass `--purge` to completely clean database and model volumes |
+| **Automated Tests** | `./scripts/offline-test.sh` | Executes full end-to-end verification covering ingestion, ML scoring, graph, evidence, and alerts |
+
+#### 4. Offline Directory Structure
+```text
+offline/
+├── datasets/          # SIH-compliant raw metadata files (sample_transactions.csv, .json, .xml)
+├── geoip/             # Local MaxMind MMDB directory (City & ASN mmdb)
+├── models/            # Persisted local ML models (Isolation Forest, DBSCAN, Scaler)
+├── data/              # Local storage for raw file processing & quarantined rows
+└── README.md          # Comprehensive offline architectural specification
+```
+
 
 ---
 

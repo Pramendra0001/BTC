@@ -290,6 +290,10 @@ class SystemStatusResponse(BaseModel):
     ai_provider: str
     uptime_seconds: int
     geoip_service: Optional[Dict[str, Any]] = None
+    app_mode: Optional[str] = "online"
+    offline_mode: Optional[bool] = False
+    offline_telemetry: Optional[Dict[str, Any]] = None
+
 
 class HealthResponse(BaseModel):
     status: str

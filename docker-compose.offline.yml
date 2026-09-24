@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: btcshield-offline-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: btcshield
+      POSTGRES_PASSWORD: btcshield_secret_offline
+      POSTGRES_DB: btcshield_db
+    volumes:
+      - pgdata_offline:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U btcshield -d btcshield_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - btcshield_offline_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.backend
+    container_name: btcshield-offline-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_MODE=offline
+      - OFFLINE_MODE=true
+      - ENVIRONMENT=development
+      - PORT=8000
+      - DATABASE_URL=postgresql://btcshield:btcshield_secret_offline@postgres:5432/btcshield_db
+      - JWT_SECRET=btcshield-offline-airgapped-jwt-secret-key-32chars
+      - AI_PROVIDER=mock
+      - MODEL_DIR=/app/models
+      - CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000","http://127.0.0.1:8000"]
+      - GEOIP_DB_PATH=/app/offline/geoip/GeoLite2-City.mmdb
+      - GEOIP_ASN_DB_PATH=/app/offline/geoip/GeoLite2-ASN.mmdb
+    volumes:
+      - ./offline:/app/offline:ro
+      - offline_models_volume:/app/models
+      - offline_data_volume:/app/offline/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - btcshield_offline_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile.frontend
+      args:
+        - VITE_BASE_PATH=/
+        - VITE_API_BASE_URL=http://localhost:8000
+    container_name: btcshield-offline-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - btcshield_offline_network
+
+volumes:
+  pgdata_offline:
+  offline_models_volume:
+  offline_data_volume:
+
+networks:
+  btcshield_offline_network:
+    driver: bridge

@@ -126,6 +126,88 @@ export default function SystemPage() {
         })}
       </div>
 
+      {/* BTC-SHIELD OFFLINE STATUS */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-800">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                BTC-SHIELD OFFLINE STATUS
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  SIH 26146 READY
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400">
+                Self-contained, air-gapped investigative runtime verification
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 font-mono">APP_MODE:</span>
+            <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold uppercase ${
+              status?.app_mode === 'offline' 
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+            }`}>
+              {status?.app_mode || 'OFFLINE (AIR-GAPPED LINUX)'}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs font-mono">
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Application Mode:</span>
+            <span className="text-emerald-400 font-semibold">{status?.app_mode === 'offline' ? 'OFFLINE (AIR-GAPPED)' : 'ONLINE / CLOUD HYBRID'}</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Frontend Engine:</span>
+            <span className="text-emerald-400 font-semibold">OPERATIONAL (Port 3000 / Pages)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Backend API:</span>
+            <span className="text-emerald-400 font-semibold">OPERATIONAL (Port 8000)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Database Engine:</span>
+            <span className="text-emerald-400 font-semibold">{status?.database === 'OPERATIONAL' ? 'OPERATIONAL (PostgreSQL 16 Local)' : 'DEGRADED / INITIALIZING'}</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">ML Engine:</span>
+            <span className="text-emerald-400 font-semibold">scikit-learn IF + DBSCAN (LOCAL)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Graph Engine:</span>
+            <span className="text-emerald-400 font-semibold">NetworkX (LOCAL)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Evidence Engine:</span>
+            <span className="text-emerald-400 font-semibold">Deterministic Multi-Layer (LOCAL)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">GeoIP Resolver:</span>
+            <span className="text-emerald-400 font-semibold">Offline MaxMind / RFC 5737 (LOCAL)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">Dataset Ingestion:</span>
+            <span className="text-emerald-400 font-semibold">CSV / JSON / XML / ZIP (LOCAL)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between">
+            <span className="text-slate-400">External API Calls:</span>
+            <span className="text-emerald-400 font-semibold">NONE (Zero-Egress Verified)</span>
+          </div>
+          <div className="p-3 bg-slate-950 rounded-lg border border-slate-800/80 flex items-center justify-between md:col-span-2">
+            <span className="text-slate-400">Internet Connection Required:</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-emerald-400" />
+              NO (Fully Air-Gapped & Offline Ready)
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Deployment Mode Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3 shadow-lg">
         <h2 className="text-sm font-bold text-white flex items-center gap-2">

@@ -35,6 +35,11 @@ class Settings(BaseSettings):
     GEOIP_DB_PATH: str = "data/geoip/GeoLite2-City.mmdb"
     GEOIP_ASN_DB_PATH: str = "data/geoip/GeoLite2-ASN.mmdb"
 
+    APP_MODE: str = "online"
+    OFFLINE_MODE: bool = False
+    MODEL_DIR: str = "models"
+
+
     @field_validator("CORS_ORIGINS", mode="after")
     @classmethod
     def parse_cors_origins(cls, v):

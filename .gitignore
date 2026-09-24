@@ -63,6 +63,16 @@ htmlcov/
 
 # GeoIP databases
 data/geoip/*.mmdb
+offline/geoip/*.mmdb
+
+# Offline ML models & data
+offline/models/*.joblib
+offline/models/*.pkl
+offline/data/uploads/*
+offline/data/quarantine/*
+!offline/data/uploads/.gitkeep
+!offline/data/quarantine/.gitkeep
+
 
 # Large benchmark datasets & archives (local benchmark only)
 *.zip
