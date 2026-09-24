@@ -330,7 +330,11 @@ export default function AlertDetailPage() {
                     <div key={idx} className="p-2.5 bg-slate-850 rounded border border-slate-800 text-slate-300 flex items-start gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                       <span className="text-[11px] font-mono leading-relaxed">
-                        {typeof sig === 'string' ? sig : JSON.stringify(sig)}
+                        {typeof sig === 'string' 
+                          ? sig 
+                          : sig?.observation 
+                          ? `${sig.category ? `[${sig.category}] ` : ''}${sig.observation}`
+                          : JSON.stringify(sig)}
                       </span>
                     </div>
                   ))}
