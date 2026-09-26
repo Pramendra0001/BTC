@@ -159,7 +159,7 @@ fi
 ALERTS_RESP=$(curl -sS "${API_BASE}/api/alerts/?limit=5" -H "${AUTH_HEADER}" || echo "{}")
 ALERT_ID=$(echo "${ALERTS_RESP}" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p' | head -n 1)
 
-if echo "${ALERTS_RESP}" | grep -q '"items"'; then
+if echo "${ALERTS_RESP}" | grep -q '"alerts"'; then
     record_result "Alerts" "PASS" "Alert Prioritizer populated with compound anomaly scores"
 else
     record_result "Alerts" "FAIL" "Alerts query failed: ${ALERTS_RESP}"
