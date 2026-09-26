@@ -72,7 +72,7 @@ services:
 volumes:
   pgdata_offline:
   offline_models_volume:
-  offline_data_volume
+  offline_data_volume:
 
 networks:
   btcshield_offline_network:
