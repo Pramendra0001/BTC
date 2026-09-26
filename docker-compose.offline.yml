@@ -20,7 +20,6 @@ services:
     networks:
       - btcshield_offline_network
 
-
   backend:
     build:
       context: .
@@ -36,6 +35,9 @@ services:
       - PORT=8000
       - DATABASE_URL=postgresql://btcshield:btcshield_secret_offline@postgres:5432/btcshield_db
       - JWT_SECRET=btcshield-offline-airgapped-jwt-secret-key-32chars
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin123
+      - ADMIN_EMAIL=admin@btcshield.gov
       - AI_PROVIDER=mock
       - MODEL_DIR=/app/models
       - CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000","http://127.0.0.1:8000"]
@@ -70,7 +72,7 @@ services:
 volumes:
   pgdata_offline:
   offline_models_volume:
-  offline_data_volume:
+  offline_data_volume
 
 networks:
   btcshield_offline_network:
