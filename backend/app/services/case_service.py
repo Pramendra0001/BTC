@@ -208,9 +208,31 @@ def generate_report(db: Session, case_id: int) -> dict:
     if not detail:
         return None
 
+    generated_at = datetime.utcnow().isoformat()
+    disclaimer = (
+        "This report is generated from synthetic data for demonstration purposes. "
+        "All entities, transactions, and behavioral signals are derived from "
+        "algorithmic analysis. No definitive criminal determination is made. "
+        "Findings represent investigative leads requiring further review."
+    )
+
+    report_content = (
+        f"INVESTIGATION REPORT\\n\\n"
+        f"Case: {detail['title']}\\n"
+        f"Status: {detail['status']}\\n"
+        f"Priority: {detail['priority']}\\n"
+        f"Investigator: {detail['investigator']}\\n"
+        f"Generated At: {generated_at}\\n\\n"
+        f"Summary\\n"
+        f"Entities: {detail['entity_count']}\\n"
+        f"Evidence: {detail['evidence_count']}\\n"
+        f"Notes: {detail['note_count']}\\n\\n"
+        f"Disclaimer: {disclaimer}"
+    )
+
     report = {
         "report_type": "INVESTIGATION_REPORT",
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": generated_at,
         "case": detail,
         "summary": {
             "title": detail["title"],
@@ -221,12 +243,8 @@ def generate_report(db: Session, case_id: int) -> dict:
             "total_evidence": detail["evidence_count"],
             "total_notes": detail["note_count"],
         },
-        "disclaimer": (
-            "This report is generated from synthetic data for demonstration purposes. "
-            "All entities, transactions, and behavioral signals are derived from "
-            "algorithmic analysis. No definitive criminal determination is made. "
-            "Findings represent investigative leads requiring further review."
-        ),
+        "disclaimer": disclaimer,
+        "report_content": report_content,
     }
 
     from app.services import audit_service
