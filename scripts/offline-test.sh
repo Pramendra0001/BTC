@@ -7,11 +7,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-
 cd "${REPO_ROOT}"
 
 API_BASE="${API_BASE:-http://localhost:8000}"
 FRONTEND_BASE="${FRONTEND_BASE:-http://localhost:3000}"
+
+# Offline bootstrap creates this local administrator account unless overridden.
+OFFLINE_TEST_USERNAME="${OFFLINE_TEST_USERNAME:-admin}"
+OFFLINE_TEST_PASSWORD="${OFFLINE_TEST_PASSWORD:-admin123}"
 
 echo "================================================================================"
 echo "          BTC-SHIELD AIR-GAPPED VERIFICATION TEST SUITE (SIH 26146)             "
@@ -38,7 +41,7 @@ record_result() {
     fi
 }
 
-# 1. Infrastructure (Local binding check)
+# 1. Infrastructure
 if curl -s -m 2 "${API_BASE}/health" >/dev/null 2>&1; then
     record_result "Infrastructure" "PASS" "Local services bound to localhost/Docker internal"
 else
@@ -46,7 +49,7 @@ else
     exit 1
 fi
 
-# 2. Database (PostgreSQL connectivity check)
+# 2. Database
 STATUS_JSON=$(curl -s "${API_BASE}/api/system/status" || echo "{}")
 if echo "${STATUS_JSON}" | grep -qi '"database"[[:space:]]*:[[:space:]]*"OPERATIONAL"'; then
     record_result "Database" "PASS" "PostgreSQL 16 Relational Engine OPERATIONAL"
@@ -54,7 +57,7 @@ else
     record_result "Database" "FAIL" "Database not operational: ${STATUS_JSON}"
 fi
 
-# 3. Frontend (Local Nginx container check)
+# 3. Frontend
 FRONTEND_RESP=$(curl -s -m 3 "${FRONTEND_BASE}" || echo "FAIL")
 if echo "${FRONTEND_RESP}" | grep -q 'BTC-SHIELD'; then
     record_result "Frontend" "PASS" "Local Nginx SPA serving bundled index.html (HTTP 200)"
@@ -62,7 +65,7 @@ else
     record_result "Frontend" "FAIL" "Frontend not reachable or invalid payload"
 fi
 
-# 4. Backend (Health endpoint check)
+# 4. Backend
 HEALTH_JSON=$(curl -s "${API_BASE}/health" || echo "{}")
 if echo "${HEALTH_JSON}" | grep -q '"status":"ok"'; then
     record_result "Backend" "PASS" "FastAPI application router healthy (HTTP 200)"
@@ -70,7 +73,25 @@ else
     record_result "Backend" "FAIL" "Health check failed: ${HEALTH_JSON}"
 fi
 
-# 5. Dataset (SIH-compliant dataset availability)
+# 5. Authentication
+# The production API correctly protects investigator endpoints with JWT. The
+# previous offline verifier omitted the Bearer token, causing every downstream
+# workflow check to fail with HTTP 401 "Not authenticated".
+LOGIN_RESP=$(curl -sS -m 5 -X POST "${API_BASE}/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d "{\"username\":\"${OFFLINE_TEST_USERNAME}\",\"password\":\"${OFFLINE_TEST_PASSWORD}\"}" || echo "FAIL")
+AUTH_TOKEN=$(echo "${LOGIN_RESP}" | sed -n 's/.*"access_token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
+
+if [ -n "${AUTH_TOKEN}" ]; then
+    AUTH_HEADER="Authorization: Bearer ${AUTH_TOKEN}"
+    record_result "Authentication" "PASS" "Local JWT authentication succeeded; protected API calls will use Bearer token"
+else
+    record_result "Authentication" "FAIL" "Local JWT login failed: ${LOGIN_RESP}"
+    echo "[-] Cannot continue protected workflow without a local offline JWT." >&2
+    exit 1
+fi
+
+# 6. Dataset
 DATASET_PATH="offline/datasets/sample_transactions.csv"
 if [ -f "${DATASET_PATH}" ] && [ -s "${DATASET_PATH}" ]; then
     RECORD_COUNT=$(wc -l < "${DATASET_PATH}" | tr -d ' ')
@@ -79,8 +100,9 @@ else
     record_result "Dataset" "FAIL" "Sample dataset missing or empty at ${DATASET_PATH}"
 fi
 
-# 6. Ingestion (Upload and multi-format validation)
-UPLOAD_RESP=$(curl -s -X POST "${API_BASE}/api/datasets/upload" \
+# 7. Ingestion
+UPLOAD_RESP=$(curl -sS -X POST "${API_BASE}/api/datasets/upload" \
+    -H "${AUTH_HEADER}" \
     -F "file=@${DATASET_PATH};type=text/csv" || echo "FAIL")
 
 DATASET_ID=""
@@ -91,9 +113,10 @@ else
     record_result "Ingestion" "FAIL" "Dataset ingestion failed: ${UPLOAD_RESP}"
 fi
 
-# 7. Feature Engineering & 8. ML Pipeline & 9. Clustering
+# 8. Feature Engineering & 9. ML Pipeline & 10. Clustering
 if [ -n "${DATASET_ID}" ]; then
-    PROCESS_RESP=$(curl -s -X POST "${API_BASE}/api/datasets/${DATASET_ID}/process" || echo "FAIL")
+    PROCESS_RESP=$(curl -sS -X POST "${API_BASE}/api/datasets/${DATASET_ID}/process" \
+        -H "${AUTH_HEADER}" || echo "FAIL")
     if echo "${PROCESS_RESP}" | grep -q '"status"'; then
         record_result "Feature Engineering" "PASS" "23-dimensional behavioral feature vectors computed"
         record_result "ML" "PASS" "Isolation Forest anomaly detection executed on-device"
@@ -109,12 +132,12 @@ else
     record_result "Clustering" "FAIL" "Skipped due to missing dataset ID"
 fi
 
-# 10. Graph (NetworkX multigraph intelligence)
-WALLETS_RESP=$(curl -s "${API_BASE}/api/wallets/?limit=1" || echo "[]")
+# 11. Graph
+WALLETS_RESP=$(curl -sS "${API_BASE}/api/wallets/?limit=1" -H "${AUTH_HEADER}" || echo "[]")
 FIRST_ADDR=$(echo "${WALLETS_RESP}" | sed -n 's/.*"address"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)
 
 if [ -n "${FIRST_ADDR}" ]; then
-    GRAPH_RESP=$(curl -s "${API_BASE}/api/graph/WALLET/${FIRST_ADDR}" || echo "{}")
+    GRAPH_RESP=$(curl -sS "${API_BASE}/api/graph/WALLET/${FIRST_ADDR}" -H "${AUTH_HEADER}" || echo "{}")
     if echo "${GRAPH_RESP}" | grep -q '"nodes"'; then
         record_result "Graph" "PASS" "NetworkX k-hop multigraph computed locally for ${FIRST_ADDR:0:10}..."
     else
@@ -124,16 +147,16 @@ else
     record_result "Graph" "FAIL" "No wallet address found to query graph"
 fi
 
-# 11. Evidence (Deterministic Multi-Layer Evidence Generation)
-EVIDENCE_RESP=$(curl -s "${API_BASE}/api/evidence/?limit=5" || echo "[]")
+# 12. Evidence
+EVIDENCE_RESP=$(curl -sS "${API_BASE}/api/evidence/?limit=5" -H "${AUTH_HEADER}" || echo "[]")
 if echo "${EVIDENCE_RESP}" | grep -q '"category"'; then
     record_result "Evidence" "PASS" "Multi-layer evidentiary records generated and correlated"
 else
     record_result "Evidence" "FAIL" "Evidence records not found: ${EVIDENCE_RESP}"
 fi
 
-# 12. Alerts (Priority ranking and contributing signals)
-ALERTS_RESP=$(curl -s "${API_BASE}/api/alerts/?limit=5" || echo "{}")
+# 13. Alerts
+ALERTS_RESP=$(curl -sS "${API_BASE}/api/alerts/?limit=5" -H "${AUTH_HEADER}" || echo "{}")
 ALERT_ID=$(echo "${ALERTS_RESP}" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p' | head -n 1)
 
 if echo "${ALERTS_RESP}" | grep -q '"items"'; then
@@ -142,9 +165,9 @@ else
     record_result "Alerts" "FAIL" "Alerts query failed: ${ALERTS_RESP}"
 fi
 
-# 13. Investigation (Alert Detail & Investigation Flow)
+# 14. Investigation
 if [ -n "${ALERT_ID}" ]; then
-    ALERT_DETAIL_RESP=$(curl -s "${API_BASE}/api/alerts/${ALERT_ID}" || echo "{}")
+    ALERT_DETAIL_RESP=$(curl -sS "${API_BASE}/api/alerts/${ALERT_ID}" -H "${AUTH_HEADER}" || echo "{}")
     if echo "${ALERT_DETAIL_RESP}" | grep -q '"priority"'; then
         record_result "Investigation" "PASS" "Alert Detail flow retrieved without black/blank screen"
     else
@@ -154,9 +177,10 @@ else
     record_result "Investigation" "FAIL" "No alert ID available for investigation test"
 fi
 
-# 14. Cases (Case creation & workspace)
+# 15. Cases
 CASE_PAYLOAD='{"title":"SIH-Offline-Forensic-Case-01","description":"Air-gapped verification case","priority":"HIGH"}'
-CASE_RESP=$(curl -s -X POST "${API_BASE}/api/cases/" \
+CASE_RESP=$(curl -sS -X POST "${API_BASE}/api/cases/" \
+    -H "${AUTH_HEADER}" \
     -H "Content-Type: application/json" \
     -d "${CASE_PAYLOAD}" || echo "FAIL")
 
@@ -167,9 +191,9 @@ else
     record_result "Cases" "FAIL" "Case creation failed: ${CASE_RESP}"
 fi
 
-# 15. Reports (Court-ready case dossier generation)
+# 16. Reports
 if [ -n "${CASE_ID}" ]; then
-    REPORT_RESP=$(curl -s "${API_BASE}/api/cases/${CASE_ID}/report" || echo "FAIL")
+    REPORT_RESP=$(curl -sS "${API_BASE}/api/cases/${CASE_ID}/report" -H "${AUTH_HEADER}" || echo "FAIL")
     if echo "${REPORT_RESP}" | grep -q '"report_content"'; then
         record_result "Reports" "PASS" "Court-ready forensic case dossier exported locally"
     else
@@ -179,7 +203,7 @@ else
     record_result "Reports" "FAIL" "Skipped due to missing Case ID"
 fi
 
-# 16. Zero Egress (Verifies no external network egress or third-party DNS)
+# 17. Zero Egress
 TELEMETRY_JSON=$(curl -s "${API_BASE}/api/system/status" || echo "{}")
 if echo "${TELEMETRY_JSON}" | grep -q '"external_api_calls"[[:space:]]*:[[:space:]]*"NONE"'; then
     record_result "Zero Egress" "PASS" "Zero external API calls, MockAIProvider active, local MMDB/RFC5737"
@@ -188,11 +212,11 @@ else
 fi
 
 echo "--------------------------------------------------------------------------------"
-echo "VERIFICATION SUMMARY: ${PASS_COUNT}/16 TESTS PASSED (${FAIL_COUNT} FAILURES)"
+echo "VERIFICATION SUMMARY: ${PASS_COUNT}/17 TESTS PASSED (${FAIL_COUNT} FAILURES)"
 echo "================================================================================"
 
 if [ ${FAIL_COUNT} -eq 0 ]; then
-    echo "[✓] ALL 16 OFFLINE RUNTIME SUBSYSTEMS ARE VERIFIED OPERATIONAL."
+    echo "[✓] ALL 17 OFFLINE RUNTIME SUBSYSTEMS ARE VERIFIED OPERATIONAL."
     exit 0
 else
     echo "[-] SOME SUBSYSTEMS FAILED VERIFICATION. INSPECT LOGS ABOVE." >&2
