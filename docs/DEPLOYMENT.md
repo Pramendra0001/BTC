@@ -69,7 +69,7 @@ npm run preview -- --port 5173 --host
 
 Access the application in your browser at `http://localhost:5173`. Default administrator credentials:
 - **Username:** `admin`
-- **Password:** `admin123`
+- **Password:** `<set-via-ADMIN_PASSWORD>`
 
 ---
 
