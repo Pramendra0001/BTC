@@ -3,8 +3,8 @@ import pytest
 from pydantic import ValidationError
 from app.core.config import Settings
 
-VALID_PROD_DB = "postgresql://user:pass@ep-patient-forest.aws.neon.tech/neondb?sslmode=require"
-VALID_PROD_JWT = "a" * 32 + "super_secure_production_secret_key"
+VALID_PROD_DB = "postgresql://test_user:test_password@example.invalid/testdb?sslmode=require"
+VALID_PROD_JWT = "test-only-jwt-secret-" + ("x" * 40)
 
 def test_render_plain_string_cors_origins(monkeypatch):
     """Regression test: Render sets CORS_ORIGINS as a plain string, e.g.
