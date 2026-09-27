@@ -479,10 +479,10 @@ The frontend is now accessible at `http://localhost:5173`.
 
 | Role | Username | Email | Default Password | Permissions |
 |---|---|---|---|---|
-| **ADMINISTRATOR** | `admin` | `admin@btcshield.gov` | `admin123` *(dev)* | Full platform administration, system settings, model retraining |
-| **INVESTIGATOR** | `lead_investigator` | `investigator@btcshield.gov` | `Investigator@2026!` | Case management, dossier editing, note attachment, report export |
-| **ANALYST** | `aml_analyst` | `analyst@btcshield.gov` | `Analyst@2026!` | Alert triage, heuristic execution, graph exploration, data auditing |
-| **VIEWER** | `compliance_viewer` | `viewer@btcshield.gov` | `Viewer@2026!` | Read-only access to dashboards, graph views, and summary statistics |
+| **ADMINISTRATOR** | `admin` | `admin@btcshield.gov` | `<set-via-ADMIN_PASSWORD>` | Full platform administration, system settings, model retraining |
+| **INVESTIGATOR** | `lead_investigator` | `investigator@btcshield.gov` | `<development-only demo password>` | Case management, dossier editing, note attachment, report export |
+| **ANALYST** | `aml_analyst` | `analyst@btcshield.gov` | `<development-only demo password>` | Alert triage, heuristic execution, graph exploration, data auditing |
+| **VIEWER** | `compliance_viewer` | `viewer@btcshield.gov` | `<development-only demo password>` | Read-only access to dashboards, graph views, and summary statistics |
 
 ---
 
