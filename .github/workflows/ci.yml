@@ -26,6 +26,22 @@ jobs:
           pip install -r backend/requirements.txt
           pip install pytest httpx
 
+      - name: Provision DB-IP Lite MMDB fixtures
+        run: |
+          mkdir -p offline/geoip
+
+          curl --fail --silent --show-error --location --retry 3 \
+            https://download.db-ip.com/free/dbip-country-lite-2026-09.mmdb.gz \
+            --output /tmp/dbip-country-lite.mmdb.gz
+          gunzip -c /tmp/dbip-country-lite.mmdb.gz > offline/geoip/DB-IP-Country-Lite.mmdb
+          echo "385d4ab1e08417634a0a64921ac0e9c15c4c5e8a  offline/geoip/DB-IP-Country-Lite.mmdb" | sha1sum -c -
+
+          curl --fail --silent --show-error --location --retry 3 \
+            https://download.db-ip.com/free/dbip-asn-lite-2026-09.mmdb.gz \
+            --output /tmp/dbip-asn-lite.mmdb.gz
+          gunzip -c /tmp/dbip-asn-lite.mmdb.gz > offline/geoip/DB-IP-ASN-Lite.mmdb
+          echo "ed77172c63fcc2b949fd5e998a3575e13ab9ef1d  offline/geoip/DB-IP-ASN-Lite.mmdb" | sha1sum -c -
+
       - name: Run Backend Tests
         run: |
           PYTHONPATH=backend pytest tests/ -v
