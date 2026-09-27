@@ -6,7 +6,7 @@ Each evidence is linked to source data — never fabricated.
 from sqlalchemy.orm import Session
 from app.models.models import (
     Evidence, AnomalyResult, BehavioralFeature, Wallet,
-    Transaction, NetworkObservation, IPEntity
+    Transaction, NetworkObservation, IPEntity, CaseEvidence
 )
 from datetime import datetime
 import logging
@@ -23,9 +23,14 @@ def generate_evidence(db: Session):
     """
     logger.info("Generating evidence...")
 
-    # Clear old evidence to regenerate
-    db.query(Evidence).delete()
-    db.commit()
+    # Clear old case-evidence links and old evidence to safely regenerate without foreign key constraint violations
+    try:
+        db.query(CaseEvidence).delete(synchronize_session=False)
+        db.query(Evidence).delete(synchronize_session=False)
+        db.commit()
+    except Exception as e:
+        logger.warning(f"Notice during evidence table cleanup: {e}")
+        db.rollback()
 
     evidence_count = 0
 

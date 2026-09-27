@@ -39,7 +39,9 @@ def get_system_status(db: Session = Depends(get_db)):
             "ml_engine": "Isolation Forest & DBSCAN (scikit-learn local)",
             "graph_engine": "NetworkX (local in-memory)",
             "evidence_engine": "Deterministic Multi-Layer Correlation",
-            "geoip_mode": geoip_telemetry.get("status", "FALLBACK"),
+            "geoip_mode": geoip_telemetry.get("geoip_mode", geoip_telemetry.get("active_mode", "FALLBACK")),
+            "geoip_source": geoip_telemetry.get("geoip_source", "OFFLINE_FALLBACK"),
+            "attribution": geoip_telemetry.get("attribution", "DB-IP.com"),
             "external_api_calls": "NONE",
             "internet_required": "NO"
         }

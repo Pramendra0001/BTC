@@ -203,7 +203,7 @@ class Case(Base):
 class CaseEntity(Base):
     __tablename__ = "case_entities"
     id = Column(Integer, primary_key=True, index=True)
-    case_id = Column(Integer, ForeignKey("cases.id"))
+    case_id = Column(Integer, ForeignKey("cases.id", ondelete="CASCADE"))
     entity_type = Column(String)
     entity_id = Column(String)
     added_at = Column(DateTime, default=datetime.utcnow)
@@ -211,14 +211,14 @@ class CaseEntity(Base):
 class CaseEvidence(Base):
     __tablename__ = "case_evidence"
     id = Column(Integer, primary_key=True, index=True)
-    case_id = Column(Integer, ForeignKey("cases.id"))
-    evidence_id = Column(Integer, ForeignKey("evidence.id"))
+    case_id = Column(Integer, ForeignKey("cases.id", ondelete="CASCADE"))
+    evidence_id = Column(Integer, ForeignKey("evidence.id", ondelete="CASCADE"))
     added_at = Column(DateTime, default=datetime.utcnow)
 
 class CaseNote(Base):
     __tablename__ = "case_notes"
     id = Column(Integer, primary_key=True, index=True)
-    case_id = Column(Integer, ForeignKey("cases.id"))
+    case_id = Column(Integer, ForeignKey("cases.id", ondelete="CASCADE"))
     user_id = Column(Integer, ForeignKey("users.id"))
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
