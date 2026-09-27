@@ -41,8 +41,8 @@ services:
       - AI_PROVIDER=mock
       - MODEL_DIR=/app/models
       - CORS_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000","http://localhost:8000","http://127.0.0.1:8000"]
-      - GEOIP_DB_PATH=/app/offline/geoip/GeoLite2-City.mmdb
-      - GEOIP_ASN_DB_PATH=/app/offline/geoip/GeoLite2-ASN.mmdb
+      - GEOIP_DB_PATH=/app/offline/geoip/DB-IP-Country-Lite.mmdb
+      - GEOIP_ASN_DB_PATH=/app/offline/geoip/DB-IP-ASN-Lite.mmdb
     volumes:
       - ./offline:/app/offline:ro
       - offline_models_volume:/app/models
