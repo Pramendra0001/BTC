@@ -27,7 +27,7 @@ def bootstrap_system_users():
         # 1. Administrator
         admin = db.query(User).filter(User.username == settings.ADMIN_USERNAME).first()
         if not admin:
-            admin_pass = settings.ADMIN_PASSWORD if (is_prod and settings.ADMIN_PASSWORD) else dev_pass
+            admin_pass = settings.ADMIN_PASSWORD if is_prod else dev_pass
             if admin_pass:
                 new_admin = User(
                     username=settings.ADMIN_USERNAME,
@@ -39,13 +39,13 @@ def bootstrap_system_users():
                 db.add(new_admin)
                 logger.info("Administrator '%s' initialized.", settings.ADMIN_USERNAME)
 
-        # 2. Demo accounts for presentation & evaluation
-        demo_accounts = [
+        # 2. Demo accounts are development/evaluation fixtures only.
+        # Never create predictable presentation credentials in production.
+        demo_accounts = [] if is_prod else [
             ("lead_investigator", "investigator@btcshield.gov", RoleEnum.INVESTIGATOR, "Investigator@2026!"),
             ("aml_analyst", "analyst@btcshield.gov", RoleEnum.ANALYST, "Analyst@2026!"),
             ("compliance_viewer", "viewer@btcshield.gov", RoleEnum.VIEWER, "Viewer@2026!"),
         ]
-
         for username, email, role, default_pwd in demo_accounts:
             existing = db.query(User).filter(User.username == username).first()
             if not existing:
