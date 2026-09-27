@@ -11,7 +11,7 @@
 - [ ] Backend active on `http://localhost:8000` (FastAPI Swagger `/docs`)
 - [ ] Frontend active on `http://localhost:5173`
 - [ ] Test dataset ready at `data/samples/btc_shield_synthetic_transactions.csv`
-- [ ] Default login credentials: `admin` / `admin123`
+- [ ] Default login credentials: `admin` / `<set-via-ADMIN_PASSWORD>`
 - [ ] Network adapter disabled (optional for offline verification proof)
 
 ---
